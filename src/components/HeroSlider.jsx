@@ -45,7 +45,7 @@ const HeroSlider = () => {
               </Link>
             </div>
             <img
-              src="../../public/banner_Hero2.jpg"
+              src="/banner_Hero2.jpg"
               alt="slider hero 2"
               className="m-auto"
             />
