@@ -1,45 +1,58 @@
 import React from "react";
-// Import Swiper React components
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
-// import required modules
 import { Autoplay, Pagination, Navigation } from "swiper/modules";
 import { Link } from "react-router-dom";
+
 const HeroSlider = () => {
   return (
-    <>
-      <div className="px-20 relative">
-        <Swiper
-          loop={true}
-          spaceBetween={30}
-          centeredSlides={true}
-          autoplay={{
-            delay: 2500,
-            disableOnInteraction: false,
-          }}
-          pagination={{
-            clickable: true,
-          }}
-          navigation={true}
-          modules={[Autoplay, Pagination, Navigation]}
-          className="mySwiper  "
-        >
-          <SwiperSlide className="">
-            <div className="absolute top-1/4 left-1/8 2xl:left-1/4">
-              <h4 className="uppercase font-medium text-xs md:text-sm lg:text-lg">
-                Introducing the new{" "}
+    <div className="relative px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20">
+      <Swiper
+        loop={true}
+        spaceBetween={16}
+        centeredSlides={true}
+        autoplay={{
+          delay: 2500,
+          disableOnInteraction: false,
+        }}
+        pagination={{
+          clickable: true,
+          dynamicBullets: true,
+        }}
+        navigation={{
+          nextEl: ".swiper-button-next",
+          prevEl: ".swiper-button-prev",
+        }}
+        modules={[Autoplay, Pagination, Navigation]}
+        className="mySwiper"
+        breakpoints={{
+          // when window width is >= 640px
+          640: {
+            spaceBetween: 24,
+          },
+          // when window width is >= 1024px
+          1024: {
+            spaceBetween: 30,
+          },
+        }}
+      >
+        {/* Slide 1 */}
+        <SwiperSlide>
+          <div className="relative h-full w-full">
+            <div className="absolute inset-0 flex flex-col justify-center items-start p-4 sm:p-6 md:p-8 lg:p-12 xl:p-16 text-white bg-black bg-opacity-30">
+              <h4 className="uppercase font-medium text-xs sm:text-sm md:text-base lg:text-lg mb-1 sm:mb-2">
+                Introducing the new
               </h4>
-              <h3 className="capitalize text-md md:text-2xl  lg:text-5xl font-bold text-pink-500 lg:mt-2">
+              <h3 className="capitalize text-lg sm:text-xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-pink-500 mb-2 sm:mb-4">
                 Microsoft Xbox <br /> 360Controller
               </h3>
-              <p className="my-1 lg:my-8  text-md">
+              <p className="text-xs sm:text-sm md:text-base mb-3 sm:mb-6">
                 Windows Xp/10/7/8 Ps3, Tv Box
               </p>
               <Link to="/">
-                {" "}
-                <button className="px-2 py-1 lg:px-3 lg:py-2 text-xs lg:text-base rounded-3xl border border-pink-500 bg-pink-500 text-white hover:bg-white hover:text-pink-500 transition-colors duration-300">
+                <button className="px-3 py-1 sm:px-4 sm:py-2 md:px-5 md:py-2 text-xs sm:text-sm md:text-base rounded-3xl border border-pink-500 bg-pink-500 text-white hover:bg-white hover:text-pink-500 transition-colors duration-300">
                   Shop Now
                 </button>
               </Link>
@@ -47,23 +60,27 @@ const HeroSlider = () => {
             <img
               src="/banner_Hero2.jpg"
               alt="slider hero 2"
-              className="m-auto"
+              className="w-full h-auto object-cover"
+              style={{ minHeight: "300px", maxHeight: "600px" }}
             />
-          </SwiperSlide>
-          <SwiperSlide className="">
-            <div className="absolute top-1/4 left-1/8 ">
-              <h4 className="uppercase font-medium text-xs md:text-sm lg:text-lg">
-                Introducing the new{" "}
+          </div>
+        </SwiperSlide>
+
+        {/* Slide 2 */}
+        <SwiperSlide>
+          <div className="relative h-full w-full">
+            <div className="absolute inset-0 flex flex-col justify-center items-start p-4 sm:p-6 md:p-8 lg:p-12 xl:p-16 text-white bg-black bg-opacity-30">
+              <h4 className="uppercase font-medium text-xs sm:text-sm md:text-base lg:text-lg mb-1 sm:mb-2">
+                Introducing the new
               </h4>
-              <h3 className="capitalize text-md md:text-2xl  lg:text-5xl font-bold text-pink-500 lg:mt-2">
+              <h3 className="capitalize text-lg sm:text-xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-pink-500 mb-2 sm:mb-4">
                 Microsoft Xbox <br /> 360Controller
               </h3>
-              <p className="my-1 lg:my-8 text-md">
+              <p className="text-xs sm:text-sm md:text-base mb-3 sm:mb-6">
                 Windows Xp/10/7/8 Ps3, Tv Box
               </p>
               <Link to="/">
-                {" "}
-                <button className="px-2 py-1 lg:px-3 lg:py-2 text-xs lg:text-base rounded-3xl border border-pink-500 bg-pink-500 text-white hover:bg-white hover:text-pink-500 transition-colors duration-300">
+                <button className="px-3 py-1 sm:px-4 sm:py-2 md:px-5 md:py-2 text-xs sm:text-sm md:text-base rounded-3xl border border-pink-500 bg-pink-500 text-white hover:bg-white hover:text-pink-500 transition-colors duration-300">
                   Shop Now
                 </button>
               </Link>
@@ -71,37 +88,41 @@ const HeroSlider = () => {
             <img
               src="/banner_Hero3.jpg"
               alt="slider hero 3"
-              className="m-auto"
+              className="w-full h-auto object-cover"
+              style={{ minHeight: "300px", maxHeight: "600px" }}
             />
-          </SwiperSlide>
-          <SwiperSlide className="">
-            <div className="absolute top-1/4 left-1/8 ">
-              <h4 className="uppercase font-medium text-xs md:text-sm lg:text-lg">
-                Introducing the new{" "}
+          </div>
+        </SwiperSlide>
+
+        {/* Slide 3 */}
+        <SwiperSlide>
+          <div className="relative h-full w-full">
+            <div className="absolute inset-0 flex flex-col justify-center items-start p-4 sm:p-6 md:p-8 lg:p-12 xl:p-16 text-white bg-black bg-opacity-30">
+              <h4 className="uppercase font-medium text-xs sm:text-sm md:text-base lg:text-lg mb-1 sm:mb-2">
+                Introducing the new
               </h4>
-              <h3 className="capitalize text-md md:text-2xl  lg:text-5xl font-bold text-pink-500 lg:mt-2">
+              <h3 className="capitalize text-lg sm:text-xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-pink-500 mb-2 sm:mb-4">
                 Microsoft Xbox <br /> 360Controller
               </h3>
-              <p className="my-1 lg:my-8 text-md">
+              <p className="text-xs sm:text-sm md:text-base mb-3 sm:mb-6">
                 Windows Xp/10/7/8 Ps3, Tv Box
               </p>
               <Link to="/">
-                {" "}
-                <button className="px-2 py-1 lg:px-3 lg:py-2 text-xs lg:text-base rounded-3xl border border-pink-500 bg-pink-500 text-white hover:bg-white hover:text-pink-500 transition-colors duration-300">
+                <button className="px-3 py-1 sm:px-4 sm:py-2 md:px-5 md:py-2 text-xs sm:text-sm md:text-base rounded-3xl border border-pink-500 bg-pink-500 text-white hover:bg-white hover:text-pink-500 transition-colors duration-300">
                   Shop Now
                 </button>
               </Link>
             </div>
-
             <img
               src="/banner_Hero1.jpg"
               alt="slider hero 1"
-              className="m-auto"
+              className="w-full h-auto object-cover"
+              style={{ minHeight: "300px", maxHeight: "600px" }}
             />
-          </SwiperSlide>
-        </Swiper>
-      </div>
-    </>
+          </div>
+        </SwiperSlide>
+      </Swiper>
+    </div>
   );
 };
 
