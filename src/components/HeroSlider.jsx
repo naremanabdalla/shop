@@ -53,7 +53,7 @@ const HeroSlider = () => {
           <SwiperSlide className="">
             <div className="absolute top-1/4 left-1/8 ">
               <h4 className="uppercase font-medium text-xs md:text-sm lg:text-lg">
-                Introducing the new{" "}
+                not Introducing the new{" "}
               </h4>
               <h3 className="capitalize text-md md:text-2xl  lg:text-5xl font-bold text-pink-500 lg:mt-2">
                 Microsoft Xbox <br /> 360Controller
