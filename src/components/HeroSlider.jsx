@@ -60,7 +60,7 @@ const HeroSlider = () => {
             <img
               src="/banner_Hero2.jpg"
               alt="slider hero 2"
-              className="w-full h-auto object-cover"
+              className="w-full h-auto object-cover object-[60%_75%] object-[60%_75%]"
               style={{ minHeight: "300px", maxHeight: "600px" }}
             />
           </div>
@@ -88,7 +88,7 @@ const HeroSlider = () => {
             <img
               src="/banner_Hero3.jpg"
               alt="slider hero 3"
-              className="w-full h-auto object-cover"
+              className="w-full h-auto object-cover object-[60%_75%]"
               style={{ minHeight: "300px", maxHeight: "600px" }}
             />
           </div>
@@ -116,7 +116,7 @@ const HeroSlider = () => {
             <img
               src="/banner_Hero1.jpg"
               alt="slider hero 1"
-              className="w-full h-auto object-cover"
+              className="w-full h-auto object-cover object-[60%_75%]"
               style={{ minHeight: "300px", maxHeight: "600px" }}
             />
           </div>
