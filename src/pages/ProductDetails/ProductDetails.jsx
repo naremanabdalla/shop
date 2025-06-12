@@ -1,0 +1,66 @@
+import React, { useContext, useEffect, useState } from "react";
+import { ProductsContext } from "../../Context/ProductsContextProvider";
+import { useParams } from "react-router-dom";
+import SlidProduct from "../../components/SlideProducts/SlidProduct";
+import Loading from "../Loading";
+import ProductImg from "./ProductImg";
+import ProductInfo from "./ProductInfo";
+import PageTransation from "../../components/PageTransation";
+// import { useLocation } from "react-router-dom";
+
+const ProductDetails = () => {
+  // const location = useLocation();
+
+  const { productID } = useParams();
+
+  const { products } = useContext(ProductsContext);
+  const [item, setItem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [category, setCategory] = useState([]);
+
+  useEffect(() => {
+    let CategoresProducts = products.flat();
+
+    setItem(
+      ...CategoresProducts.filter((item) => {
+        return item.id == productID;
+      })
+    );
+
+    setLoading(false);
+
+    setCategory(
+      CategoresProducts.filter(
+        (product) =>
+          product.category === item?.category && product.id !== item?.id
+      )
+    );
+  }, [productID, products, item?.category, item?.id]);
+
+  if (loading || !item) {
+    return <Loading />;
+  }
+
+  if (!item.images || !item.images.length) {
+    return <div>No images available</div>;
+  }
+
+  return (
+    <>
+      {/* <PageTransation key={location.key}> */}
+      <div className=" flex  flex-wrap md:flex-nowrap items-center justify-center md:p-20 p-5 gap-10 mx-auto">
+        <ProductImg item={item} />
+        <ProductInfo item={item} />
+      </div>
+      <div>
+        <h2 className="capitalize font-medium text-4xl text-center mt-4 text-pink-500">
+          {item.category.replace("-", " ")}
+        </h2>
+      </div>
+      <SlidProduct product={category} />
+      {/* </PageTransation> */}
+    </>
+  );
+};
+
+export default ProductDetails;
