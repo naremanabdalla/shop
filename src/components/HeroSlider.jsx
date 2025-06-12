@@ -53,7 +53,7 @@ const HeroSlider = () => {
           <SwiperSlide className="">
             <div className="absolute top-1/4 left-1/8 ">
               <h4 className="uppercase font-medium text-xs md:text-sm lg:text-lg">
-                not Introducing the new{" "}
+                Introducing the new{" "}
               </h4>
               <h3 className="capitalize text-md md:text-2xl  lg:text-5xl font-bold text-pink-500 lg:mt-2">
                 Microsoft Xbox <br /> 360Controller
@@ -69,7 +69,7 @@ const HeroSlider = () => {
               </Link>
             </div>
             <img
-              src="/src/img/banner_Hero3.jpg"
+              src="/banner_Hero3.jpg"
               alt="slider hero 3"
               className="m-auto"
             />
@@ -94,7 +94,7 @@ const HeroSlider = () => {
             </div>
 
             <img
-              src="/src/img/banner_Hero1.jpg"
+              src="/banner_Hero1.jpg"
               alt="slider hero 1"
               className="m-auto"
             />
