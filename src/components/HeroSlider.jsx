@@ -41,7 +41,7 @@ const HeroSlider = () => {
         {/* Slide 1 */}
         <SwiperSlide>
           <div className="relative h-full w-full">
-            <div className="absolute inset-0 flex flex-col justify-center items-start p-4 sm:p-6 md:p-8 lg:p-12 xl:p-16 text-white bg-black bg-opacity-30">
+            <div className="absolute inset-0 flex flex-col justify-center items-start p-4 sm:p-6 md:p-8 lg:p-12 xl:p-16 text-gray-800  bg-opacity-30">
               <h4 className="uppercase font-medium text-xs sm:text-sm md:text-base lg:text-lg mb-1 sm:mb-2">
                 Introducing the new
               </h4>
@@ -69,7 +69,7 @@ const HeroSlider = () => {
         {/* Slide 2 */}
         <SwiperSlide>
           <div className="relative h-full w-full">
-            <div className="absolute inset-0 flex flex-col justify-center items-start p-4 sm:p-6 md:p-8 lg:p-12 xl:p-16 text-white bg-black bg-opacity-30">
+            <div className="absolute inset-0 flex flex-col justify-center items-start p-4 sm:p-6 md:p-8 lg:p-12 xl:p-16 text-gray-800  bg-opacity-30">
               <h4 className="uppercase font-medium text-xs sm:text-sm md:text-base lg:text-lg mb-1 sm:mb-2">
                 Introducing the new
               </h4>
@@ -97,7 +97,7 @@ const HeroSlider = () => {
         {/* Slide 3 */}
         <SwiperSlide>
           <div className="relative h-full w-full">
-            <div className="absolute inset-0 flex flex-col justify-center items-start p-4 sm:p-6 md:p-8 lg:p-12 xl:p-16 text-white bg-black bg-opacity-30">
+            <div className="absolute inset-0 flex flex-col justify-center items-start p-4 sm:p-6 md:p-8 lg:p-12 xl:p-16 text-gray-800  bg-opacity-30">
               <h4 className="uppercase font-medium text-xs sm:text-sm md:text-base lg:text-lg mb-1 sm:mb-2">
                 Introducing the new
               </h4>
@@ -108,7 +108,7 @@ const HeroSlider = () => {
                 Windows Xp/10/7/8 Ps3, Tv Box
               </p>
               <Link to="/">
-                <button className="px-3 py-1 sm:px-4 sm:py-2 md:px-5 md:py-2 text-xs sm:text-sm md:text-base rounded-3xl border border-pink-500 bg-pink-500 text-white hover:bg-white hover:text-pink-500 transition-colors duration-300">
+                <button className="px-3 py-1 sm:px-4 sm:py-2 md:px-5 md:py-2 text-xs sm:text-sm md:text-base rounded-3xl border border-pink-500 bg-pink-500 text-gray-800 hover:bg-white hover:text-pink-500 transition-colors duration-300">
                   Shop Now
                 </button>
               </Link>
