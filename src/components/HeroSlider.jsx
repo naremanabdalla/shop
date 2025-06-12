@@ -4,7 +4,6 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
-import img2 from "../img/banner_Hero2.jpg";
 // import required modules
 import { Autoplay, Pagination, Navigation } from "swiper/modules";
 import { Link } from "react-router-dom";
@@ -45,7 +44,11 @@ const HeroSlider = () => {
                 </button>
               </Link>
             </div>
-            <img src={img2} alt="slider hero 2" className="m-auto" />
+            <img
+              src="../../public/banner_Hero2.jpg"
+              alt="slider hero 2"
+              className="m-auto"
+            />
           </SwiperSlide>
           <SwiperSlide className="">
             <div className="absolute top-1/4 left-1/8 ">
