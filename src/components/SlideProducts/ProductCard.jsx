@@ -1,18 +1,24 @@
 import React, { useContext, useEffect, useState } from "react";
 
-import { FaStar, FaStarHalfAlt } from "react-icons/fa";
+import {
+  FaStar,
+  FaStarHalfAlt,
+  FaHeart,
+  FaRegHeart,
+  FaShare,
+  FaCheckCircle,
+} from "react-icons/fa";
 import { GiShoppingCart } from "react-icons/gi";
-import { FaRegHeart } from "react-icons/fa";
-import { FaShare } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import ProductDetailsLoading from "../../pages/Loading";
 import { CartContext } from "../../Context/CartContextProvider";
-import { FaCheckCircle } from "react-icons/fa";
 import toast from "react-hot-toast";
 
 const ProductCard = ({ item }) => {
-  const { addToCart, cart } = useContext(CartContext);
+  const { addToCart, cart, addToFavourite, favourite } =
+    useContext(CartContext);
   const [isInCart, setIsInCart] = useState(false);
+  const [isInFavourite, setIsInFavourite] = useState(false);
 
   useEffect(() => {
     setIsInCart(
@@ -20,7 +26,12 @@ const ProductCard = ({ item }) => {
         return ele.id == item.id;
       })
     );
-  }, [cart, item]);
+    setIsInFavourite(
+      favourite.some((ele) => {
+        return ele.id == item.id;
+      })
+    );
+  }, [cart, item, favourite]);
 
   // const handelClick = () => {
   //   cart.map((ele) => {
@@ -34,22 +45,54 @@ const ProductCard = ({ item }) => {
   const handelAddToCart = () => {
     addToCart(item);
     toast.success(
-      <div className="flex gap-2 items-center justify-between">
-        <img src={item.thumbnail} alt="" className="h-15" />
+      <div className="">
+        <div className="flex gap-3 items-center justify-between font-medium">
+          <img src={item.thumbnail} alt="" className="h-15" />
 
+          <div className="">
+            <div className="text-sm w-full flex">
+              <p>
+                {item.title} <span className="text-sm"> added to cart</span>
+              </p>
+            </div>
+
+            <Link to="/cart">
+              <button className="bg-pink-400 text-sm rounded-md px-1 py-1 mt-1">
+                View Cart
+              </button>
+            </Link>
+          </div>
+        </div>
+      </div>,
+      { duration: 3500 }
+    );
+  };
+  const handelFavourite = () => {
+    addToFavourite(item);
+    toast.success(
+      <div className="flex gap-2 items-center justify-between text-gray-800 font-medium">
+        <img src={item.thumbnail} alt="" className="h-15" />
         <div className="text-sm">
-          <p>{item.title}</p>
-          added to cart
+          <p>
+            {item.title} <span> added to Favourite</span>
+          </p>
         </div>
         <div>
-          <Link to="/cart">
+          {/* <Link to="/cart">
             <button className="bg-pink-400 text-sm rounded-md px-1 py-1">
               View Cart
             </button>
-          </Link>
+          </Link> */}
         </div>
       </div>,
-      { duration: 1500 }
+      {
+        duration: 35000,
+        icon: <FaHeart className="-mr-4 text-2xl text-pink-500" />,
+        style: {
+          // borderRadius: "10px",
+          background: "pink",
+        },
+      }
     );
   };
   return (
@@ -101,7 +144,13 @@ const ProductCard = ({ item }) => {
                 }}
               />
             </button>
-            <FaRegHeart className="bg-gray-200 rounded-lg text-md p-1 box-content  cursor-pointer" />
+            <button disabled={isInFavourite}>
+              <FaRegHeart
+                className={`rounded-lg text-md p-1 box-content cursor-pointer
+                ${isInFavourite ? "bg-pink-400 text-gray-500" : "bg-gray-200"}`}
+                onClick={handelFavourite}
+              />
+            </button>
             <FaShare className="bg-gray-200 rounded-lg text-md p-1 box-content  cursor-pointer" />
           </div>
         </div>

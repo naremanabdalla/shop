@@ -9,6 +9,7 @@ import { Toaster } from "react-hot-toast";
 import { AnimatePresence } from "framer-motion";
 import CategoryPage from "./pages/categoryPage/CategoryPage";
 import SearchPopup from "./pages/SearchPopup";
+import Favourite from "./pages/Favourite";
 function App() {
   const routes = createBrowserRouter([
     {
@@ -19,7 +20,7 @@ function App() {
         { path: "product/:productID", element: <ProductDetails /> },
         { path: "/cart", element: <Cart /> },
         { path: "/category/:categoryName", element: <CategoryPage /> },
-        // { path: "/popup", element: <SearchPopup /> },
+        { path: "/favourite", element: <Favourite /> },
       ],
     },
   ]);
