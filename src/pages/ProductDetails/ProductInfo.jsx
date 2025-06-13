@@ -16,14 +16,14 @@ const ProductInfo = ({ item }) => {
   } = useContext(CartContext);
 
   const [isInCart, setIsInCart] = useState(false);
-  const [setItemInCart] = useState(null);
+  // const [setItemInCart] = useState(null);
 
   useEffect(() => {
-    setItemInCart(
-      ...cart.filter((item) => {
-        return item.id == productID;
-      })
-    );
+    // setItemInCart(
+    //   ...cart.filter((item) => {
+    //     return item.id == productID;
+    //   })
+    // );
     setIsInCart(
       cart.some((ele) => {
         return ele.id == item?.id;
