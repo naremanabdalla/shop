@@ -10,16 +10,14 @@ import PageTransation from "../../components/PageTransation";
 
 const ProductDetails = () => {
   // const location = useLocation();
-
   const { productID } = useParams();
-
-  const { products } = useContext(ProductsContext);
+  const { allProducts } = useContext(ProductsContext);
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState([]);
 
   useEffect(() => {
-    let CategoresProducts = products.flat();
+    let CategoresProducts = allProducts.flat();
 
     setItem(
       ...CategoresProducts.filter((item) => {
@@ -35,7 +33,7 @@ const ProductDetails = () => {
           product.category === item?.category && product.id !== item?.id
       )
     );
-  }, [productID, products, item?.category, item?.id]);
+  }, [productID, allProducts, item?.category, item?.id]);
 
   if (loading || !item) {
     return <Loading />;

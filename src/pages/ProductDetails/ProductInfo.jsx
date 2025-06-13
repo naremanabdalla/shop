@@ -97,9 +97,10 @@ const ProductInfo = ({ item }) => {
           }}
           disabled={isInCart}
         >
-          Add to Cart <GiShoppingCart className="inline-block ml-2" />
+          {isInCart ? "Added to Cart" : "Add to Cart"}{" "}
+          <GiShoppingCart className="inline-block ml-2" />
         </button>
-        <div className="flex gap-2">
+        {/* <div className="flex gap-2">
           <button
             className=" rounded-xl bg-gray-200 text-pink-400  font-bold px-2 pb-1"
             onClick={() => {
@@ -119,7 +120,7 @@ const ProductInfo = ({ item }) => {
           >
             +
           </button>
-        </div>
+        </div> */}
         <FaRegHeart className="text-pink-500 text-2xl cursor-pointer hover:text-pink-600 transition duration-300" />
       </div>
     </div>

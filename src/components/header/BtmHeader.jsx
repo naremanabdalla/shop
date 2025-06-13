@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext } from "react";
 import { PiSignOutBold } from "react-icons/pi";
 import { HiUserAdd } from "react-icons/hi";
-import axios from "axios";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { ProductsContext } from "../../Context/ProductsContextProvider";
 const NavLinks = [
   { title: "Home", path: "/" },
   { title: "About", path: "/about" },
@@ -13,14 +13,16 @@ const NavLinks = [
 
 const BtmHeader = () => {
   const navigate = useNavigate();
-
   const location = useLocation();
-  const [category, setCategory] = useState([]);
-  useEffect(() => {
-    axios.get("https://dummyjson.com/products/categories").then((res) => {
-      setCategory(res.data);
-    });
-  }, []);
+  const { BrowseCategory } = useContext(ProductsContext);
+
+  // const [category, setCategory] = useState([]);
+
+  // useEffect(() => {
+  //   axios.get("https://dummyjson.com/products/categories").then((res) => {
+  //     setCategory(res.data);
+  //   });
+  // }, []);
   return (
     <>
       <div className="flex justify-between items-center bg-pink-400 text-white  md:px-20">
@@ -37,14 +39,14 @@ const BtmHeader = () => {
             <option value="" disabled hidden>
               Browse Categories
             </option>
-            {category.map((cat, index) => (
+            {BrowseCategory.map((cat, index) => (
               // <Link to={`/ccat/${cat}`}>
               // <Link to={cat.name} key={index}>
               //   <div>{cat.name}</div>
               // </Link>
               // <Link to={`category/${cat.name}`} >
-              <option value={cat.name} key={index} className="text-gray-700">
-                {cat.name}
+              <option value={cat} key={index} className="text-gray-700">
+                {cat}
               </option>
             ))}
           </select>
