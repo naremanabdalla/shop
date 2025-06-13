@@ -10,13 +10,13 @@ const ProductInfo = ({ item }) => {
   const {
     cart,
     addToCart,
-    icreaseProductinCart,
-    decreaseProductinCart,
-    removeProduct,
+    // icreaseProductinCart,
+    // decreaseProductinCart,
+    // removeProduct,
   } = useContext(CartContext);
 
   const [isInCart, setIsInCart] = useState(false);
-  const [itemInCart, setItemInCart] = useState(null);
+  const [setItemInCart] = useState(null);
 
   useEffect(() => {
     setItemInCart(
