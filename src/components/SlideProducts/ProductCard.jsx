@@ -86,7 +86,7 @@ const ProductCard = ({ item }) => {
         </div>
       </div>,
       {
-        duration: 35000,
+        duration: 3500,
         icon: <FaHeart className="-mr-4 text-2xl text-pink-500" />,
         style: {
           // borderRadius: "10px",

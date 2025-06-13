@@ -4,6 +4,7 @@ import { CartContext } from "../../Context/CartContextProvider";
 import { Link, useParams } from "react-router-dom";
 import { FaRegHeart, FaStar } from "react-icons/fa";
 import { GiShoppingCart } from "react-icons/gi";
+import { FaHeart } from "react-icons/fa";
 
 const ProductInfo = ({ item }) => {
   const { productID } = useParams();
@@ -13,9 +14,13 @@ const ProductInfo = ({ item }) => {
     // icreaseProductinCart,
     // decreaseProductinCart,
     // removeProduct,
+    favourite,
+    addToFavourite,
   } = useContext(CartContext);
 
   const [isInCart, setIsInCart] = useState(false);
+  const [isInFavourite, setIsInFavourite] = useState(false);
+
   // const [setItemInCart] = useState(null);
 
   useEffect(() => {
@@ -29,7 +34,12 @@ const ProductInfo = ({ item }) => {
         return ele.id == item?.id;
       })
     );
-  }, [item?.id, cart, productID]);
+    setIsInFavourite(
+      favourite.some((ele) => {
+        return ele.id == item.id;
+      })
+    );
+  }, [item?.id, cart, productID, favourite]);
   const handelAddToCart = () => {
     addToCart(item);
     toast.success(
@@ -48,7 +58,36 @@ const ProductInfo = ({ item }) => {
           </Link>
         </div>
       </div>,
-      { duration: 1500 }
+      { duration: 2500 }
+    );
+  };
+
+  const handelFavourite = () => {
+    addToFavourite(item);
+    toast.success(
+      <div className="flex gap-2 items-center justify-between text-gray-800 font-medium">
+        <img src={item.thumbnail} alt="" className="h-15" />
+        <div className="text-sm">
+          <p>
+            {item.title} <span> added to Favourite</span>
+          </p>
+        </div>
+        <div>
+          {/* <Link to="/cart">
+              <button className="bg-pink-400 text-sm rounded-md px-1 py-1">
+                View Cart
+              </button>
+            </Link> */}
+        </div>
+      </div>,
+      {
+        duration: 2500,
+        icon: <FaHeart className="-mr-4 text-2xl text-pink-500" />,
+        style: {
+          // borderRadius: "10px",
+          background: "pink",
+        },
+      }
     );
   };
 
@@ -121,7 +160,16 @@ const ProductInfo = ({ item }) => {
             +
           </button>
         </div> */}
-        <FaRegHeart className="text-pink-500 text-2xl cursor-pointer hover:text-pink-600 transition duration-300" />
+        <button disabled={isInFavourite} onClick={handelFavourite}>
+          {isInFavourite ? (
+            <FaHeart
+              className={` text-2xl cursor-pointer hover:text-pink-600 transition duration-300
+                      ${isInFavourite ? "text-pink-500" : ""}`}
+            />
+          ) : (
+            <FaRegHeart className="text-2xl cursor-pointer hover:text-pink-600 transition duration-300 text-pink-500" />
+          )}
+        </button>
       </div>
     </div>
   );
