@@ -10,6 +10,7 @@ import { AnimatePresence } from "framer-motion";
 import CategoryPage from "./pages/categoryPage/CategoryPage";
 import SearchPopup from "./pages/SearchPopup";
 import Favourite from "./pages/Favourite";
+import ContactUS from "./pages/ContactUS";
 function App() {
   const routes = createBrowserRouter([
     {
@@ -21,6 +22,7 @@ function App() {
         { path: "/cart", element: <Cart /> },
         { path: "/category/:categoryName", element: <CategoryPage /> },
         { path: "/favourite", element: <Favourite /> },
+        { path: "/contact", element: <ContactUS /> },
       ],
     },
   ]);

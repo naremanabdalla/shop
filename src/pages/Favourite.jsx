@@ -12,7 +12,7 @@ const Favourite = () => {
   return (
     <div className="min-h-screen">
       <h2 className="text-center text-pink-500 font-bold text-2xl sm:text-3xl md:text-4xl py-4">
-        Your Cart
+        Your Favourites
       </h2>
 
       {favourite.length === 0 ? (

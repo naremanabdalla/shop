@@ -1,7 +1,5 @@
 import React, { useContext } from "react";
 import { Link } from "react-router-dom";
-import logo from "../../img/logo.png";
-import { IoSearch } from "react-icons/io5";
 import { FaRegHeart, FaUser } from "react-icons/fa";
 import { HiOutlineShoppingCart } from "react-icons/hi";
 import { CartContext } from "../../Context/CartContextProvider";
@@ -23,19 +21,7 @@ const TopHeader = () => {
 
         {/* Search Bar */}
         <div className="flex-1 max-w-2xl">
-          <div className="relative flex items-center">
-            {/* <input
-              type="text"
-              placeholder="Search for products"
-              className="w-full py-2 pl-4 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-            />
-            <button
-              type="submit"
-              className="flex bg-blue-500 text-white p-2 rounded-lg absolute right-0 top-0 h-full items-center justify-center hover:bg-blue-600 transition-colors"
-            >
-              <span>search</span> */}
-            {/* </button> */}
-          </div>
+          <div className="relative flex items-center"></div>
         </div>
 
         {/* Navigation Icons */}

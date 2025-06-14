@@ -10,7 +10,6 @@ const SearchPopup = () => {
   const [searchResults, setSearchResults] = useState([]);
   const { allProducts } = useContext(ProductsContext);
   // const popupRef = useRef(null);
-  console.log(allProducts);
   // Sample search function (replace with your actual search logic)
   const performSearch = (query) => {
     // This would typically be an API call or filtering your data
