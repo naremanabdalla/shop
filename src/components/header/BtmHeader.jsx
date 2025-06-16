@@ -32,15 +32,17 @@ const BtmHeader = () => {
   return (
     <>
       <div
-        className={`relative flex justify-between items-center bg-pink-400 text-white  md:px-20 py-2 md:py-1  
+        className={`relative flex justify-between items-center bg-pink-400 text-white   md:px-20 py-2 md:py-1  
         `}
       >
-        <GiHamburgerMenu
-          className={`md:hidden  `}
-          onClick={() => {
-            setOpenMenue(!openMenue);
-          }}
-        />
+        <div className="pl-5">
+          <GiHamburgerMenu
+            className={`md:hidden `}
+            onClick={() => {
+              setOpenMenue(!openMenue);
+            }}
+          />
+        </div>
 
         <div
           className={`flex-col lg:hidden absolute bg-pink-400 top-8 w-full ${
@@ -130,7 +132,7 @@ const BtmHeader = () => {
             ))}
           </div>
         </div>
-        <div className="flex justify-evenly items-center w-1/16">
+        <div className="flex justify-evenly items-center w-1/6 gap-2">
           <PiSignOutBold />
           <HiUserAdd />
         </div>

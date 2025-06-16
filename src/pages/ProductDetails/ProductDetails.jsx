@@ -46,7 +46,7 @@ const ProductDetails = () => {
   return (
     <>
       {/* <PageTransation key={location.key}> */}
-      <div className=" flex  flex-wrap md:flex-nowrap items-center justify-center md:p-20 p-5 gap-10 mx-auto">
+      <div className=" flex  flex-wrap md:flex-nowrap items-center justify-center md:p-20  gap-10 mx-auto">
         <ProductImg item={item} />
         <ProductInfo item={item} />
       </div>

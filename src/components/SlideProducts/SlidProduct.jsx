@@ -25,7 +25,7 @@ const SlidProduct = ({ product }) => {
     <>
       <div>
         <div>
-          <h2 className="capitalize font-medium text-4xl text-center mt-4 text-pink-500">
+          <h2 className="capitalize font-medium text-4xl text-center mt-4 text-pink-500 pb-10">
             {categories.map((item) =>
               item === category ? item.replace("-", " ") : ""
             )}
@@ -33,7 +33,7 @@ const SlidProduct = ({ product }) => {
           {/* <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Aut</p> */}
         </div>
 
-        <div className="p-10 px-20">
+        <div className="p-10 px-20 ">
           <Swiper
             slidesPerView={1}
             spaceBetween={10}
@@ -56,7 +56,7 @@ const SlidProduct = ({ product }) => {
             }}
             navigation={true}
             modules={[Pagination, Navigation]}
-            className="mySwiper  "
+            className="mySwiper [--swiper-navigation-color:theme(colors.pink.500)]"
           >
             {product.map((item) => {
               return (

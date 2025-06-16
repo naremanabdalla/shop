@@ -97,7 +97,7 @@ const ProductCard = ({ item }) => {
   };
   return (
     <>
-      <div className="group shadow-xl rounded-md border border-gray-200 pb-3 pt-4 relative hover:border hover:border-gray-400">
+      <div className="group shadow-xl rounded-md border border-gray-200 pb-5 mb-10 pt-4 relative hover:border hover:border-gray-400">
         <p
           className={`text-center font-medium text-pink-400 flex justify-center items-center gap-2 absolute  right-1/3  transition-all duration-300 ease-in-out ${
             isInCart ? "opacity-100 top-2" : "-top-2 opacity-0"

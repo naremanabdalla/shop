@@ -11,7 +11,6 @@ const CartContextProvider = ({ children }) => {
     return savefavourite ? JSON.parse(savefavourite) : [];
   });
 
-  //add product to cart
   useEffect(() => {
     localStorage.setItem("cartItems", JSON.stringify(cart));
   }, [cart]);

@@ -28,9 +28,6 @@ const ContactUS = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle form submission (API call, etc.)
-    console.log("Form submitted:", formData);
-    alert("Thank you for your message! We will contact you soon.");
     setFormData({
       name: "",
       email: "",
@@ -52,66 +49,7 @@ const ContactUS = () => {
         </div>
 
         <div className="bg-white rounded-xl overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Contact Information */}
-            <div className="bg-gradient-to-br from-pink-400 to-purple-600 text-fray-700 p-8 lg:p-12">
-              <h2 className="text-2xl font-bold mb-6">Get in Touch</h2>
-
-              <div className="space-y-6">
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 mt-1">
-                    <FaPhone className="h-5 w-5" />
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-lg font-medium">Phone</h3>
-                    <p className="mt-1">+1 (555) 123-4567</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 mt-1">
-                    <FaEnvelope className="h-5 w-5" />
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-lg font-medium">Email</h3>
-                    <p className="mt-1">support@example.com</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 mt-1">
-                    <FaMapMarkerAlt className="h-5 w-5" />
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-lg font-medium">Address</h3>
-                    <p className="mt-1">
-                      123 Tech Street
-                      <br />
-                      San Francisco, CA 94107
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-12">
-                <h3 className="text-lg font-medium mb-4">Business Hours</h3>
-                <ul className="space-y-2">
-                  <li className="flex justify-between">
-                    <span>Monday - Friday</span>
-                    <span>9:00 AM - 6:00 PM</span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span>Saturday</span>
-                    <span>10:00 AM - 4:00 PM</span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span>Sunday</span>
-                    <span>Closed</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
+          <div className="grid grid-cols-1 w-9/10 lg:w-1/2 mx-auto">
             {/* Contact Form */}
             <div className="p-8 lg:p-12">
               <form onSubmit={handleSubmit} className="space-y-6">
