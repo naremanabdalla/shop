@@ -11,6 +11,9 @@ import CategoryPage from "./pages/categoryPage/CategoryPage";
 import SearchPopup from "./pages/SearchPopup";
 import Favourite from "./pages/Favourite";
 import ContactUS from "./pages/ContactUS";
+import SignIn from "./pages/SignIn";
+import SignUp from "./pages/SignUp";
+import AuthContext from "./Context/authContext";
 function App() {
   const routes = createBrowserRouter([
     {
@@ -23,18 +26,22 @@ function App() {
         { path: "/category/:categoryName", element: <CategoryPage /> },
         { path: "/favourite", element: <Favourite /> },
         { path: "/contact", element: <ContactUS /> },
+        { path: "/signin", element: <SignIn /> },
+        { path: "/signup", element: <SignUp /> },
       ],
     },
   ]);
   return (
     <>
-      <CartContextProvider>
-        <ProductsContextProvider>
-          {/* <AnimatePresence mode="await"> */}
-          <RouterProvider router={routes} />
-          {/* </AnimatePresence> */}
-        </ProductsContextProvider>
-      </CartContextProvider>
+      <AuthContext>
+        <CartContextProvider>
+          <ProductsContextProvider>
+            {/* <AnimatePresence mode="await"> */}
+            <RouterProvider router={routes} />
+            {/* </AnimatePresence> */}
+          </ProductsContextProvider>
+        </CartContextProvider>
+      </AuthContext>
     </>
   );
 }

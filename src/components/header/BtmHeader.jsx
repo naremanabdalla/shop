@@ -4,6 +4,8 @@ import { HiUserAdd } from "react-icons/hi";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ProductsContext } from "../../Context/ProductsContextProvider";
 import { GiHamburgerMenu } from "react-icons/gi";
+import { useAuth } from "../../Context/authContext"; // Import your auth context
+import { doSignOut } from "../../auth/auth"; // Import your signOut function
 
 const NavLinks = [
   { title: "Home", path: "/" },
@@ -14,6 +16,7 @@ const NavLinks = [
 ];
 
 const BtmHeader = () => {
+  const { userLoggedIn } = useAuth(); // Using the Auth context to get the current user
   const navigate = useNavigate();
   const location = useLocation();
   const { BrowseCategory } = useContext(ProductsContext);
@@ -25,14 +28,21 @@ const BtmHeader = () => {
   //     setCategory(res.data);
   //   });
   // }, []);
-
+  const handleLogout = async () => {
+    try {
+      await doSignOut();
+      navigate("/"); // Redirect to home after logout
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
   useEffect(() => {
     setOpenMenue(false);
   }, [location]);
   return (
     <>
       <div
-        className={`relative flex justify-between items-center bg-pink-400 text-white   md:px-20 py-2 md:py-1  
+        className={`relative flex justify-between items-center bg-pink-300 text-gray-800   md:px-20 py-2 md:py-1  
         `}
       >
         <div className="pl-5">
@@ -45,7 +55,7 @@ const BtmHeader = () => {
         </div>
 
         <div
-          className={`flex-col lg:hidden absolute bg-pink-400 top-8 w-full ${
+          className={`flex-col lg:hidden absolute bg-pink-300  top-8 w-full ${
             openMenue ? "flex" : "hidden"
           }`}
         >
@@ -74,14 +84,14 @@ const BtmHeader = () => {
               ))}
             </select>
           </div>
-          <div className=" flex flex-col justify-between items-center gap-2 md:gap-6 lg:gap-8 xl:gap-10 ">
+          <div className=" flex flex-col justify-between items-center gap-2 md:gap-6 lg:gap-8 xl:gap-10 pb-5 px-3">
             {NavLinks.map((link, index) => (
               <Link
                 to={link.path}
                 key={index}
-                className={`w-auto text-xs md:text-base hover:text-gray-800 transition-colors py-2 px-2 ${
+                className={`text-xs text-center md:text-base hover:text-gray-800 rounded-sm transition-colors py-2 px-2 ${
                   location.pathname === link.path
-                    ? "bg-gray-600 hover:text-pink-500"
+                    ? "bg-gray-600 w-full text-pink-300 "
                     : ""
                 }`}
               >
@@ -123,7 +133,7 @@ const BtmHeader = () => {
                 key={index}
                 className={`w-auto text-xs md:text-base hover:text-gray-800 transition-colors py-2 px-2 ${
                   location.pathname === link.path
-                    ? "bg-gray-600 hover:text-pink-500"
+                    ? "bg-gray-600 text-pink-300"
                     : ""
                 }`}
               >
@@ -133,8 +143,21 @@ const BtmHeader = () => {
           </div>
         </div>
         <div className="flex justify-evenly items-center w-1/6 gap-2">
-          <PiSignOutBold />
-          <HiUserAdd />
+          {/* <PiSignOutBold />
+          <Link to={"/signin"}>
+            <HiUserAdd className="cursor-pointer" />
+          </Link> */}
+          {userLoggedIn ? (
+            <PiSignOutBold
+              className="cursor-pointer hover:text-gray-600"
+              onClick={handleLogout}
+              title="Sign Out"
+            />
+          ) : (
+            <Link to="/signin">
+              <HiUserAdd className="cursor-pointer hover:text-gray-600" />
+            </Link>
+          )}
         </div>
       </div>
     </>

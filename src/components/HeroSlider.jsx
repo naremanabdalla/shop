@@ -62,10 +62,10 @@ const HeroSlider = () => {
               <img
                 src="/img/hero3.jpg"
                 alt="slider hero 3"
-                className="w-full  object-cover bg-gray-500 bg-blend-multiply"
+                className="w-full  object-cover  brightness-50 object-bottom"
                 style={{ minHeight: "300px", maxHeight: "600px" }}
               />
-              <div class="absolute inset-0 bg-gray-500/20 backdrop-blur-xs"></div>
+              {/* <div class="absolute inset-0 bg-gray-500/20 backdrop-blur-xs"></div> */}
             </div>
           </div>
         </SwiperSlide>
@@ -93,10 +93,10 @@ const HeroSlider = () => {
               <img
                 src="/img/hero1.jpg"
                 alt="slider hero 1"
-                className="w-full  h-auto object-cover bg-gray-500 bg-blend-multiply"
+                className="w-full  h-auto object-cover  brightness-50 object-bottom"
                 style={{ minHeight: "300px", maxHeight: "600px" }}
               />
-              <div class="absolute inset-0 bg-gray-500/20 backdrop-blur-xs"></div>
+              {/* <div class="absolute inset-0 bg-gray-500/20 backdrop-blur-xs"></div> */}
             </div>
           </div>
         </SwiperSlide>
@@ -124,10 +124,10 @@ const HeroSlider = () => {
               <img
                 src="/img/hero2.webp"
                 alt="slider hero 2"
-                className="w-full  h-auto object-cover bg-gray-500 bg-blend-multiply"
+                className="w-full  h-auto object-cover  brightness-50 object-bottom"
                 style={{ minHeight: "300px", maxHeight: "600px" }}
               />
-              <div class="absolute inset-0 bg-gray-500/20 backdrop-blur-xs"></div>
+              {/* <div class="absolute inset-0 bg-gray-500/20 backdrop-blur-xs"></div> */}
             </div>
           </div>
         </SwiperSlide>
