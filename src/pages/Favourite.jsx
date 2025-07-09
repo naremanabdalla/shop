@@ -1,10 +1,29 @@
-import React, { useContext } from "react";
-import { CartContext } from "../Context/CartContextProvider";
+import React, { useContext, useEffect, useState } from "react";
 import { FaHeart } from "react-icons/fa";
+import { FavouriteContext } from "../Context/FavouriteContextprovider";
+import { useAuth } from "../Context/authContext";
 
 const Favourite = () => {
-  const { favourite, removeFavourite } = useContext(CartContext);
+  const { getFavoriteItems, removeFavourite } = useContext(FavouriteContext);
+  const [favourite, setFavourite] = useState([]);
 
+  const { currentUser } = useAuth();
+  useEffect(() => {
+    getFavoriteItems(currentUser.uid)
+      .then((data) => {
+        setFavourite(data);
+        console.log("Cart items fetched:", data);
+      })
+      .catch((error) => {
+        console.error("Error fetching cart items:", error);
+      });
+  }, [getFavoriteItems, currentUser.uid]);
+
+  const handelRemoveItemFromCart = async (item) => {
+    removeFavourite(currentUser.uid, item);
+    const updatedFavourite = await getFavoriteItems(currentUser.uid);
+    setFavourite(updatedFavourite.filter((ele) => ele.id !== item.id));
+  };
   if (!favourite) {
     return <Loading />;
   }
@@ -40,7 +59,7 @@ const Favourite = () => {
                         {item.title}
                       </h2>
                       <button
-                        onClick={() => removeFavourite(item)}
+                        onClick={() => handelRemoveItemFromCart(item)}
                         className="text-gray-600 hover:text-red-500 transition-colors"
                         aria-label="Remove item"
                       >

@@ -102,7 +102,7 @@ const SignIn = () => {
           onClick={(e) => {
             onGoogleSignin(e);
           }}
-          className="mt-4 text-center text-gray-600"
+          className="mt-4 text-center text-gray-600 cursor-pointer"
         >
           sign in with Google
         </p>

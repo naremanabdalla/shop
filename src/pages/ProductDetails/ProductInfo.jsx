@@ -1,94 +1,115 @@
 import React, { useContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { CartContext } from "../../Context/CartContextProvider";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { FaRegHeart, FaStar } from "react-icons/fa";
 import { GiShoppingCart } from "react-icons/gi";
 import { FaHeart } from "react-icons/fa";
+import { useAuth } from "../../Context/authContext";
+import { FavouriteContext } from "../../Context/FavouriteContextprovider";
 
 const ProductInfo = ({ item }) => {
   const { productID } = useParams();
-  const {
-    cart,
-    addToCart,
-    // icreaseProductinCart,
-    // decreaseProductinCart,
-    // removeProduct,
-    favourite,
-    addToFavourite,
-  } = useContext(CartContext);
+  const { addToCart, getCartItems } = useContext(CartContext);
+  const { getFavoriteItems, addToFavourite } = useContext(FavouriteContext);
+  const { currentUser } = useAuth(); // Using the Auth context to get the current user
 
   const [isInCart, setIsInCart] = useState(false);
   const [isInFavourite, setIsInFavourite] = useState(false);
-
-  // const [setItemInCart] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // setItemInCart(
-    //   ...cart.filter((item) => {
-    //     return item.id == productID;
-    //   })
-    // );
-    setIsInCart(
-      cart.some((ele) => {
-        return ele.id == item?.id;
+    getCartItems(currentUser.uid)
+      .then((data) => {
+        setIsInCart(
+          data.some((ele) => {
+            return ele.id == item.id;
+          })
+        );
       })
-    );
-    setIsInFavourite(
-      favourite.some((ele) => {
-        return ele.id == item.id;
+      .catch((err) => {
+        console.log(err);
+      });
+    getFavoriteItems(currentUser.uid)
+      .then((data) => {
+        setIsInFavourite(
+          data.some((ele) => {
+            return ele.id == item.id;
+          })
+        );
       })
-    );
-  }, [item?.id, cart, productID, favourite]);
-  const handelAddToCart = () => {
-    addToCart(item);
-    toast.success(
-      <div className="flex gap-2 items-center justify-between">
-        <img src={item.thumbnail} alt="" className="h-15" />
+      .catch((err) => {
+        console.log(err);
+      });
+  }, [getFavoriteItems, productID, getCartItems, item, currentUser.uid]);
+  ////////////////////////////////////////////////////////////////////////////////////////////
+  const handelAddToCart = async () => {
+    if (currentUser) {
+      addToCart(currentUser.uid, item);
+      const updatedCart = await getCartItems(currentUser.uid);
+      setIsInCart(updatedCart.some((ele) => ele.id === item.id));
+      toast.success(
+        <div className="flex gap-2 items-center justify-between">
+          <img src={item.thumbnail} alt="" className="h-15" />
 
-        <div className="text-sm">
-          <p>{item.title}</p>
-          added to cart
-        </div>
-        <div>
-          <Link to="/cart">
-            <button className="bg-pink-400 text-sm rounded-md px-1 py-1">
-              View Cart
-            </button>
-          </Link>
-        </div>
-      </div>,
-      { duration: 2500 }
-    );
+          <div className="text-sm">
+            <p>{item.title}</p>
+            added to cart
+          </div>
+          <div>
+            <Link to="/cart">
+              <button className="bg-pink-400 text-sm rounded-md px-1 py-1">
+                View Cart
+              </button>
+            </Link>
+          </div>
+        </div>,
+        { duration: 2500 }
+      );
+    } else {
+      // Handle case where user isn't logged in
+      navigate("/signin");
+      console.log("User not logged in");
+      // You might want to redirect to login or show a message
+    }
   };
 
-  const handelFavourite = () => {
-    addToFavourite(item);
-    toast.success(
-      <div className="flex gap-2 items-center justify-between text-gray-800 font-medium">
-        <img src={item.thumbnail} alt="" className="h-15" />
-        <div className="text-sm">
-          <p>
-            {item.title} <span> added to Favourite</span>
-          </p>
-        </div>
-        <div>
-          {/* <Link to="/cart">
+  const handelFavourite = async () => {
+    if (currentUser) {
+      addToFavourite(currentUser.uid, item);
+      const updatedFavourite = await getFavoriteItems(currentUser.uid);
+      setIsInFavourite(updatedFavourite.some((ele) => ele.id === item.id));
+      toast.success(
+        <div className="flex gap-2 items-center justify-between text-gray-800 font-medium">
+          <img src={item.thumbnail} alt="" className="h-15" />
+          <div className="text-sm">
+            <p>
+              {item.title} <span> added to Favourite</span>
+            </p>
+          </div>
+          <div>
+            {/* <Link to="/cart">
               <button className="bg-pink-400 text-sm rounded-md px-1 py-1">
                 View Cart
               </button>
             </Link> */}
-        </div>
-      </div>,
-      {
-        duration: 2500,
-        icon: <FaHeart className="-mr-4 text-2xl text-pink-500" />,
-        style: {
-          // borderRadius: "10px",
-          background: "pink",
-        },
-      }
-    );
+          </div>
+        </div>,
+        {
+          duration: 2500,
+          icon: <FaHeart className="-mr-4 text-2xl text-pink-500" />,
+          style: {
+            // borderRadius: "10px",
+            background: "pink",
+          },
+        }
+      );
+    } else {
+      // Handle case where user isn't logged in
+      navigate("/signin");
+      console.log("User not logged in");
+      // You might want to redirect to login or show a message
+    }
   };
 
   return (

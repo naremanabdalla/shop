@@ -2,12 +2,15 @@ import React, { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { signup } from "../auth/auth";
 import { useAuth } from "../Context/authContext"; // Assuming you have an Auth context
+import { auth } from "../auth/firebse";
 
 const SignUp = () => {
-  const { userLoggedIn } = useAuth(); // Using the Auth context to get the current user
+  const { userLoggedIn, addUserFirestore } = useAuth(); // Using the Auth context to get the current user
 
+  const [name, setName] = useState("");
   const [email, setemail] = useState("");
   const [password, setpassword] = useState("");
+  const [error, setError] = useState(null);
   //   const [confirmPassword, setConfirmPassword] = useState("");
   //   const [errorMessage, setErrorMessage] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
@@ -16,9 +19,17 @@ const SignUp = () => {
     e.preventDefault();
     if (!isRegistering) {
       setIsRegistering(true);
-      await signup(email, password);
-      setemail("");
-      setpassword("");
+      setError(null);
+      try {
+        await signup(email, password);
+        await addUserFirestore(name, email, password, auth.currentUser.uid);
+        setName("");
+        setemail("");
+        setpassword("");
+      } catch (error) {
+        setError(error.message);
+      }
+      setIsRegistering(false);
     }
   };
   return (
@@ -29,6 +40,20 @@ const SignUp = () => {
           Sign Up Page
         </h2>
         <form className="max-w-md mx-auto mt-8 p-6 bg-white shadow-md rounded-lg">
+          <label
+            className="block text-gray-700 text-sm font-bold mb-2"
+            htmlFor="name"
+          >
+            Name
+          </label>
+          <input
+            type="text"
+            value={name}
+            className="w-full p-2 border rounded mb-4"
+            onChange={(e) => {
+              setName(e.target.value);
+            }}
+          />
           <label
             className="block text-gray-700 text-sm font-bold mb-2"
             htmlFor="email"
@@ -63,9 +88,9 @@ const SignUp = () => {
             onClick={(e) => {
               handleSignUp(e);
             }}
-            className="w-full bg-pink-400 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 mt-4"
+            className="w-full bg-pink-400 text-white font-bold py-2 px-4 rounded hover:bg-pink-500 mt-4"
           >
-            Sign Up
+            {isRegistering ? "Registering..." : "Sign Up"}
           </button>
 
           <p className="mt-4 text-center text-gray-600">
@@ -73,6 +98,9 @@ const SignUp = () => {
             <Link to="/signin" className="text-gray-800 ">
               Sign In
             </Link>
+          </p>
+          <p className="mt-4 text-center text-gray-600 cursor-pointer">
+            Sign Up with Google
           </p>
         </form>
       </div>

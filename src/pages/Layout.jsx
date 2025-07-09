@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import TopHeader from "../components/header/TopHeader";
 import BtmHeader from "../components/header/BtmHeader";
 import { Outlet, useLocation } from "react-router-dom";
@@ -6,10 +6,25 @@ import { Toaster } from "react-hot-toast";
 import ScrollToTop from "../components/ScrollToTop";
 import PageTransation from "../components/PageTransation";
 import { AnimatePresence } from "framer-motion";
+import Loading from "./Loading";
+import { auth } from "./../auth/firebse";
+import { onAuthStateChanged } from "firebase/auth";
 
 const Layout = () => {
   const location = useLocation();
+  const [isAuthReady, setIsAuthReady] = useState(false);
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, () => {
+      setIsAuthReady(true);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  if (!isAuthReady) {
+    return <Loading />;
+  }
   return (
     <>
       <ScrollToTop />

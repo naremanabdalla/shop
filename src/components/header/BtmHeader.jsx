@@ -6,6 +6,7 @@ import { ProductsContext } from "../../Context/ProductsContextProvider";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { useAuth } from "../../Context/authContext"; // Import your auth context
 import { doSignOut } from "../../auth/auth"; // Import your signOut function
+import { RxAvatar } from "react-icons/rx";
 
 const NavLinks = [
   { title: "Home", path: "/" },
@@ -148,11 +149,16 @@ const BtmHeader = () => {
             <HiUserAdd className="cursor-pointer" />
           </Link> */}
           {userLoggedIn ? (
-            <PiSignOutBold
-              className="cursor-pointer hover:text-gray-600"
-              onClick={handleLogout}
-              title="Sign Out"
-            />
+            <>
+              <PiSignOutBold
+                className="cursor-pointer hover:text-gray-600"
+                onClick={handleLogout}
+                title="Sign Out"
+              />
+              <Link to={"/profile"}>
+                <RxAvatar className="cursor-pointer hover:text-gray-600 text-xl" />
+              </Link>
+            </>
           ) : (
             <Link to="/signin">
               <HiUserAdd className="cursor-pointer hover:text-gray-600" />

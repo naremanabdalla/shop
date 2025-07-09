@@ -5,9 +5,12 @@ import { HiOutlineShoppingCart } from "react-icons/hi";
 import { CartContext } from "../../Context/CartContextProvider";
 import SearchPopup from "../../pages/SearchPopup";
 import { GiBowTieRibbon } from "react-icons/gi";
+import { FavouriteContext } from "../../Context/FavouriteContextprovider";
 
 const TopHeader = () => {
-  const { cart, favourite } = useContext(CartContext);
+  const { cartCount } = useContext(CartContext);
+  const { favoriteCount } = useContext(FavouriteContext);
+
   return (
     <header className="bg-white ">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-6">
@@ -35,7 +38,7 @@ const TopHeader = () => {
             <div className="flex flex-col items-center text-gray-700 hover:text-pink-500 transition-colors relative">
               <FaRegHeart className="text-xl" />
               <span className="absolute -top-3 -right-3 bg-pink-400 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                {favourite.length}
+                {favoriteCount}
               </span>
             </div>
           </Link>
@@ -44,7 +47,7 @@ const TopHeader = () => {
             <button className="flex flex-col items-center text-gray-700 hover:text-pink-500 transition-colors relative">
               <HiOutlineShoppingCart className="text-xl" />
               <span className="absolute -top-3 -right-3 bg-pink-400 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                {cart.length}
+                {cartCount}
               </span>
             </button>
           </Link>

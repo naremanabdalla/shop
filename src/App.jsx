@@ -14,6 +14,8 @@ import ContactUS from "./pages/ContactUS";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import AuthContext from "./Context/authContext";
+import Profile from "./pages/Profile";
+import FavouriteContextprovider from "./Context/FavouriteContextprovider";
 function App() {
   const routes = createBrowserRouter([
     {
@@ -28,6 +30,7 @@ function App() {
         { path: "/contact", element: <ContactUS /> },
         { path: "/signin", element: <SignIn /> },
         { path: "/signup", element: <SignUp /> },
+        { path: "profile", element: <Profile /> },
       ],
     },
   ]);
@@ -35,11 +38,13 @@ function App() {
     <>
       <AuthContext>
         <CartContextProvider>
-          <ProductsContextProvider>
-            {/* <AnimatePresence mode="await"> */}
-            <RouterProvider router={routes} />
-            {/* </AnimatePresence> */}
-          </ProductsContextProvider>
+          <FavouriteContextprovider>
+            <ProductsContextProvider>
+              {/* <AnimatePresence mode="await"> */}
+              <RouterProvider router={routes} />
+              {/* </AnimatePresence> */}
+            </ProductsContextProvider>
+          </FavouriteContextprovider>
         </CartContextProvider>
       </AuthContext>
     </>

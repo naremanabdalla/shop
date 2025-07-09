@@ -1,79 +1,96 @@
-import React, { createContext, useEffect, useState } from "react";
+import { arrayUnion, doc, getDoc, updateDoc } from "firebase/firestore";
+import React, { createContext, useState } from "react";
+import { db } from "../auth/firebse";
 
 export const CartContext = createContext([]);
 const CartContextProvider = ({ children }) => {
-  const [cart, setCart] = useState(() => {
-    const savecart = localStorage.getItem("cartItems");
-    return savecart ? JSON.parse(savecart) : [];
-  });
-  const [favourite, setFavourite] = useState(() => {
-    const savefavourite = localStorage.getItem("favouriteItems");
-    return savefavourite ? JSON.parse(savefavourite) : [];
-  });
+  const [cartCount, setCartCount] = useState(0);
+  // const [cart, setCart] = useState(() => {
+  //   const savecart = localStorage.getItem("cartItems");
+  //   return savecart ? JSON.parse(savecart) : [];
+  // });
 
-  useEffect(() => {
-    localStorage.setItem("cartItems", JSON.stringify(cart));
-  }, [cart]);
-  const addToCart = (item) => {
-    setCart((prevCart) => [...prevCart, { ...item, count: 1 }]);
+  // useEffect(() => {
+  //   localStorage.setItem("cartItems", JSON.stringify(cart));
+  // }, [cart]);
+
+  const addToCart = async (userId, cartitem) => {
+    // setCart((prevCart) => [...prevCart, { ...item, count: 1 }]);
+    try {
+      const docRef = doc(db, "users", userId);
+      await updateDoc(docRef, {
+        cart: arrayUnion({ ...cartitem, count: 1 }),
+      });
+    } catch (error) {
+      console.error("Error updating cart:", error);
+    }
   };
 
-  //add product to favourite
-  useEffect(() => {
-    localStorage.setItem("favouriteItems", JSON.stringify(favourite));
-  }, [favourite]);
-  const addToFavourite = (item) => {
-    setFavourite((prevfavourite) => [...prevfavourite, { ...item }]);
+  const getCartItems = async (userId) => {
+    try {
+      const docRef = doc(db, "users", userId);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const cart = docSnap.data().cart || [];
+        setCartCount(cart.length); // Update the count when fetching
+        return cart; // Return the user data
+      } else {
+        console.log("No such document!");
+      }
+    } catch (e) {
+      console.error("Error getting user: ", e);
+      throw e;
+    }
   };
 
-  //increase quantity
-  const icreaseProductinCart = (item) => {
-    setCart(
-      cart.map((ele) => {
-        return ele.id == item.id
+  //remove product from cart
+  const removeItemFromCart = async (userId, cartitem) => {
+    // setCart((prevCart) => [...prevCart, { ...item, count: 1 }]);
+    try {
+      const docRef = doc(db, "users", userId);
+      const docSnap = await getDoc(docRef);
+      const cart = docSnap.data().cart;
+      await updateDoc(docRef, {
+        cart: cart.filter((ele) => ele.id !== cartitem.id),
+      });
+      setCartCount(cart.length - 1);
+    } catch (error) {
+      console.error("Error updating cart:", error);
+    }
+  };
+
+  const icreaseProductinCart = async (userId, cartitem) => {
+    try {
+      const docRef = doc(db, "users", userId);
+      const docSnap = await getDoc(docRef);
+      const cart = docSnap.data().cart;
+      const updateProductinCart = cart.map((ele) => {
+        return ele.id == cartitem.id
           ? {
               ...ele,
               count: ele.count + 1,
             }
           : ele;
-      })
-    );
-  };
-  //decrease quantity
-  const decreaseProductinCart = (item) => {
-    setCart(
-      cart.map((ele) => {
-        return ele.id == item.id
-          ? {
-              ...ele,
-              count: ele.count - 1,
-            }
-          : ele;
-      })
-    );
-  };
-  //remove product from cart
-  const removeProduct = (item) => {
-    setCart(cart.filter((ele) => ele.id != item.id));
-  };
-  //remove product from favourite
-  const removeFavourite = (item) => {
-    setFavourite(favourite.filter((ele) => ele.id != item.id));
+      });
+      await updateDoc(docRef, {
+        cart: updateProductinCart,
+      });
+      return updateProductinCart;
+    } catch (error) {
+      console.error("Error updating cart:", error);
+    }
   };
 
   return (
     <>
       <CartContext.Provider
         value={{
-          setCart,
-          cart,
           addToCart,
+          getCartItems,
+          removeItemFromCart,
+          cartCount,
           icreaseProductinCart,
-          decreaseProductinCart,
-          removeProduct,
-          addToFavourite,
-          favourite,
-          removeFavourite,
         }}
       >
         {children}

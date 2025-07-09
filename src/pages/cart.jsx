@@ -1,12 +1,43 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Loading from "./Loading";
 import { HiOutlineTrash } from "react-icons/hi2";
 import { CartContext } from "../Context/CartContextProvider";
+import { useAuth } from "../Context/authContext";
 
 const Cart = () => {
-  const { cart, icreaseProductinCart, decreaseProductinCart, removeProduct } =
-    useContext(CartContext);
+  const {
+    icreaseProductinCart,
+    decreaseProductinCart,
+    getCartItems,
+    removeItemFromCart,
+  } = useContext(CartContext);
 
+  const [cart, setCart] = useState([]);
+  const { currentUser } = useAuth();
+  useEffect(() => {
+    getCartItems(currentUser.uid)
+      .then((data) => {
+        setCart(data);
+      })
+      .catch((error) => {
+        console.error("Error fetching cart items:", error);
+      });
+  }, [getCartItems, currentUser.uid, cart.length]);
+
+  const handelRemoveItemFromCart = async (item) => {
+    removeItemFromCart(currentUser.uid, item);
+    const updatedCart = await getCartItems(currentUser.uid);
+    setCart(updatedCart.filter((ele) => ele.id !== item.id));
+  };
+
+  const handelIcreaseProductinCart = async (item) => {
+    try {
+      const updatedCart = await icreaseProductinCart(currentUser.uid, item);
+      setCart(updatedCart); // Update local state with the returned cart
+    } catch (error) {
+      console.log(error);
+    }
+  };
   if (!cart) {
     return <Loading />;
   }
@@ -42,7 +73,7 @@ const Cart = () => {
                         {item.title}
                       </h2>
                       <button
-                        onClick={() => removeProduct(item)}
+                        onClick={() => handelRemoveItemFromCart(item)}
                         className="text-gray-600 hover:text-red-500 transition-colors"
                         aria-label="Remove item"
                       >
@@ -56,7 +87,7 @@ const Cart = () => {
                           className="w-8 h-8 rounded-lg bg-gray-200 text-pink-400 font-bold flex items-center justify-center hover:bg-gray-300 transition-colors"
                           onClick={() =>
                             item.count < 2
-                              ? removeProduct(item)
+                              ? removeItemFromCart(currentUser.uid, item)
                               : decreaseProductinCart(item)
                           }
                           aria-label="Decrease quantity"
@@ -68,7 +99,7 @@ const Cart = () => {
                         </span>
                         <button
                           className="w-8 h-8 rounded-lg bg-gray-200 text-pink-400 font-bold flex items-center justify-center hover:bg-gray-300 transition-colors"
-                          onClick={() => icreaseProductinCart(item)}
+                          onClick={() => handelIcreaseProductinCart(item)}
                           aria-label="Increase quantity"
                         >
                           +
