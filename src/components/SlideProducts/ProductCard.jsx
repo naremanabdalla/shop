@@ -29,29 +29,31 @@ const ProductCard = ({ item }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    getCartItems(currentUser.uid)
-      .then((data) => {
-        setIsInCart(
-          data.some((ele) => {
-            return ele.id == item.id;
-          })
-        );
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    getFavoriteItems(currentUser.uid)
-      .then((data) => {
-        setIsInFavourite(
-          data.some((ele) => {
-            return ele.id == item.id;
-          })
-        );
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }, [getCartItems, item, getFavoriteItems, currentUser.uid]);
+    if (currentUser) {
+      getCartItems(currentUser.uid)
+        .then((data) => {
+          setIsInCart(
+            data.some((ele) => {
+              return ele.id == item.id;
+            })
+          );
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      getFavoriteItems(currentUser.uid)
+        .then((data) => {
+          setIsInFavourite(
+            data.some((ele) => {
+              return ele.id == item.id;
+            })
+          );
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  }, [getCartItems, item, getFavoriteItems, currentUser?.uid]);
 
   // const handelClick = () => {
   //   cart.map((ele) => {

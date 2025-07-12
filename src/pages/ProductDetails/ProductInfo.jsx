@@ -19,29 +19,31 @@ const ProductInfo = ({ item }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    getCartItems(currentUser.uid)
-      .then((data) => {
-        setIsInCart(
-          data.some((ele) => {
-            return ele.id == item.id;
-          })
-        );
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    getFavoriteItems(currentUser.uid)
-      .then((data) => {
-        setIsInFavourite(
-          data.some((ele) => {
-            return ele.id == item.id;
-          })
-        );
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }, [getFavoriteItems, productID, getCartItems, item, currentUser.uid]);
+    if (currentUser) {
+      getCartItems(currentUser.uid)
+        .then((data) => {
+          setIsInCart(
+            data.some((ele) => {
+              return ele.id == item.id;
+            })
+          );
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      getFavoriteItems(currentUser.uid)
+        .then((data) => {
+          setIsInFavourite(
+            data.some((ele) => {
+              return ele.id == item.id;
+            })
+          );
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  }, [getFavoriteItems, productID, getCartItems, item, currentUser?.uid]);
   ////////////////////////////////////////////////////////////////////////////////////////////
   const handelAddToCart = async () => {
     if (currentUser) {

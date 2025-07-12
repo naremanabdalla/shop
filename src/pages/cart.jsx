@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import Loading from "./Loading";
 import { HiOutlineTrash } from "react-icons/hi2";
 import { CartContext } from "../Context/CartContextProvider";
@@ -15,29 +15,90 @@ const Cart = () => {
   const [cart, setCart] = useState([]);
   const { currentUser } = useAuth();
   useEffect(() => {
-    getCartItems(currentUser.uid)
-      .then((data) => {
-        setCart(data);
-      })
-      .catch((error) => {
-        console.error("Error fetching cart items:", error);
-      });
-  }, [getCartItems, currentUser.uid, cart.length]);
+    if (currentUser) {
+      getCartItems(currentUser.uid)
+        .then((data) => {
+          setCart(data);
+        })
+        .catch((error) => {
+          console.error("Error fetching cart items:", error);
+        });
+    }
+  }, [currentUser?.uid]);
 
   const handelRemoveItemFromCart = async (item) => {
-    removeItemFromCart(currentUser.uid, item);
-    const updatedCart = await getCartItems(currentUser.uid);
-    setCart(updatedCart.filter((ele) => ele.id !== item.id));
-  };
-
-  const handelIcreaseProductinCart = async (item) => {
-    try {
-      const updatedCart = await icreaseProductinCart(currentUser.uid, item);
-      setCart(updatedCart); // Update local state with the returned cart
-    } catch (error) {
-      console.log(error);
+    if (currentUser) {
+      removeItemFromCart(currentUser.uid, item);
+      const updatedCart = await getCartItems(currentUser.uid);
+      setCart(updatedCart.filter((ele) => ele.id !== item.id));
     }
   };
+
+  // const handelIcreaseProductinCart = async (item) => {
+  //   if (currentUser) {
+  //     try {
+  //       const updatedCart = await icreaseProductinCart(currentUser.uid, item);
+  //       setCart(updatedCart);
+  //     } catch (error) {
+  //       console.log(error);
+  //     }
+  //   }
+  // };
+  // const handelDecreaseProductinCart = async (item) => {
+  //   if (currentUser) {
+  //     try {
+  //       const updatedCart = await decreaseProductinCart(currentUser.uid, item);
+  //       setCart(updatedCart);
+  //     } catch (error) {
+  //       console.log(error);
+  //     }
+  //   }
+  // };
+  const handelIcreaseProductinCart = useCallback(
+    async (item) => {
+      if (!currentUser) return;
+
+      try {
+        // Optimistic update first
+        setCart((prev) =>
+          prev.map((p) => (p.id === item.id ? { ...p, count: p.count + 1 } : p))
+        );
+
+        // Then sync with Firestore
+        await icreaseProductinCart(currentUser.uid, item);
+      } catch (error) {
+        // Rollback on error
+        setCart((prev) =>
+          prev.map((p) => (p.id === item.id ? { ...p, count: p.count - 1 } : p))
+        );
+        console.error("Failed to increase:", error);
+      }
+    },
+    [currentUser, icreaseProductinCart]
+  ); // Dependencies ensure latest functions
+
+  const handelDecreaseProductinCart = useCallback(
+    async (item) => {
+      if (!currentUser) return;
+
+      try {
+        setCart((prev) =>
+          prev.map((p) =>
+            p.id === item.id ? { ...p, count: Math.max(1, p.count - 1) } : p
+          )
+        );
+
+        await decreaseProductinCart(currentUser.uid, item);
+      } catch (error) {
+        setCart((prev) =>
+          prev.map((p) => (p.id === item.id ? { ...p, count: p.count + 1 } : p))
+        );
+        console.error("Failed to decrease:", error);
+      }
+    },
+    [currentUser, decreaseProductinCart]
+  );
+
   if (!cart) {
     return <Loading />;
   }
@@ -87,8 +148,8 @@ const Cart = () => {
                           className="w-8 h-8 rounded-lg bg-gray-200 text-pink-400 font-bold flex items-center justify-center hover:bg-gray-300 transition-colors"
                           onClick={() =>
                             item.count < 2
-                              ? removeItemFromCart(currentUser.uid, item)
-                              : decreaseProductinCart(item)
+                              ? handelRemoveItemFromCart(item)
+                              : handelDecreaseProductinCart(item)
                           }
                           aria-label="Decrease quantity"
                         >
@@ -116,19 +177,6 @@ const Cart = () => {
             ))}
 
             <div className="p-4 sm:p-6">
-              <div className="flex justify-between items-center mb-4">
-                <span className="font-semibold">Total:</span>
-                <span className="font-bold text-lg">
-                  $
-                  {cart
-                    .reduce(
-                      (acc, item) => acc + item.price * (item.count || 1),
-                      0
-                    )
-                    .toFixed(2)}
-                </span>
-              </div>
-
               <button className="w-full sm:w-1/2 md:w-1/3 bg-pink-400 hover:bg-pink-500 text-white font-medium py-3 px-6 rounded-xl mx-auto flex justify-between items-center transition-colors">
                 <span>Checkout</span>
                 <span>

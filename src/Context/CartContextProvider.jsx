@@ -1,5 +1,5 @@
 import { arrayUnion, doc, getDoc, updateDoc } from "firebase/firestore";
-import React, { createContext, useState } from "react";
+import React, { createContext, useCallback, useState } from "react";
 import { db } from "../auth/firebse";
 
 export const CartContext = createContext([]);
@@ -60,11 +60,11 @@ const CartContextProvider = ({ children }) => {
     }
   };
 
-  const icreaseProductinCart = async (userId, cartitem) => {
+  const icreaseProductinCart = useCallback(async (userId, cartitem) => {
     try {
       const docRef = doc(db, "users", userId);
       const docSnap = await getDoc(docRef);
-      const cart = docSnap.data().cart;
+      const cart = docSnap.data().cart || [];
       const updateProductinCart = cart.map((ele) => {
         return ele.id == cartitem.id
           ? {
@@ -80,7 +80,34 @@ const CartContextProvider = ({ children }) => {
     } catch (error) {
       console.error("Error updating cart:", error);
     }
-  };
+  }, []); // Empty dependency array = stable function
+  const decreaseProductinCart = useCallback(async (userId, cartitem) => {
+    try {
+      const docRef = doc(db, "users", userId);
+      const docSnap = await getDoc(docRef);
+      const cart = docSnap.data().cart;
+      let updateProductinCart = cart.map((ele) => {
+        return ele.id == cartitem.id
+          ? {
+              ...ele,
+              count: ele.count - 1,
+            }
+          : ele;
+      });
+      // Remove item if count reaches 0 (optional)
+      updateProductinCart = updateProductinCart.filter(
+        (item) => item.count > 0
+      );
+
+      await updateDoc(docRef, {
+        cart: updateProductinCart,
+      });
+      setCartCount(updateProductinCart.length);
+      return updateProductinCart;
+    } catch (error) {
+      console.error("Error updating cart:", error);
+    }
+  }, []);
 
   return (
     <>
@@ -91,6 +118,7 @@ const CartContextProvider = ({ children }) => {
           removeItemFromCart,
           cartCount,
           icreaseProductinCart,
+          decreaseProductinCart,
         }}
       >
         {children}

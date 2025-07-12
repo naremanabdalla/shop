@@ -9,20 +9,24 @@ const Favourite = () => {
 
   const { currentUser } = useAuth();
   useEffect(() => {
-    getFavoriteItems(currentUser.uid)
-      .then((data) => {
-        setFavourite(data);
-        console.log("Cart items fetched:", data);
-      })
-      .catch((error) => {
-        console.error("Error fetching cart items:", error);
-      });
-  }, [getFavoriteItems, currentUser.uid]);
+    if (currentUser) {
+      getFavoriteItems(currentUser.uid)
+        .then((data) => {
+          setFavourite(data);
+          console.log("Cart items fetched:", data);
+        })
+        .catch((error) => {
+          console.error("Error fetching cart items:", error);
+        });
+    }
+  }, [getFavoriteItems, currentUser?.uid]);
 
   const handelRemoveItemFromCart = async (item) => {
-    removeFavourite(currentUser.uid, item);
-    const updatedFavourite = await getFavoriteItems(currentUser.uid);
-    setFavourite(updatedFavourite.filter((ele) => ele.id !== item.id));
+    if (currentUser) {
+      removeFavourite(currentUser.uid, item);
+      const updatedFavourite = await getFavoriteItems(currentUser.uid);
+      setFavourite(updatedFavourite.filter((ele) => ele.id !== item.id));
+    }
   };
   if (!favourite) {
     return <Loading />;

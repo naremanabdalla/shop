@@ -4,29 +4,33 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../Context/authContext";
 import { auth } from "../auth/firebse";
 import Loading from "./Loading.jsx";
+import NotFound from "./NotFound.jsx";
 
 const Profile = () => {
-  const { getUserFirestore } = useAuth(); // Using the Auth context to get the current user
-  // console.log(getUserFirestore);
-  // Get first letter of user name for avatar
+  const { getUserFirestore, currentUser } = useAuth(); // Using the Auth context to get the current user
   const [user, setUser] = useState("");
-
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const userData = await getUserFirestore(auth.currentUser.uid);
-        setUser(userData); // Now `user` contains { name, email, ... }
-      } catch (error) {
-        console.error("Failed to fetch user:", error);
-      }
-    };
+    if (currentUser) {
+      const fetchUser = async () => {
+        try {
+          const userData = await getUserFirestore(auth.currentUser?.uid);
+          setUser(userData); // Now `user` contains { name, email, ... }
+        } catch (error) {
+          console.error("Failed to fetch user:", error);
+        }
+      };
 
-    fetchUser();
+      fetchUser();
+    }
   }, []);
+  if (!currentUser) {
+    return <NotFound />;
+  }
   if (!user) {
     return <Loading />;
   }
   // const avatarLetter = user.name.charAt(0).toUpperCase();
+
   return (
     <div>
       <h1 className="text-3xl font-bold text-center mt-10 text-gray-800">
@@ -35,7 +39,7 @@ const Profile = () => {
       <div className="max-w-md mx-auto mt-8 p-6 bg-white shadow-md rounded-lg flex flex-col items-center">
         {/* Avatar with first letter */}
         <div className="w-20 h-20 rounded-full bg-blue-500 flex items-center justify-center text-white text-4xl font-bold mb-4">
-          {user?.name.charAt(0).toUpperCase()}
+          {user.name.charAt(0).toUpperCase()}
         </div>
         {/* User name and email */}
         <h2 className="text-xl font-semibold mb-1">{user.name}</h2>

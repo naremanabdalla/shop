@@ -16,6 +16,7 @@ import SignUp from "./pages/SignUp";
 import AuthContext from "./Context/authContext";
 import Profile from "./pages/Profile";
 import FavouriteContextprovider from "./Context/FavouriteContextprovider";
+import NotFound from "./pages/NotFound";
 function App() {
   const routes = createBrowserRouter([
     {
@@ -33,6 +34,7 @@ function App() {
         { path: "profile", element: <Profile /> },
       ],
     },
+    { path: "*", element: <NotFound /> },
   ]);
   return (
     <>
