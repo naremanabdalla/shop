@@ -4,8 +4,8 @@ import { HiUserAdd } from "react-icons/hi";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ProductsContext } from "../../Context/ProductsContextProvider";
 import { GiHamburgerMenu } from "react-icons/gi";
-import { useAuth } from "../../Context/authContext"; // Import your auth context
-import { doSignOut } from "../../auth/auth"; // Import your signOut function
+import { useAuth } from "../../Context/authContext";
+import { doSignOut } from "../../auth/auth";
 import { RxAvatar } from "react-icons/rx";
 
 const NavLinks = [
@@ -17,18 +17,12 @@ const NavLinks = [
 ];
 
 const BtmHeader = () => {
-  const { userLoggedIn } = useAuth(); // Using the Auth context to get the current user
+  const { userLoggedIn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { BrowseCategory } = useContext(ProductsContext);
   const [openMenue, setOpenMenue] = useState(false);
-  // const [category, setCategory] = useState([]);
 
-  // useEffect(() => {
-  //   axios.get("https://dummyjson.com/products/categories").then((res) => {
-  //     setCategory(res.data);
-  //   });
-  // }, []);
   const handleLogout = async () => {
     try {
       await doSignOut();
@@ -64,7 +58,6 @@ const BtmHeader = () => {
             <select
               defaultValue=""
               onChange={(e) => {
-                // console.log(e.target.value.replace(" ", "-").toLowerCase());
                 navigate(
                   `/category/${e.target.value.replace(" ", "-").toLowerCase()}`
                 );
@@ -74,11 +67,6 @@ const BtmHeader = () => {
                 Browse Categories
               </option>
               {BrowseCategory.map((cat, index) => (
-                // <Link to={`/ccat/${cat}`}>
-                // <Link to={cat.name} key={index}>
-                //   <div>{cat.name}</div>
-                // </Link>
-                // <Link to={`category/${cat.name}`} >
                 <option value={cat} key={index} className="text-gray-700">
                   {cat}
                 </option>
@@ -106,7 +94,6 @@ const BtmHeader = () => {
             <select
               defaultValue=""
               onChange={(e) => {
-                // console.log(e.target.value.replace(" ", "-").toLowerCase());
                 navigate(
                   `/category/${e.target.value.replace(" ", "-").toLowerCase()}`
                 );
@@ -116,11 +103,6 @@ const BtmHeader = () => {
                 Browse Categories
               </option>
               {BrowseCategory.map((cat, index) => (
-                // <Link to={`/ccat/${cat}`}>
-                // <Link to={cat.name} key={index}>
-                //   <div>{cat.name}</div>
-                // </Link>
-                // <Link to={`category/${cat.name}`} >
                 <option value={cat} key={index} className="text-gray-700">
                   {cat}
                 </option>
@@ -144,10 +126,6 @@ const BtmHeader = () => {
           </div>
         </div>
         <div className="flex justify-evenly items-center w-1/6 gap-2">
-          {/* <PiSignOutBold />
-          <Link to={"/signin"}>
-            <HiUserAdd className="cursor-pointer" />
-          </Link> */}
           {userLoggedIn ? (
             <>
               <PiSignOutBold

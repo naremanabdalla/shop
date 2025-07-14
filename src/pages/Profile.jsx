@@ -7,14 +7,14 @@ import Loading from "./Loading.jsx";
 import NotFound from "./NotFound.jsx";
 
 const Profile = () => {
-  const { getUserFirestore, currentUser } = useAuth(); // Using the Auth context to get the current user
+  const { getUserFirestore, currentUser } = useAuth();
   const [user, setUser] = useState("");
   useEffect(() => {
     if (currentUser) {
       const fetchUser = async () => {
         try {
           const userData = await getUserFirestore(auth.currentUser?.uid);
-          setUser(userData); // Now `user` contains { name, email, ... }
+          setUser(userData);
         } catch (error) {
           console.error("Failed to fetch user:", error);
         }
@@ -29,7 +29,6 @@ const Profile = () => {
   if (!user) {
     return <Loading />;
   }
-  // const avatarLetter = user.name.charAt(0).toUpperCase();
 
   return (
     <div>

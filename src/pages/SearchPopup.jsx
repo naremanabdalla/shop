@@ -9,54 +9,33 @@ const SearchPopup = () => {
   const [searchValue, setSearchValue] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const { allProducts } = useContext(ProductsContext);
-  // const popupRef = useRef(null);
-  // Sample search function (replace with your actual search logic)
-  const performSearch = (query) => {
-    // This would typically be an API call or filtering your data
-
-    const mockResults = allProducts
-      .flat()
-      .filter(
-        (item) =>
-          item.title.toLowerCase().includes(query.toLowerCase()) ||
-          item.category.toLowerCase().includes(query.toLowerCase())
-      );
-
-    setSearchResults(mockResults);
-  };
 
   const location = useLocation();
   useEffect(() => {
     setIsOpen(false);
   }, [location]);
-  // Close popup when clicking outside
-  // useEffect(() => {
-  //   const handleClickOutside = (event) => {
-  //     if (popupRef.current && !popupRef.current.contains(event.target)) {
-  //       setIsOpen(false);
-  //     }
-  //   };
 
-  //   document.addEventListener("mousedown", handleClickOutside);
-  //   return () => {
-  //     document.removeEventListener("mousedown", handleClickOutside);
-  //   };
-  // }, []);
-
-  // Search when query changes (with debounce)
   useEffect(() => {
+    const performSearch = (query) => {
+      // This would typically be an API call or filtering your data
+
+      const mockResults = allProducts
+        .flat()
+        .filter(
+          (item) =>
+            item.title.toLowerCase().includes(query.toLowerCase()) ||
+            item.category.toLowerCase().includes(query.toLowerCase())
+        );
+
+      setSearchResults(mockResults);
+    };
     if (searchValue.trim() === "") {
       setSearchResults([]);
       return;
     }
 
-    //   const timer = setTimeout(() => {
     performSearch(searchValue);
-    //   }, 300);
-
-    //   return () => clearTimeout(timer);
-  }, [searchValue]);
-  // console.log(popupRef.current);
+  }, [searchValue, allProducts]);
 
   return (
     <div className="relative">

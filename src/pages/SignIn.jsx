@@ -7,7 +7,6 @@ const SignIn = () => {
   const [email, setemail] = useState("");
   const [password, setpassword] = useState("");
   const [isSigningIn, setIsSigningIn] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSignIn = (e) => {
     e.preventDefault();
@@ -19,9 +18,8 @@ const SignIn = () => {
           setemail("");
           setpassword("");
         })
-        .catch((error) => {
+        .catch(() => {
           setIsSigningIn(false);
-          setErrorMessage(error.message);
         });
     }
   };
@@ -33,9 +31,8 @@ const SignIn = () => {
         .then(() => {
           setIsSigningIn(false);
         })
-        .catch((error) => {
+        .catch(() => {
           setIsSigningIn(false);
-          setErrorMessage(error.message);
         });
     }
   };

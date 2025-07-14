@@ -10,7 +10,6 @@ const AuthContext = ({ children }) => {
   const [userLoggedIn, setUserLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // console.log(currentUser, "current user in auth context");
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, initializeUser);
     return unsubscribe;
@@ -52,7 +51,7 @@ const AuthContext = ({ children }) => {
 
       if (docSnap.exists()) {
         console.log("Document data:", docSnap.data());
-        return docSnap.data(); // Return the user data
+        return docSnap.data();
       } else {
         console.log("No such document!");
       }

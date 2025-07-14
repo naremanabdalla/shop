@@ -1,14 +1,5 @@
-import React from "react";
-
-// import { PhotoIcon, UserCircleIcon } from "@heroicons/react/24/solid";
-// import { ChevronDownIcon } from "@heroicons/react/16/solid";
 import { useState } from "react";
-import {
-  FaPhone,
-  FaEnvelope,
-  FaMapMarkerAlt,
-  FaPaperPlane,
-} from "react-icons/fa";
+import { FaPaperPlane } from "react-icons/fa";
 
 const ContactUS = () => {
   const [formData, setFormData] = useState({

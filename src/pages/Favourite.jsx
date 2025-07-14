@@ -19,7 +19,7 @@ const Favourite = () => {
           console.error("Error fetching cart items:", error);
         });
     }
-  }, [getFavoriteItems, currentUser?.uid]);
+  }, [getFavoriteItems, currentUser?.uid, currentUser]);
 
   const handelRemoveItemFromCart = async (item) => {
     if (currentUser) {

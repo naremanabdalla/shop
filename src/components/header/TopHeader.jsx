@@ -31,7 +31,6 @@ const TopHeader = () => {
         {/* Navigation Icons */}
         <div className="flex items-center gap-6">
           <div className="flex flex-col items-center text-gray-700 hover:text-blue-500 transition-colors relative">
-            {/* <IoSearch className="text-lg" /> */}
             <SearchPopup />
           </div>
 

@@ -1,8 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-// Import Swiper React components
 import { Swiper, SwiperSlide } from "swiper/react";
-
-// Import Swiper styles
 import "swiper/css";
 import "swiper/css/pagination";
 
@@ -11,7 +8,6 @@ import { Pagination, Navigation } from "swiper/modules";
 import ProductCard from "./ProductCard";
 import { ProductsContext } from "../../Context/ProductsContextProvider";
 const SlidProduct = ({ product }) => {
-  // console.log(product);
   const { categories } = useContext(ProductsContext);
 
   const [category, setCategory] = useState("");
@@ -30,7 +26,6 @@ const SlidProduct = ({ product }) => {
               item === category ? item.replace("-", " ") : ""
             )}
           </h2>
-          {/* <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Aut</p> */}
         </div>
 
         <div className="p-10 px-20 ">

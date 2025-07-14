@@ -17,11 +17,7 @@ import { useAuth } from "../../Context/authContext";
 import { FavouriteContext } from "../../Context/FavouriteContextprovider";
 
 const ProductCard = ({ item }) => {
-  const {
-    addToCart,
-    getCartItems,
-    // cart
-  } = useContext(CartContext);
+  const { addToCart, getCartItems } = useContext(CartContext);
   const { addToFavourite, getFavoriteItems } = useContext(FavouriteContext);
   const [isInCart, setIsInCart] = useState(false);
   const [isInFavourite, setIsInFavourite] = useState(false);
@@ -53,21 +49,13 @@ const ProductCard = ({ item }) => {
           console.log(err);
         });
     }
-  }, [getCartItems, item, getFavoriteItems, currentUser?.uid]);
-
-  // const handelClick = () => {
-  //   cart.map((ele) => {
-  //     ele.id == item.id ? setisInCart(true) : setisInCart(false);
-  //   });
-  // };
+  }, [getCartItems, item, getFavoriteItems, currentUser?.uid, currentUser]);
 
   if (!item || !item.thumbnail) {
     return <ProductDetailsLoading />;
   }
   const handelAddToCart = async () => {
     if (currentUser) {
-      // updateCart(currentUser.uid, item);
-
       addToCart(currentUser.uid, item);
       const updatedCart = await getCartItems(currentUser.uid);
       setIsInCart(updatedCart.some((ele) => ele.id === item.id));
@@ -96,8 +84,6 @@ const ProductCard = ({ item }) => {
     } else {
       // Handle case where user isn't logged in
       navigate("/signin");
-      console.log("User not logged in");
-      // You might want to redirect to login or show a message
     }
   };
   const handelFavourite = async () => {
@@ -113,19 +99,12 @@ const ProductCard = ({ item }) => {
               {item.title} <span> added to Favourite</span>
             </p>
           </div>
-          <div>
-            {/* <Link to="/cart">
-            <button className="bg-pink-400 text-sm rounded-md px-1 py-1">
-              View Cart
-            </button>
-          </Link> */}
-          </div>
+          <div></div>
         </div>,
         {
           duration: 3500,
           icon: <FaHeart className="-mr-4 text-2xl text-pink-500" />,
           style: {
-            // borderRadius: "10px",
             background: "pink",
           },
         }
@@ -133,8 +112,6 @@ const ProductCard = ({ item }) => {
     } else {
       // Handle case where user isn't logged in
       navigate("/signin");
-      console.log("User not logged in");
-      // You might want to redirect to login or show a message
     }
   };
   return (
@@ -154,8 +131,6 @@ const ProductCard = ({ item }) => {
               {" "}
               <div>
                 <img src={item.thumbnail} alt="" />
-                {/* <div className="swiper-lazy-preloader"></div> */}
-                {/* <div className="swiper-lazy-preloader swiper-lazy-preloader-white"></div> */}
               </div>
               <p className="px-2 line-clamp-1  ">{item.title}</p>
               <div className="px-2 flex text-sm text-yellow-500  my-2">

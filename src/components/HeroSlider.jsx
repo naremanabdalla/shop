@@ -65,7 +65,6 @@ const HeroSlider = () => {
                 className="w-full  object-cover  brightness-50 object-bottom"
                 style={{ minHeight: "300px", maxHeight: "600px" }}
               />
-              {/* <div class="absolute inset-0 bg-gray-500/20 backdrop-blur-xs"></div> */}
             </div>
           </div>
         </SwiperSlide>
@@ -96,7 +95,6 @@ const HeroSlider = () => {
                 className="w-full  h-auto object-cover  brightness-50 object-bottom"
                 style={{ minHeight: "300px", maxHeight: "600px" }}
               />
-              {/* <div class="absolute inset-0 bg-gray-500/20 backdrop-blur-xs"></div> */}
             </div>
           </div>
         </SwiperSlide>
@@ -127,7 +125,6 @@ const HeroSlider = () => {
                 className="w-full  h-auto object-cover  brightness-50 object-bottom"
                 style={{ minHeight: "300px", maxHeight: "600px" }}
               />
-              {/* <div class="absolute inset-0 bg-gray-500/20 backdrop-blur-xs"></div> */}
             </div>
           </div>
         </SwiperSlide>
