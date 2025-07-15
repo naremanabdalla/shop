@@ -13,7 +13,6 @@ const Favourite = () => {
       getFavoriteItems(currentUser.uid)
         .then((data) => {
           setFavourite(data);
-          console.log("Cart items fetched:", data);
         })
         .catch((error) => {
           console.error("Error fetching cart items:", error);

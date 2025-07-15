@@ -5,17 +5,8 @@ import { db } from "../auth/firebse";
 export const CartContext = createContext([]);
 const CartContextProvider = ({ children }) => {
   const [cartCount, setCartCount] = useState(0);
-  // const [cart, setCart] = useState(() => {
-  //   const savecart = localStorage.getItem("cartItems");
-  //   return savecart ? JSON.parse(savecart) : [];
-  // });
-
-  // useEffect(() => {
-  //   localStorage.setItem("cartItems", JSON.stringify(cart));
-  // }, [cart]);
 
   const addToCart = async (userId, cartitem) => {
-    // setCart((prevCart) => [...prevCart, { ...item, count: 1 }]);
     try {
       const docRef = doc(db, "users", userId);
       await updateDoc(docRef, {
@@ -33,8 +24,8 @@ const CartContextProvider = ({ children }) => {
 
       if (docSnap.exists()) {
         const cart = docSnap.data().cart || [];
-        setCartCount(cart.length); // Update the count when fetching
-        return cart; // Return the user data
+        setCartCount(cart.length);
+        return cart;
       } else {
         console.log("No such document!");
       }
@@ -46,7 +37,6 @@ const CartContextProvider = ({ children }) => {
 
   //remove product from cart
   const removeItemFromCart = async (userId, cartitem) => {
-    // setCart((prevCart) => [...prevCart, { ...item, count: 1 }]);
     try {
       const docRef = doc(db, "users", userId);
       const docSnap = await getDoc(docRef);
@@ -76,7 +66,6 @@ const CartContextProvider = ({ children }) => {
       await updateDoc(docRef, {
         cart: updateProductinCart,
       });
-      return updateProductinCart;
     } catch (error) {
       console.error("Error updating cart:", error);
     }

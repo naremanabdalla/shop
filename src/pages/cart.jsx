@@ -24,7 +24,7 @@ const Cart = () => {
           console.error("Error fetching cart items:", error);
         });
     }
-  }, [currentUser?.uid]);
+  }, [currentUser, getCartItems]);
 
   const handelRemoveItemFromCart = async (item) => {
     if (currentUser) {
@@ -34,26 +34,6 @@ const Cart = () => {
     }
   };
 
-  // const handelIcreaseProductinCart = async (item) => {
-  //   if (currentUser) {
-  //     try {
-  //       const updatedCart = await icreaseProductinCart(currentUser.uid, item);
-  //       setCart(updatedCart);
-  //     } catch (error) {
-  //       console.log(error);
-  //     }
-  //   }
-  // };
-  // const handelDecreaseProductinCart = async (item) => {
-  //   if (currentUser) {
-  //     try {
-  //       const updatedCart = await decreaseProductinCart(currentUser.uid, item);
-  //       setCart(updatedCart);
-  //     } catch (error) {
-  //       console.log(error);
-  //     }
-  //   }
-  // };
   const handelIcreaseProductinCart = useCallback(
     async (item) => {
       if (!currentUser) return;

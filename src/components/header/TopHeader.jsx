@@ -8,11 +8,14 @@ import { GiBowTieRibbon } from "react-icons/gi";
 import { FavouriteContext } from "../../Context/FavouriteContextprovider";
 import { useAuth } from "../../Context/authContext";
 import { IoLanguage } from "react-icons/io5";
+import { useTranslation } from "react-i18next";
 
 const TopHeader = () => {
   const { cartCount } = useContext(CartContext);
   const { favoriteCount } = useContext(FavouriteContext);
   const { currentUser } = useAuth();
+  const { i18n } = useTranslation();
+  console.log(i18n.language);
   return (
     <header className="bg-white ">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-6">
@@ -31,8 +34,27 @@ const TopHeader = () => {
         {/* Navigation Icons */}
         <div className="flex items-center gap-6">
           <div>
-            <IoLanguage className="cursor-pointer text-xl text-gray-700 hover:text-pink-500 transition-colors "/>
+            <IoLanguage
+              onClick={() => {
+                i18n.changeLanguage("ar");
+              }}
+              className="cursor-pointer text-xl text-gray-700 hover:text-pink-500 transition-colors "
+            />
           </div>
+          <input
+            type="button"
+            onClick={() => {
+              i18n.changeLanguage("ar");
+            }}
+            value={"en"}
+          />
+          <input
+            type="button"
+            onClick={() => {
+              i18n.changeLanguage("en");
+            }}
+            value={"ar"}
+          />
           <div className="flex flex-col items-center text-gray-700 hover:text-blue-500 transition-colors relative">
             <SearchPopup />
           </div>

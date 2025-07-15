@@ -34,7 +34,7 @@ const BtmHeader = () => {
     setOpenMenue(false);
   }, [location]);
 
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   return (
     <>
@@ -86,7 +86,7 @@ const BtmHeader = () => {
                     : ""
                 }`}
               >
-                {link.title}
+                {t(`${link.title}`)}
               </Link>
             ))}
           </div>

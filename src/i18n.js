@@ -9,7 +9,9 @@ const resources = {
   },
   ar: {
     translation: {
-      "Browse Categories":"اكتشف فئات اخرى"
+      "Browse Categories": "اكتشف فئات اخرى",
+      "Home": "الرئيسية",
+      "Contact": "اتصل بنا",
     }
   }
 };
@@ -27,4 +29,4 @@ i18n
     }
   });
 
-  export default i18n;
+export default i18n;
