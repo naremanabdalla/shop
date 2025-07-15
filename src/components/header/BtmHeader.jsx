@@ -7,12 +7,11 @@ import { GiHamburgerMenu } from "react-icons/gi";
 import { useAuth } from "../../Context/authContext";
 import { doSignOut } from "../../auth/auth";
 import { RxAvatar } from "react-icons/rx";
+import { useTranslation } from "react-i18next";
 
 const NavLinks = [
   { title: "Home", path: "/" },
-  { title: "About", path: "/about" },
-  { title: "Accessories", path: "/accessories" },
-  { title: "Blog", path: "/blog" },
+  // { title: "About", path: "/about" },
   { title: "Contact", path: "/contact" },
 ];
 
@@ -34,6 +33,9 @@ const BtmHeader = () => {
   useEffect(() => {
     setOpenMenue(false);
   }, [location]);
+
+  const { t, i18n } = useTranslation();
+
   return (
     <>
       <div
@@ -64,7 +66,7 @@ const BtmHeader = () => {
               }}
             >
               <option value="" disabled hidden>
-                Browse Categories
+                {t("Browse Categories")}
               </option>
               {BrowseCategory.map((cat, index) => (
                 <option value={cat} key={index} className="text-gray-700">

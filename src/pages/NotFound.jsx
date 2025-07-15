@@ -1,4 +1,7 @@
+import { useNavigate } from "react-router-dom";
+
 export default function NotFound() {
+  const navigate=useNavigate();
   return (
     <div className=" flex flex-col items-center justify-center  p-4">
       <div className="text-center max-w-md">
@@ -21,7 +24,7 @@ export default function NotFound() {
         {/* Button to go back home */}
         <button
           className="px-6 py-2 bg-pink-400 text-white rounded-lg hover:bg-pink-500 transition-colors shadow-md"
-          onClick={() => (window.location.href = "/")}
+          onClick={() => ( navigate("/"))}
         >
           Go Back Home
         </button>

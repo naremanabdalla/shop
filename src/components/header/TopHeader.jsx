@@ -7,6 +7,7 @@ import SearchPopup from "../../pages/SearchPopup";
 import { GiBowTieRibbon } from "react-icons/gi";
 import { FavouriteContext } from "../../Context/FavouriteContextprovider";
 import { useAuth } from "../../Context/authContext";
+import { IoLanguage } from "react-icons/io5";
 
 const TopHeader = () => {
   const { cartCount } = useContext(CartContext);
@@ -27,9 +28,11 @@ const TopHeader = () => {
         <div className="flex-1 max-w-2xl">
           <div className="relative flex items-center"></div>
         </div>
-
         {/* Navigation Icons */}
         <div className="flex items-center gap-6">
+          <div>
+            <IoLanguage className="cursor-pointer text-xl text-gray-700 hover:text-pink-500 transition-colors "/>
+          </div>
           <div className="flex flex-col items-center text-gray-700 hover:text-blue-500 transition-colors relative">
             <SearchPopup />
           </div>
