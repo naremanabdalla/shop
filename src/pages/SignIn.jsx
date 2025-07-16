@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { signin, loginWithGoogle } from "../auth/auth"; // Assuming you have a sign-in function in auth.js
 import { useAuth } from "../Context/authContext"; // Assuming you have an Auth context
+import { useTranslation } from "react-i18next";
 const SignIn = () => {
   const { userLoggedIn } = useAuth(); // Using the Auth context to get the current user
   const [email, setemail] = useState("");
@@ -36,12 +37,13 @@ const SignIn = () => {
         });
     }
   };
+  const { t } = useTranslation(); // Assuming you have a translation function
   return (
     <div className="flex flex-col items-center justify-center  bg-gray-100 -mt-7">
       {userLoggedIn && <Navigate to="/" replace={true} />}
 
       <h2 className="text-3xl font-bold text-center mt-10 text-gray-800">
-        Sign In Page
+        {t("Sign In Page")}
       </h2>
       <form
         onSubmit={handleSignIn}
@@ -51,7 +53,7 @@ const SignIn = () => {
           className="block text-gray-700 text-sm font-bold mb-2"
           htmlFor="email"
         >
-          Email
+          {t("Email")}
         </label>
         <input
           type="text"
@@ -65,7 +67,7 @@ const SignIn = () => {
           className="block text-gray-700 text-sm font-bold mb-2"
           htmlFor="password"
         >
-          Password
+          {t("Password")}
         </label>
         <input
           type="password"
@@ -82,17 +84,17 @@ const SignIn = () => {
             isSigningIn ? "opacity-50" : ""
           }`}
         >
-          {isSigningIn ? "Signing In..." : "Sign In"}
+          {isSigningIn ? t("Signing In...") : t("Sign In")}
         </button>
         <p className="mt-4 text-center text-gray-600">
-          Don't have an account?{" "}
+          {t("Don't have an account?")}{" "}
           <Link to="/signup" className="text-gray-600 ">
-            Sign up
+            {t("Sign Up")}
           </Link>
         </p>
         <p className="mt-4 text-center text-gray-600">
           <Link to="/forgot-password" className="text-gray-800">
-            Forgot Password?
+            {t("Forgot Password?")}
           </Link>
         </p>
         <p
@@ -101,7 +103,7 @@ const SignIn = () => {
           }}
           className="mt-4 text-center text-gray-600 cursor-pointer"
         >
-          sign in with Google
+          {t("Sign In with Google")}
         </p>
       </form>
     </div>

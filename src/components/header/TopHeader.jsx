@@ -19,7 +19,7 @@ const TopHeader = () => {
     const localLanguage = localStorage.getItem("language");
     return localLanguage ? localLanguage : "en";
   });
-  
+
   useEffect(() => {
     i18n.changeLanguage(language);
     localStorage.setItem("language", language);
@@ -41,6 +41,9 @@ const TopHeader = () => {
         </div>
         {/* Navigation Icons */}
         <div className="flex items-center gap-6">
+          <div>
+            <p className="text-gray-500">{i18n.language}</p>
+          </div>
           <div>
             <IoLanguage
               onClick={() => {

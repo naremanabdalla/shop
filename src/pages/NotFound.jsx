@@ -1,7 +1,10 @@
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 export default function NotFound() {
-  const navigate=useNavigate();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+
   return (
     <div className=" flex flex-col items-center justify-center  p-4">
       <div className="text-center max-w-md">
@@ -13,20 +16,20 @@ export default function NotFound() {
         {/* Title */}
         <h1 className="text-4xl font-bold text-pink-400 mb-2">404</h1>
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-          Page Not Found
+          {t("Page Not Found")}
         </h2>
 
         {/* Description */}
         <p className="text-gray-600 mb-6">
-          Oops! The page you're looking for doesn't exist or has been moved.
+          {t("The page you are looking for does not exist or has been moved.")}
         </p>
 
         {/* Button to go back home */}
         <button
           className="px-6 py-2 bg-pink-400 text-white rounded-lg hover:bg-pink-500 transition-colors shadow-md"
-          onClick={() => ( navigate("/"))}
+          onClick={() => navigate("/")}
         >
-          Go Back Home
+          {t("Go to Home")}
         </button>
       </div>
     </div>

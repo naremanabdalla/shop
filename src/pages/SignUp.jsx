@@ -3,6 +3,7 @@ import { Link, Navigate } from "react-router-dom";
 import { signup } from "../auth/auth";
 import { useAuth } from "../Context/authContext"; // Assuming you have an Auth context
 import { auth } from "../auth/firebse";
+import { useTranslation } from "react-i18next";
 
 const SignUp = () => {
   const { userLoggedIn, addUserFirestore } = useAuth(); // Using the Auth context to get the current user
@@ -32,19 +33,20 @@ const SignUp = () => {
       setIsRegistering(false);
     }
   };
+  const { t } = useTranslation();
   return (
     <>
       {userLoggedIn && <Navigate to="/" replace={true} />}
       <div className="flex flex-col items-center justify-center  bg-gray-100 -mt-7">
         <h2 className="text-3xl font-bold text-center mt-10 text-gray-800">
-          Sign Up Page
+          {t("Sign Up Page")}
         </h2>
         <form className="max-w-md mx-auto mt-8 p-6 bg-white shadow-md rounded-lg">
           <label
             className="block text-gray-700 text-sm font-bold mb-2"
             htmlFor="name"
           >
-            Name
+            {t("Full Name")}
           </label>
           <input
             type="text"
@@ -58,7 +60,7 @@ const SignUp = () => {
             className="block text-gray-700 text-sm font-bold mb-2"
             htmlFor="email"
           >
-            Email
+            {t("Email")}
           </label>
           <input
             type="text"
@@ -73,7 +75,7 @@ const SignUp = () => {
             className="block text-gray-700 text-sm font-bold mb-2"
             htmlFor="password"
           >
-            Password
+            {t("Password")}
           </label>
           <input
             type="password"
@@ -90,17 +92,17 @@ const SignUp = () => {
             }}
             className="w-full bg-pink-400 text-white font-bold py-2 px-4 rounded hover:bg-pink-500 mt-4"
           >
-            {isRegistering ? "Registering..." : "Sign Up"}
+            {isRegistering ? t("Registering...") : t("Sign Up")}
           </button>
 
           <p className="mt-4 text-center text-gray-600">
-            Already have an account?{" "}
+            {t("Already have an account?")}{" "}
             <Link to="/signin" className="text-gray-800 ">
-              Sign In
+              {t("Sign In")}
             </Link>
           </p>
           <p className="mt-4 text-center text-gray-600 cursor-pointer">
-            Sign Up with Google
+            {t("Sign Up with Google")}
           </p>
         </form>
       </div>

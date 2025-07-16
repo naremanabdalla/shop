@@ -79,7 +79,7 @@ const Cart = () => {
     },
     [currentUser, decreaseProductinCart]
   );
-const {t}=useTranslation();
+  const { t } = useTranslation();
 
   if (!cart) {
     return <Loading />;
@@ -87,12 +87,12 @@ const {t}=useTranslation();
   return (
     <div className="min-h-screen">
       <h2 className="text-center text-pink-500 font-bold text-2xl sm:text-3xl md:text-4xl py-4">
-         {t("Your Cart")}
+        {t("Your Cart")}
       </h2>
 
       {cart.length === 0 ? (
         <div className="text-center mt-8 text-gray-700 text-lg sm:text-xl font-bold">
-         {t(" Your cart is empty")}
+          {t(" Your cart is empty")}
         </div>
       ) : (
         <div className="p-4 sm:p-6 md:p-8 lg:p-10">
@@ -159,7 +159,7 @@ const {t}=useTranslation();
 
             <div className="p-4 sm:p-6">
               <button className="w-full sm:w-1/2 md:w-1/3 bg-pink-400 hover:bg-pink-500 text-white font-medium py-3 px-6 rounded-xl mx-auto flex justify-between items-center transition-colors">
-                <span>Checkout</span>
+                <span>{t("Checkout")}</span>
                 <span>
                   $
                   {cart

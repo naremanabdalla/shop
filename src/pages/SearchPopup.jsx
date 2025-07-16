@@ -3,6 +3,7 @@ import { FiSearch, FiX } from "react-icons/fi";
 import { ProductsContext } from "../Context/ProductsContextProvider";
 import { Link } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const SearchPopup = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -37,6 +38,7 @@ const SearchPopup = () => {
     performSearch(searchValue);
   }, [searchValue, allProducts]);
 
+  const { t } = useTranslation();
   return (
     <div className="relative">
       {/* Search Icon Button */}
@@ -63,7 +65,7 @@ const SearchPopup = () => {
                   type="text"
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
-                  placeholder="Search products..."
+                  placeholder={t("Search for products...")}
                   className="w-full pl-10 pr-4 py-2 border-none focus:ring-2 focus:ring-pink-400 rounded-lg text-gray-800"
                   autoFocus
                 />
@@ -112,11 +114,11 @@ const SearchPopup = () => {
                 <div className="p-8 text-center">
                   {searchValue ? (
                     <p className="text-gray-500">
-                      No results found for "{searchValue}"
+                      {t("No results found for")} "{searchValue}"
                     </p>
                   ) : (
                     <p className="text-gray-500">
-                      Start typing to search products
+                      {t("Start typing to search for products...")}
                     </p>
                   )}
                 </div>

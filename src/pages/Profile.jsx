@@ -5,6 +5,7 @@ import { useAuth } from "../Context/authContext";
 import { auth } from "../auth/firebse";
 import Loading from "./Loading.jsx";
 import NotFound from "./NotFound.jsx";
+import { useTranslation } from "react-i18next";
 
 const Profile = () => {
   const { getUserFirestore, currentUser } = useAuth();
@@ -23,6 +24,7 @@ const Profile = () => {
       fetchUser();
     }
   }, []);
+  const { t } = useTranslation();
   if (!currentUser) {
     return <NotFound />;
   }
@@ -33,7 +35,7 @@ const Profile = () => {
   return (
     <div>
       <h1 className="text-3xl font-bold text-center mt-10 text-gray-800">
-        Profile Page
+        {t("Profile Page")}
       </h1>
       <div className="max-w-md mx-auto mt-8 p-6 bg-white shadow-md rounded-lg flex flex-col items-center">
         {/* Avatar with first letter */}
@@ -48,14 +50,16 @@ const Profile = () => {
           <Link to="/favourite" className="flex items-center space-x-2">
             <div className="flex items-center space-x-2 cursor-pointer">
               <FaHeart className="text-red-500 text-xl" />
-              <span className="text-gray-700 font-medium">Favorites</span>
+              <span className="text-gray-700 font-medium">
+                {t("Favorites")}
+              </span>
             </div>
           </Link>
           <Link to="/cart" className="flex items-center space-x-2">
             <div className="flex items-center space-x-2 cursor-pointer">
               <FaShoppingCart className="text-green-600 text-xl" />
               <span className="text-gray-700 font-medium">
-                {user.cartCount} Cart
+                {user.cartCount} {t("Cart")}
               </span>
             </div>
           </Link>
