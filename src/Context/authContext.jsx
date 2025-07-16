@@ -51,11 +51,11 @@ const AuthContext = ({ children }) => {
         return docSnap.data();
       } else {
         console.log("No such document!");
-        return null; // Explicitly return null instead of undefined
+        return { favorite: [], cart: [] }; // Return empty object with default arrays
       }
     } catch (e) {
       console.error("Error getting user: ", e);
-      throw e;
+      return { favorite: [], cart: [] }; // Even on error, return safe default
     }
   };
 
