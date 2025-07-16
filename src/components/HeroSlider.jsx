@@ -5,8 +5,10 @@ import "swiper/css/pagination";
 import "swiper/css/navigation";
 import { Autoplay, Pagination, Navigation } from "swiper/modules";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const HeroSlider = () => {
+  const {t}=useTranslation()
   return (
     <div className="relative px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20">
       <Swiper
@@ -54,7 +56,7 @@ const HeroSlider = () => {
                 </p>
                 <Link to="/">
                   <button className="px-3 py-1 sm:px-4 sm:py-2 md:px-5 md:py-2 text-xs sm:text-sm md:text-base rounded-3xl border border-pink-500 bg-pink-500 text-white hover:bg-white hover:text-pink-500 transition-colors duration-300">
-                    Shop Now
+                    {t("Shop Now")}
                   </button>
                 </Link>
               </div>
@@ -85,7 +87,7 @@ const HeroSlider = () => {
                 </p>
                 <Link to="/">
                   <button className="px-3 py-1 sm:px-4 sm:py-2 md:px-5 md:py-2 text-xs sm:text-sm md:text-base rounded-3xl border border-pink-500 bg-pink-500 text-white hover:bg-white hover:text-pink-500 transition-colors duration-300">
-                    Shop Now
+                    {t("Shop Now")}
                   </button>
                 </Link>
               </div>
@@ -115,7 +117,7 @@ const HeroSlider = () => {
                 </p>
                 <Link to="/">
                   <button className="px-3 py-1 sm:px-4 sm:py-2 md:px-5 md:py-2 text-xs sm:text-sm md:text-base rounded-3xl border border-pink-500 bg-pink-500 text-gray-800 hover:bg-white hover:text-pink-500 transition-colors duration-300">
-                    Shop Now
+                    {t("Shop Now")}
                   </button>
                 </Link>
               </div>

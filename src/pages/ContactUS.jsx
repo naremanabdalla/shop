@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FaPaperPlane } from "react-icons/fa";
 
 const ContactUS = () => {
@@ -26,16 +27,17 @@ const ContactUS = () => {
       message: "",
     });
   };
+const {t}=useTranslation();
 
   return (
     <div className=" py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-extrabold text-gray-700 sm:text-4xl">
-            Contact Us
+            {t("Contact Us")}
           </h2>
           <p className="mt-3 text-xl text-gray-500">
-            We'd love to hear from you! Send us a message below.
+          {t("We'd love to hear from you! Send us a message below")}.
           </p>
         </div>
 
@@ -49,7 +51,7 @@ const ContactUS = () => {
                     htmlFor="name"
                     className="block text-sm font-medium text-gray-700"
                   >
-                    Full Name
+                    {t("Full Name")}
                   </label>
                   <input
                     type="text"
@@ -67,7 +69,7 @@ const ContactUS = () => {
                     htmlFor="email"
                     className="block text-sm font-medium text-gray-700"
                   >
-                    Email Address
+                   {t("Email Address")}
                   </label>
                   <input
                     type="email"
@@ -85,7 +87,7 @@ const ContactUS = () => {
                     htmlFor="subject"
                     className="block text-sm font-medium text-gray-700"
                   >
-                    Subject
+                    {t("Subject")}
                   </label>
                   <input
                     type="text"
@@ -103,7 +105,7 @@ const ContactUS = () => {
                     htmlFor="message"
                     className="block text-sm font-medium text-gray-700"
                   >
-                    Message
+                    {t("Message")}
                   </label>
                   <textarea
                     id="message"
@@ -122,7 +124,7 @@ const ContactUS = () => {
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-pink-500 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
                   >
                     <FaPaperPlane className="mr-2 h-4 w-4" />
-                    Send Message
+                    {t("Send Message")}
                   </button>
                 </div>
               </form>

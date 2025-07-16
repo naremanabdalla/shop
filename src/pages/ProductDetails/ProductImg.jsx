@@ -30,9 +30,7 @@ const ProductImg = ({ item }) => {
               <img
                 src={image}
                 className="w-full object-contain rounded-lg  h-100"
-                // loading="lazy"
               />
-              {/* <div className="swiper-lazy-preloader swiper-lazy-preloader-white"></div> */}
               <div className="bg-gray-200 animate-ping"></div>
             </div>
           </SwiperSlide>

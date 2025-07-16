@@ -6,6 +6,7 @@ import Loading from "../Loading";
 import ProductImg from "./ProductImg";
 import ProductInfo from "./ProductInfo";
 import PageTransation from "../../components/PageTransation";
+import { useTranslation } from "react-i18next";
 // import { useLocation } from "react-router-dom";
 
 const ProductDetails = () => {
@@ -15,6 +16,7 @@ const ProductDetails = () => {
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState([]);
+const {t}=useTranslation()
 
   useEffect(() => {
     let CategoresProducts = allProducts.flat();
@@ -40,7 +42,7 @@ const ProductDetails = () => {
   }
 
   if (!item.images || !item.images.length) {
-    return <div>No images available</div>;
+    return <div>{t("No images available")}</div>;
   }
 
   return (

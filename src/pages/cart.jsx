@@ -3,6 +3,7 @@ import Loading from "./Loading";
 import { HiOutlineTrash } from "react-icons/hi2";
 import { CartContext } from "../Context/CartContextProvider";
 import { useAuth } from "../Context/authContext";
+import { useTranslation } from "react-i18next";
 
 const Cart = () => {
   const {
@@ -78,20 +79,20 @@ const Cart = () => {
     },
     [currentUser, decreaseProductinCart]
   );
+const {t}=useTranslation();
 
   if (!cart) {
     return <Loading />;
   }
-
   return (
     <div className="min-h-screen">
       <h2 className="text-center text-pink-500 font-bold text-2xl sm:text-3xl md:text-4xl py-4">
-        Your Cart
+         {t("Your Cart")}
       </h2>
 
       {cart.length === 0 ? (
         <div className="text-center mt-8 text-gray-700 text-lg sm:text-xl font-bold">
-          Your cart is empty
+         {t(" Your cart is empty")}
         </div>
       ) : (
         <div className="p-4 sm:p-6 md:p-8 lg:p-10">

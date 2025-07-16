@@ -102,7 +102,8 @@ const BtmHeader = () => {
               }}
             >
               <option value="" disabled hidden>
-                Browse Categories
+                                {t("Browse Categories")}
+
               </option>
               {BrowseCategory.map((cat, index) => (
                 <option value={cat} key={index} className="text-gray-700">
@@ -122,7 +123,8 @@ const BtmHeader = () => {
                     : ""
                 }`}
               >
-                {link.title}
+              {t(`${link.title}`)}
+
               </Link>
             ))}
           </div>

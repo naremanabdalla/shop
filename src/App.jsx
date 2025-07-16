@@ -17,6 +17,7 @@ import AuthContext from "./Context/authContext";
 import Profile from "./pages/Profile";
 import FavouriteContextprovider from "./Context/FavouriteContextprovider";
 import NotFound from "./pages/NotFound";
+import { useTranslation } from "react-i18next";
 function App() {
   const routes = createBrowserRouter([
     {
@@ -36,8 +37,10 @@ function App() {
     },
     { path: "*", element: <NotFound /> },
   ]);
+  const {i18n} =useTranslation()
   return (
-    <>
+        <div dir={i18n.language === "en" ? "ltr" : "rtl"}>
+
       <AuthContext>
         <CartContextProvider>
           <FavouriteContextprovider>
@@ -49,7 +52,7 @@ function App() {
           </FavouriteContextprovider>
         </CartContextProvider>
       </AuthContext>
-    </>
+    </div>
   );
 }
 

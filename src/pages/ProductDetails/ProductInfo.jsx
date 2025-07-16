@@ -7,6 +7,7 @@ import { GiShoppingCart } from "react-icons/gi";
 import { FaHeart } from "react-icons/fa";
 import { useAuth } from "../../Context/authContext";
 import { FavouriteContext } from "../../Context/FavouriteContextprovider";
+import { useTranslation } from "react-i18next";
 
 const ProductInfo = ({ item }) => {
   const { productID } = useParams();
@@ -18,6 +19,7 @@ const ProductInfo = ({ item }) => {
   const [isInFavourite, setIsInFavourite] = useState(false);
   const navigate = useNavigate();
 
+  const {t}=useTranslation()
   useEffect(() => {
     if (currentUser) {
       getCartItems(currentUser.uid)
@@ -44,7 +46,6 @@ const ProductInfo = ({ item }) => {
         });
     }
   }, [getFavoriteItems, productID, getCartItems, item, currentUser?.uid]);
-  ////////////////////////////////////////////////////////////////////////////////////////////
   const handelAddToCart = async () => {
     if (currentUser) {
       addToCart(currentUser.uid, item);
@@ -72,7 +73,7 @@ const ProductInfo = ({ item }) => {
       // Handle case where user isn't logged in
       navigate("/signin");
       console.log("User not logged in");
-      // You might want to redirect to login or show a message
+      // redirect to login or show a message
     }
   };
 
@@ -86,7 +87,7 @@ const ProductInfo = ({ item }) => {
           <img src={item.thumbnail} alt="" className="h-15" />
           <div className="text-sm">
             <p>
-              {item.title} <span> added to Favourite</span>
+              {item.title} <span> {t("added to Favourite")}</span>
             </p>
           </div>
           <div>
@@ -144,7 +145,7 @@ const ProductInfo = ({ item }) => {
         </div>
       </div>
       <p className="text-gray-600 font-bold mt-4  text-sm md:text-lg">
-        Hurry Up! Only <span>{item.stock}</span> products left in stock
+        {t("Hurry Up! Only")} <span>{item.stock}</span> {t("products left in stock")}
       </p>
       <div className="flex  mt-4 items-center gap-3">
         <button
@@ -155,34 +156,12 @@ const ProductInfo = ({ item }) => {
           }`}
           onClick={() => {
             handelAddToCart();
-            // handelClick();
           }}
           disabled={isInCart}
         >
-          {isInCart ? "Added to Cart" : "Add to Cart"}{" "}
+          {isInCart ? `${t(`Added to Cart`)}` : `${t(`Add to Cart`)}`}{" "}
           <GiShoppingCart className="inline-block ml-2" />
         </button>
-        {/* <div className="flex gap-2">
-          <button
-            className=" rounded-xl bg-gray-200 text-pink-400  font-bold px-2 pb-1"
-            onClick={() => {
-              item.count < 2
-                ? removeProduct(item)
-                : decreaseProductinCart(item);
-            }}
-          >
-            -
-          </button>
-          <span className="">{itemInCart?.count || 1}</span>
-          <button
-            className="rounded-xl bg-gray-200 text-pink-400  font-bold px-1 pb-1"
-            onClick={() => {
-              icreaseProductinCart(item);
-            }}
-          >
-            +
-          </button>
-        </div> */}
         <button disabled={isInFavourite} onClick={handelFavourite}>
           {isInFavourite ? (
             <FaHeart

@@ -15,6 +15,7 @@ import { CartContext } from "../../Context/CartContextProvider";
 import toast from "react-hot-toast";
 import { useAuth } from "../../Context/authContext";
 import { FavouriteContext } from "../../Context/FavouriteContextprovider";
+import { useTranslation } from "react-i18next";
 
 const ProductCard = ({ item }) => {
   const { addToCart, getCartItems } = useContext(CartContext);
@@ -22,6 +23,7 @@ const ProductCard = ({ item }) => {
   const [isInCart, setIsInCart] = useState(false);
   const [isInFavourite, setIsInFavourite] = useState(false);
   const { currentUser } = useAuth(); // Using the Auth context to get the current user
+  const {t}=useTranslation()
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -67,13 +69,13 @@ const ProductCard = ({ item }) => {
             <div className="">
               <div className="text-sm w-full flex">
                 <p>
-                  {item.title} <span className="text-sm"> added to cart</span>
+                  {item.title} <span className="text-sm"> {t("added to cart")}</span>
                 </p>
               </div>
 
               <Link to="/cart">
                 <button className="bg-pink-400 text-sm rounded-md px-1 py-1 mt-1">
-                  View Cart
+                  {t("View Cart")}
                 </button>
               </Link>
             </div>
@@ -96,10 +98,9 @@ const ProductCard = ({ item }) => {
           <img src={item.thumbnail} alt="" className="h-15" />
           <div className="text-sm">
             <p>
-              {item.title} <span> added to Favourite</span>
+              {item.title} <span> {t("added to Favourite")}</span>
             </p>
           </div>
-          <div></div>
         </div>,
         {
           duration: 3500,
@@ -123,7 +124,7 @@ const ProductCard = ({ item }) => {
           }`}
         >
           <FaCheckCircle className="text-green-500" />
-          In the cart
+          {t("In the cart")}
         </p>
         <div className="flex justify-between items-center">
           <Link to={`/product/${item.id}`}>

@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { FaHeart } from "react-icons/fa";
 import { FavouriteContext } from "../Context/FavouriteContextprovider";
 import { useAuth } from "../Context/authContext";
+import { useTranslation } from "react-i18next";
 
 const Favourite = () => {
   const { getFavoriteItems, removeFavourite } = useContext(FavouriteContext);
@@ -27,6 +28,8 @@ const Favourite = () => {
       setFavourite(updatedFavourite.filter((ele) => ele.id !== item.id));
     }
   };
+  const {t}=useTranslation();
+  
   if (!favourite) {
     return <Loading />;
   }
@@ -34,12 +37,12 @@ const Favourite = () => {
   return (
     <div className="min-h-screen">
       <h2 className="text-center text-pink-500 font-bold text-2xl sm:text-3xl md:text-4xl py-4">
-        Your Favourites
+        {t("Your Favourites")}
       </h2>
 
       {favourite.length === 0 ? (
         <div className="text-center mt-8 text-gray-700 text-lg sm:text-xl font-bold">
-          No Favourite Prodect Yet
+          {t("No Favourite Prodect Yet")}
         </div>
       ) : (
         <div className="p-4 sm:p-6 md:p-8 lg:p-10">
