@@ -37,7 +37,7 @@ const SignUp = () => {
   return (
     <>
       {userLoggedIn && <Navigate to="/" replace={true} />}
-      <div className="flex flex-col items-center justify-center  bg-gray-100 -mt-7">
+      <div className="flex flex-col items-center justify-center   -mt-7">
         <h2 className="text-3xl font-bold text-center mt-10 text-gray-800">
           {t("Sign Up Page")}
         </h2>
