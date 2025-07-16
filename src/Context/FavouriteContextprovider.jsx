@@ -41,6 +41,7 @@ export default function FavouriteContextprovider({ children }) {
         return favorite; // Return the user data
       } else {
         console.log("No such document!");
+        return null;
       }
     } catch (e) {
       console.error("Error getting user: ", e);

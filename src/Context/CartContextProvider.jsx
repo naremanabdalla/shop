@@ -28,6 +28,7 @@ const CartContextProvider = ({ children }) => {
         return cart;
       } else {
         console.log("No such document!");
+        return null;
       }
     } catch (e) {
       console.error("Error getting user: ", e);
