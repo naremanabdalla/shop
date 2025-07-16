@@ -31,7 +31,6 @@ const AuthContext = ({ children }) => {
       await setDoc(doc(db, "users", uid), {
         name: name,
         email: email,
-        password: password,
         createdAt: serverTimestamp(),
         favorite: [],
         cart: [],
@@ -52,6 +51,7 @@ const AuthContext = ({ children }) => {
         return docSnap.data();
       } else {
         console.log("No such document!");
+        return null; // Explicitly return null instead of undefined
       }
     } catch (e) {
       console.error("Error getting user: ", e);
