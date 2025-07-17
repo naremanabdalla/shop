@@ -80,8 +80,7 @@ const AuthContext = ({ children }) => {
       if (docSnap.exists()) {
         return docSnap.data();
       } else {
-        console.log("No such document1!");
-        return { favorite: [], cart: [] }; // Return empty object with default arrays
+        console.log("No such document!");
       }
     } catch (e) {
       console.error("Error getting user: ", e);
