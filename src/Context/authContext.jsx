@@ -17,8 +17,38 @@ const AuthContext = ({ children }) => {
 
   async function initializeUser(user) {
     if (user) {
-      setCurrentUser(user);
-      setUserLoggedIn(true);
+      try {
+        // First get Firestore data (or create if new user)
+        let userData = await getUserFirestore(user.uid);
+
+        // If no document exists, create one
+        if (!userData.name) {
+          // Check if we got the default empty object
+          await addUserFirestore(
+            user.displayName || "New User",
+            user.email,
+            "", // No password in Firestore
+            user.uid
+          );
+          userData = await getUserFirestore(user.uid); // Get the newly created data
+        }
+
+        // Merge auth data with Firestore data
+        setCurrentUser({
+          ...user, // Auth data (uid, email, displayName, etc.)
+          ...userData, // Firestore data (favorite, cart, etc.)
+        });
+        setUserLoggedIn(true);
+      } catch (error) {
+        console.error("Error initializing user:", error);
+        // Fallback to auth-only data with safe defaults
+        setCurrentUser({
+          ...user,
+          favorite: [],
+          cart: [],
+        });
+        setUserLoggedIn(true);
+      }
     } else {
       setCurrentUser(null);
       setUserLoggedIn(false);
