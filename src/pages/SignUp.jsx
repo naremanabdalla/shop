@@ -101,9 +101,6 @@ const SignUp = () => {
               {t("Sign In")}
             </Link>
           </p>
-          <p className="mt-4 text-center text-gray-600 cursor-pointer">
-            {t("Sign Up with Google")}
-          </p>
         </form>
       </div>
     </>

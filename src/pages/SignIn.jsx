@@ -3,6 +3,8 @@ import { Link, Navigate } from "react-router-dom";
 import { signin, loginWithGoogle } from "../auth/auth"; // Assuming you have a sign-in function in auth.js
 import { useAuth } from "../Context/authContext"; // Assuming you have an Auth context
 import { useTranslation } from "react-i18next";
+import Resetpasswordpopup from "./resetpasswordpopup";
+
 const SignIn = () => {
   const { userLoggedIn } = useAuth(); // Using the Auth context to get the current user
   const [email, setemail] = useState("");
@@ -92,20 +94,22 @@ const SignIn = () => {
             {t("Sign Up")}
           </Link>
         </p>
-        <p className="mt-4 text-center text-gray-600">
-          <Link to="/forgot-password" className="text-gray-800">
+        {/* <p className="mt-4 text-center text-gray-600"
+          >
+           <Link to="/forgot-password" className="text-gray-800">
             {t("Forgot Password?")}
           </Link>
-        </p>
-        <p
-          onClick={(e) => {
-            onGoogleSignin(e);
-          }}
-          className="mt-4 text-center text-gray-600 cursor-pointer"
-        >
-          {t("Sign In with Google")}
-        </p>
+        </p> */}
       </form>
+      <Resetpasswordpopup />
+      <p
+        onClick={(e) => {
+          onGoogleSignin(e);
+        }}
+        className="mt-4 text-center text-gray-600 cursor-pointer"
+      >
+        {t("Sign In with Google")}
+      </p>
     </div>
   );
 };
