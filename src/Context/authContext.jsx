@@ -84,7 +84,6 @@ const AuthContext = ({ children }) => {
       }
     } catch (e) {
       console.error("Error getting user: ", e);
-      return { favorite: [], cart: [] }; // Even on error, return safe default
     }
   };
 
