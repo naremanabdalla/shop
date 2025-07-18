@@ -17,14 +17,14 @@ const ResetPassword = () => {
     setLoading(true);
 
     try {
-      // 1. Verify the code first
+      //Verify the code first
       await verifyPasswordReset(oobCode);
 
-      // 2. Confirm password reset
+      //Confirm password reset
       await verifyConfirmPasswordReset(oobCode, newPassword);
 
       toast.success("Password updated successfully!");
-      navigate("/login");
+      navigate("/signin");
     } catch (error) {
       toast.error(`Error: ${error.message}`);
     } finally {
