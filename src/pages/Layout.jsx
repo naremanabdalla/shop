@@ -9,6 +9,7 @@ import { AnimatePresence } from "framer-motion";
 import Loading from "./Loading";
 import { auth } from "./../auth/firebse";
 import { onAuthStateChanged } from "firebase/auth";
+import Footer from "../components/Footer";
 
 const Layout = () => {
   const location = useLocation();
@@ -40,6 +41,7 @@ const Layout = () => {
           </PageTransation>
         </AnimatePresence>
       </div>
+      <Footer />
     </>
   );
 };
