@@ -7,7 +7,8 @@ import {
     sendPasswordResetEmail,
     updatePassword,
     sendEmailVerification,
-    verifyPasswordResetCode
+    verifyPasswordResetCode,
+    confirmPasswordReset
 } from "firebase/auth";
 
 // const auth = getAuth();
@@ -30,7 +31,7 @@ export const doPasswordReset = (email) => {
 export const verifyPasswordReset = (oobCode) => {
     return verifyPasswordResetCode(auth, oobCode);
 };
-export const confirmPasswordReset = (oobCode, newPassword) => {
+export const verifyConfirmPasswordReset = (oobCode, newPassword) => {
     return confirmPasswordReset(auth, oobCode, newPassword);
 };
 

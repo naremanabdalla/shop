@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { verifyPasswordReset, confirmPasswordReset } from "../auth/auth";
+import { verifyPasswordReset, verifyConfirmPasswordReset } from "../auth/auth";
 import toast from "react-hot-toast";
 
 const ResetPassword = () => {
@@ -21,7 +21,7 @@ const ResetPassword = () => {
       await verifyPasswordReset(oobCode);
 
       // 2. Confirm password reset
-      await confirmPasswordReset(oobCode, newPassword);
+      await verifyConfirmPasswordReset(oobCode, newPassword);
 
       toast.success("Password updated successfully!");
       navigate("/login");
