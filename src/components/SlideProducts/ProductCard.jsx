@@ -23,7 +23,7 @@ const ProductCard = ({ item }) => {
   const [isInCart, setIsInCart] = useState(false);
   const [isInFavourite, setIsInFavourite] = useState(false);
   const { currentUser } = useAuth(); // Using the Auth context to get the current user
-  const {t}=useTranslation()
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -69,7 +69,8 @@ const ProductCard = ({ item }) => {
             <div className="">
               <div className="text-sm w-full flex">
                 <p>
-                  {item.title} <span className="text-sm"> {t("added to cart")}</span>
+                  {item.title}{" "}
+                  <span className="text-sm"> {t("added to cart")}</span>
                 </p>
               </div>
 
@@ -119,9 +120,9 @@ const ProductCard = ({ item }) => {
     <>
       <div className="group shadow-xl rounded-md border border-gray-200 pb-5 mb-10 pt-4 relative hover:border hover:border-gray-400">
         <p
-          className={`text-center font-medium text-pink-400 flex justify-center items-center gap-2 absolute  right-1/3  transition-all duration-300 ease-in-out ${
+          className={`text-center font-medium text-pink-400 flex justify-center items-center gap-2 absolute  transition-all duration-300 ease-in-out ${
             isInCart ? "opacity-100 top-2" : "-top-2 opacity-0"
-          }`}
+          } ${i18n.language === "ar" ? "right-1/5" : "right-1/3"}`}
         >
           <FaCheckCircle className="text-green-500" />
           {t("In the cart")}
