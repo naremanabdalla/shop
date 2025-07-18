@@ -15,14 +15,13 @@ const ResetPassword = () => {
 
   // Extract oobCode from URL
   // Extract oobCode from URL parameters
-  const oobCode =
-    params.get("oobCode") || params.get("oobcode") || params.get("oobCode");
+  const oobCode = new URLSearchParams(window.location.search).get("oobCode");
 
   // Verify the code when component mounts
   useEffect(() => {
     if (!oobCode) {
       console.error("No oobCode found in URL");
-      navigate("/login");
+      navigate("/signin");
       return;
     }
 

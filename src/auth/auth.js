@@ -26,8 +26,8 @@ export const doSignOut = () => {
 }
 export const doPasswordReset = (email) => {
     return sendPasswordResetEmail(auth, email, {
-        url: `https://shopping022.netlify.app/reset-password`,
-        handleCodeInApp: true  // Critical for direct linking
+        url: `https://shopping022.netlify.app/reset-password?oobCode=:oobCode`,
+        handleCodeInApp: true
     });
 };
 export const verifyPasswordReset = (oobCode) => {
