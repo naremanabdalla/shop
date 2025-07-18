@@ -23,7 +23,6 @@ export default function FavouriteContextprovider({ children }) {
       await updateDoc(docRef, {
         favorite: arrayUnion(favouriteItem),
       });
-      console.log("favorite updated successfully");
     } catch (error) {
       console.error("Error updating cart:", error);
     }
@@ -59,7 +58,6 @@ export default function FavouriteContextprovider({ children }) {
         favorite: favorite.filter((ele) => ele.id !== favoriteItem.id),
       });
       setFavoriteCount(favorite.length - 1);
-      console.log("favorite updated successfully");
     } catch (error) {
       console.error("Error updating cart:", error);
     }

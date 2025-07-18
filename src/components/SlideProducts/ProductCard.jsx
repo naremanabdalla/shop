@@ -86,6 +86,8 @@ const ProductCard = ({ item }) => {
       );
     } else {
       // Handle case where user isn't logged in
+      toast.error(t("Please sign in to add to cart"));
+
       navigate("/signin");
     }
   };
@@ -105,7 +107,13 @@ const ProductCard = ({ item }) => {
         </div>,
         {
           duration: 3500,
-          icon: <FaHeart className="-mr-4 text-2xl text-pink-500" />,
+          icon: (
+            <FaHeart
+              className={`${
+                i18n.language === "ar" ? "mr-1" : "-mr-4"
+              }  text-2xl text-pink-500`}
+            />
+          ),
           style: {
             background: "pink",
           },
@@ -113,6 +121,7 @@ const ProductCard = ({ item }) => {
       );
     } else {
       // Handle case where user isn't logged in
+      toast.error(t("Please sign in to add to favourites"));
       navigate("/signin");
     }
   };

@@ -19,7 +19,7 @@ const ProductInfo = ({ item }) => {
   const [isInFavourite, setIsInFavourite] = useState(false);
   const navigate = useNavigate();
 
-  const {t}=useTranslation()
+  const { t, i18n } = useTranslation();
   useEffect(() => {
     if (currentUser) {
       getCartItems(currentUser.uid)
@@ -70,10 +70,8 @@ const ProductInfo = ({ item }) => {
         { duration: 2500 }
       );
     } else {
-      // Handle case where user isn't logged in
+      toast.error(t("Please sign in to add to cart"));
       navigate("/signin");
-      console.log("User not logged in");
-      // redirect to login or show a message
     }
   };
 
@@ -90,28 +88,25 @@ const ProductInfo = ({ item }) => {
               {item.title} <span> {t("added to Favourite")}</span>
             </p>
           </div>
-          <div>
-            {/* <Link to="/cart">
-              <button className="bg-pink-400 text-sm rounded-md px-1 py-1">
-                View Cart
-              </button>
-            </Link> */}
-          </div>
+          <div></div>
         </div>,
         {
           duration: 2500,
-          icon: <FaHeart className="-mr-4 text-2xl text-pink-500" />,
+          icon: (
+            <FaHeart
+              className={`${
+                i18n.language === "ar" ? "mr-1" : "-mr-4"
+              }  text-2xl text-pink-500`}
+            />
+          ),
           style: {
-            // borderRadius: "10px",
             background: "pink",
           },
         }
       );
     } else {
-      // Handle case where user isn't logged in
+      toast.error(t("Please sign in to add to favourites"));
       navigate("/signin");
-      console.log("User not logged in");
-      // You might want to redirect to login or show a message
     }
   };
 
@@ -145,7 +140,8 @@ const ProductInfo = ({ item }) => {
         </div>
       </div>
       <p className="text-gray-600 font-bold mt-4  text-sm md:text-lg">
-        {t("Hurry Up! Only")} <span>{item.stock}</span> {t("products left in stock")}
+        {t("Hurry Up! Only")} <span>{item.stock}</span>{" "}
+        {t("products left in stock")}
       </p>
       <div className="flex  mt-4 items-center gap-3">
         <button
