@@ -18,6 +18,7 @@ import Profile from "./pages/Profile";
 import FavouriteContextprovider from "./Context/FavouriteContextprovider";
 import NotFound from "./pages/NotFound";
 import { useTranslation } from "react-i18next";
+import ResetPassword from "./pages/resetPassword";
 function App() {
   const routes = createBrowserRouter([
     {
@@ -32,15 +33,15 @@ function App() {
         { path: "/contact", element: <ContactUS /> },
         { path: "/signin", element: <SignIn /> },
         { path: "/signup", element: <SignUp /> },
-        { path: "profile", element: <Profile /> },
+        { path: "/profile", element: <Profile /> },
+        { path: "/reset-password", element: <ResetPassword /> },
       ],
     },
     { path: "*", element: <NotFound /> },
   ]);
-  const {i18n} =useTranslation()
+  const { i18n } = useTranslation();
   return (
-        <div dir={i18n.language === "en" ? "ltr" : "rtl"}>
-
+    <div dir={i18n.language === "en" ? "ltr" : "rtl"}>
       <AuthContext>
         <CartContextProvider>
           <FavouriteContextprovider>

@@ -6,7 +6,8 @@ import {
     signInWithPopup,
     sendPasswordResetEmail,
     updatePassword,
-    sendEmailVerification
+    sendEmailVerification,
+    verifyPasswordResetCode
 } from "firebase/auth";
 
 // const auth = getAuth();
@@ -24,8 +25,21 @@ export const doSignOut = () => {
     return auth.signOut();
 }
 export const doPasswordReset = (email) => {
-    return sendPasswordResetEmail(auth, email)
-}
+    return sendPasswordResetEmail(auth, email, {
+        url: `${window.location.origin}/reset-password`, // Where to redirect after click
+    });
+};
+
+// Verify the password reset code from URL
+export const verifyPasswordReset = (oobCode) => {
+    return verifyPasswordResetCode(auth, oobCode);
+};
+
+// Confirm new password with the code
+export const confirmPasswordReset = (oobCode, newPassword) => {
+    return confirmPasswordReset(auth, oobCode, newPassword);
+};
+
 export const doPasswordChange = (password) => {
     return updatePassword(auth.currentUser, password)
 }
