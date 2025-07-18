@@ -27,7 +27,7 @@ export const doSignOut = () => {
 export const doPasswordReset = async (email) => {
     try {
         await sendPasswordResetEmail(auth, email, {
-            url: `https://shopping022.netlify.app/reset-password?oobCode=:oobCode`,
+            url: `https://shopping022.netlify.app/reset-password`,
             handleCodeInApp: true,
         });
         console.log("Reset email sent with direct link");

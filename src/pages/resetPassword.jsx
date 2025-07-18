@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { verifyPasswordReset, confirmPasswordReset } from "../auth/auth";
 import toast from "react-hot-toast";
+import { getAuth, verifyPasswordResetCode } from "firebase/auth";
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
@@ -11,6 +12,21 @@ const ResetPassword = () => {
 
   // Extract oobCode from URL
   const oobCode = searchParams.get("oobCode");
+
+  // This will handle both direct links and Firebase-processed links
+  useEffect(() => {
+    if (oobCode) {
+      // Verify the code is valid
+      verifyPasswordResetCode(getAuth(), oobCode)
+        .then((email) => {
+          console.log("Valid code for:", email);
+          // Now you can show the password reset form
+        })
+        .catch((error) => {
+          console.error("Invalid code:", error);
+        });
+    }
+  }, [oobCode]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
