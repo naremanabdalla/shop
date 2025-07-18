@@ -8,53 +8,48 @@ const ResetPassword = () => {
   const [searchParams] = useSearchParams();
   const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [verifiedEmail, setVerifiedEmail] = useState(null);
+
   const navigate = useNavigate();
+  const [params] = useSearchParams();
 
   // Extract oobCode from URL
-  const oobCode = searchParams.get("oobCode");
+  // Extract oobCode from URL parameters
+  const oobCode =
+    params.get("oobCode") || params.get("oobcode") || params.get("oobCode");
 
-  // This will handle both direct links and Firebase-processed links
+  // Verify the code when component mounts
   useEffect(() => {
-    if (oobCode) {
-      // Verify the code is valid
-      verifyPasswordResetCode(getAuth(), oobCode)
-        .then((email) => {
-          console.log("Valid code for:", email);
-          // Now you can show the password reset form
-        })
-        .catch((error) => {
-          console.error("Invalid code:", error);
-        });
+    if (!oobCode) {
+      console.error("No oobCode found in URL");
+      navigate("/login");
+      return;
     }
-  }, [oobCode]);
+
+    verifyPasswordResetCode(getAuth(), oobCode)
+      .then((email) => {
+        setVerifiedEmail(email);
+      })
+      .catch((error) => {
+        console.error("Error verifying code:", error);
+        navigate("/login", {
+          state: { error: "Invalid or expired reset link" },
+        });
+      });
+  }, [oobCode, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
     try {
-      // 1. Verify the code first
-      await verifyPasswordReset(oobCode);
-
-      // 2. Confirm password reset
-      await confirmPasswordReset(oobCode, newPassword);
-
-      toast.success("Password updated successfully!");
+      await confirmPasswordReset(getAuth(), oobCode, newPassword);
+      toast.success("Password reset successfully!");
       navigate("/login");
     } catch (error) {
       toast.error(`Error: ${error.message}`);
-    } finally {
-      setLoading(false);
     }
   };
 
-  if (!oobCode) {
-    return (
-      <div className="p-4 text-red-500">
-        Invalid reset link. Please request a new password reset email.
-      </div>
-    );
-  }
+  if (!verifiedEmail) return <div>Verifying reset link...</div>;
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow">

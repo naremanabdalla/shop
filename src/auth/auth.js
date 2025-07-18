@@ -24,16 +24,11 @@ export const loginWithGoogle = async () => {
 export const doSignOut = () => {
     return auth.signOut();
 }
-export const doPasswordReset = async (email) => {
-    try {
-        await sendPasswordResetEmail(auth, email, {
-            url: `https://shopping022.netlify.app/reset-password`,
-            handleCodeInApp: true,
-        });
-        console.log("Reset email sent with direct link");
-    } catch (error) {
-        console.error("Error sending email:", error);
-    }
+export const doPasswordReset = (email) => {
+    return sendPasswordResetEmail(auth, email, {
+        url: `https://shopping022.netlify.app/reset-password`,
+        handleCodeInApp: true,
+    });
 };
 export const verifyPasswordReset = (oobCode) => {
     return verifyPasswordResetCode(auth, oobCode);
