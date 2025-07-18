@@ -26,16 +26,13 @@ export const doSignOut = () => {
 }
 export const doPasswordReset = (email) => {
     return sendPasswordResetEmail(auth, email, {
-        url: `${window.location.origin}/reset-password`, // Where to redirect after click
+        url: `https://shopping022.netlify.app/reset-password?oobCode=:oobCode`,
+        handleCodeInApp: true,
     });
 };
-
-// Verify the password reset code from URL
 export const verifyPasswordReset = (oobCode) => {
     return verifyPasswordResetCode(auth, oobCode);
 };
-
-// Confirm new password with the code
 export const confirmPasswordReset = (oobCode, newPassword) => {
     return confirmPasswordReset(auth, oobCode, newPassword);
 };
