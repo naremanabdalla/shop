@@ -48,5 +48,7 @@
   "Registering...": "جارٍ التسجيل...",
   "Already have an account?": "هل لديك حساب بالفعل؟",
   "Sign Up with Google": "التسجيل باستخدام جوجل",
-  "Thank you for shopping with us": "شكراً لتسوقك معنا!"
+  "Thank you for shopping with us": "شكراً لتسوقك معنا!",
+  "Message sent successfully! We'll get back to you soon.": "تم إرسال الرسالة بنجاح! سنتواصل معك قريبًا.",
+  "Failed to send message. Please try again later.": "فشل إرسال الرسالة"
 }

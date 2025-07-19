@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FaPaperPlane } from "react-icons/fa";
-
+import emailjs from "@emailjs/browser";
+import toast from "react-hot-toast";
 const ContactUS = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -18,16 +20,36 @@ const ContactUS = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setFormData({
-      name: "",
-      email: "",
-      subject: "",
-      message: "",
-    });
+    setIsSubmitting(true);
+
+    try {
+      await emailjs.send(
+        "service_icusg5g", // Replace with your EmailJS service ID
+        "template_5ycwfqs", // Replace with your EmailJS template ID
+        formData,
+        "YPJu1XDCIfc1ZPyK-" // Replace with your EmailJS public key
+      );
+
+      setFormData({
+        name: "",
+        email: "",
+        subject: "",
+        message: "",
+      });
+      toast.success(
+        `${t("Message sent successfully! We'll get back to you soon.")}`
+      );
+    } catch (error) {
+      console.error("Failed to send message:", error);
+      toast.error(`${t("Failed to send message. Please try again later.")}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-const {t}=useTranslation();
+
+  const { t } = useTranslation();
 
   return (
     <div className=" py-12 px-4 sm:px-6 lg:px-8">
@@ -37,12 +59,22 @@ const {t}=useTranslation();
             {t("Contact Us")}
           </h2>
           <p className="mt-3 text-xl text-gray-500">
-          {t("We'd love to hear from you! Send us a message below")}.
+            {t("We'd love to hear from you! Send us a message below")}.
           </p>
         </div>
 
         <div className="bg-white rounded-xl overflow-hidden">
           <div className="grid grid-cols-1 w-9/10 lg:w-1/2 mx-auto">
+            {/* {submitStatus === "success" && (
+              <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-md">
+                {t("Message sent successfully! We'll get back to you soon.")}
+              </div>
+            )}
+            {submitStatus === "error" && (
+              <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-md">
+                {t("Failed to send message. Please try again later.")}
+              </div>
+            )} */}
             {/* Contact Form */}
             <div className="p-8 lg:p-12">
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -69,7 +101,7 @@ const {t}=useTranslation();
                     htmlFor="email"
                     className="block text-sm font-medium text-gray-700"
                   >
-                   {t("Email Address")}
+                    {t("Email Address")}
                   </label>
                   <input
                     type="email"
@@ -121,6 +153,7 @@ const {t}=useTranslation();
                 <div>
                   <button
                     type="submit"
+                    disabled={isSubmitting}
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-pink-500 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
                   >
                     <FaPaperPlane className="mr-2 h-4 w-4" />
