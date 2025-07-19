@@ -27,7 +27,6 @@ const AuthContext = ({ children }) => {
           await addUserFirestore(
             user.displayName || "New User",
             user.email,
-            "", // No password in Firestore
             user.uid
           );
           userData = await getUserFirestore(user.uid); // Get the newly created data
@@ -56,7 +55,7 @@ const AuthContext = ({ children }) => {
     setLoading(false);
   }
 
-  const addUserFirestore = async (name, email, password, uid) => {
+  const addUserFirestore = async (name, email, uid) => {
     try {
       await setDoc(doc(db, "users", uid), {
         name: name,

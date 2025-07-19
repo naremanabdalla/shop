@@ -1,4 +1,5 @@
-import { auth } from "./firebse"
+import { doc, setDoc, serverTimestamp, getDoc } from "firebase/firestore";
+import { auth, db } from "./firebse"; // Make sure db is exported from firebse.js
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
@@ -20,8 +21,34 @@ export const signin = (email, password) => {
 }
 export const loginWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    return await signInWithPopup(auth, provider);
-}
+    try {
+        // 1. Sign in with Google
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+
+        // 2. Check if user document exists in Firestore
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        // 3. If document doesn't exist, create it
+        if (!userDoc.exists()) {
+            await setDoc(userDocRef, {
+                name: user.displayName || "Google User",
+                email: user.email,
+                createdAt: serverTimestamp(),
+                favorite: [],
+                cart: [],
+                uid: user.uid,
+                provider: "google" // Track sign-in method
+            });
+        }
+
+        return user;
+    } catch (error) {
+        console.error("Error during Google sign-in:", error);
+        throw error;
+    }
+};
 export const doSignOut = () => {
     return auth.signOut();
 }
