@@ -44,7 +44,7 @@ const SearchPopup = () => {
       {/* Search Icon Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="p-2 text-gray-600 hover:text-pink-500 transition-colors"
+        className="p-2 text-gray-600 hover:text-[color:var(--color-primary)] transition-colors"
         aria-label="Search"
       >
         <FiSearch className="w-5 h-5" />

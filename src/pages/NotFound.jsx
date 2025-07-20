@@ -14,7 +14,7 @@ export default function NotFound() {
         </span>
 
         {/* Title */}
-        <h1 className="text-4xl font-bold text-pink-400 mb-2">404</h1>
+        <h1 className="text-4xl mt-8 font-bold text-[color:var(--color-primary)] mb-2">404</h1>
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">
           {t("Page Not Found")}
         </h2>
@@ -26,7 +26,7 @@ export default function NotFound() {
 
         {/* Button to go back home */}
         <button
-          className="px-6 py-2 bg-pink-400 text-white rounded-lg hover:bg-pink-500 transition-colors shadow-md"
+          className="px-6 py-2 bg-[color:var(--color-primary)] text-white rounded-lg hover:bg-[color:var(--color-secondary)] transition-colors shadow-md"
           onClick={() => navigate("/")}
         >
           {t("Go to Home")}

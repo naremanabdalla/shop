@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 const Footer = () => {
   const { t } = useTranslation();
   return (
-    <footer className="bg-pink-300 text-gray-800 py-5 text-sm w-full mt-10">
+    <footer className="bg-[color:var(--color-secondary)] text-[color:var(--color-primary)] py-5 text-sm w-full mt-10">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-evenly items-center">
           <div className="mb-2 md:mb-0">
@@ -35,8 +35,8 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-gray-500 mt-3 pt-6 text-center text-pink-100 text-sm">
-          <p className="text-gray-800">{t("Thank you for shopping with us")}</p>
+        <div className="border-t border-gray-500 mt-3 pt-6 text-center  text-sm">
+          <p className="text-[color:var(--color-primary)]">{t("Thank you for shopping with us")}</p>
         </div>
       </div>
     </footer>

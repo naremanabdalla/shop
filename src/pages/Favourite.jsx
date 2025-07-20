@@ -36,12 +36,12 @@ const Favourite = () => {
 
   return (
     <div className="min-h-screen">
-      <h2 className="text-center text-pink-500 font-bold text-2xl sm:text-3xl md:text-4xl py-4">
+      <h2 className="text-center text-[color:var(--color-primary)] font-bold text-2xl sm:text-3xl md:text-4xl py-4">
         {t("Your Favourites")}
       </h2>
 
       {favourite.length === 0 ? (
-        <div className="text-center mt-8 text-gray-700 text-lg sm:text-xl font-bold">
+        <div className="text-center mt-8 text-[color:var(--color-secondary)] text-lg sm:text-xl font-bold">
           {t("No Favourite Prodect Yet")}
         </div>
       ) : (
@@ -61,16 +61,15 @@ const Favourite = () => {
 
                   <div className="w-full sm:w-auto flex-1">
                     <div className="flex justify-between items-start mb-2 sm:mb-3">
-                      <h2 className="font-medium text-pink-400 text-sm sm:text-base md:text-lg line-clamp-2">
+                      <h2 className="font-medium text-[color:var(--color-primary)] text-sm sm:text-base md:text-lg line-clamp-2">
                         {item.title}
                       </h2>
                       <button
                         onClick={() => handelRemoveItemFromCart(item)}
-                        className="text-gray-600 hover:text-red-500 transition-colors"
                         aria-label="Remove item"
                       >
                         <FaHeart
-                          className={`text-lg sm:text-xl cursor-pointer text-pink-400 `}
+                          className={`text-lg sm:text-xl cursor-pointer text-[color:var(--color-secondary)] `}
                         />
                       </button>
                     </div>

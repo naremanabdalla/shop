@@ -86,12 +86,12 @@ const Cart = () => {
   }
   return (
     <div className="min-h-screen">
-      <h2 className="text-center text-pink-500 font-bold text-2xl sm:text-3xl md:text-4xl py-4">
+      <h2 className="text-center text-[color:var(--color-primary)] font-bold text-2xl sm:text-3xl md:text-4xl py-4">
         {t("Your Cart")}
       </h2>
 
       {cart.length === 0 ? (
-        <div className="text-center mt-8 text-gray-700 text-lg sm:text-xl font-bold">
+        <div className="text-center mt-8 text-[color:var(--color-secondary)] text-lg sm:text-xl font-bold">
           {t(" Your cart is empty")}
         </div>
       ) : (
@@ -111,7 +111,7 @@ const Cart = () => {
 
                   <div className="w-full sm:w-auto flex-1">
                     <div className="flex justify-between items-start mb-2 sm:mb-3">
-                      <h2 className="font-medium text-pink-400 text-sm sm:text-base md:text-lg line-clamp-2">
+                      <h2 className="font-medium text-[color:var(--color-primary)] text-sm sm:text-base md:text-lg line-clamp-2">
                         {item.title}
                       </h2>
                       <button
@@ -126,7 +126,7 @@ const Cart = () => {
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
                         <button
-                          className="w-8 h-8 rounded-lg bg-gray-200 text-pink-400 font-bold flex items-center justify-center hover:bg-gray-300 transition-colors"
+                          className="w-8 h-8 rounded-lg bg-gray-200 text-[color:var(--color-primary)] font-bold flex items-center justify-center hover:bg-gray-300 transition-colors"
                           onClick={() =>
                             item.count < 2
                               ? handelRemoveItemFromCart(item)
@@ -140,7 +140,7 @@ const Cart = () => {
                           {item.count || 1}
                         </span>
                         <button
-                          className="w-8 h-8 rounded-lg bg-gray-200 text-pink-400 font-bold flex items-center justify-center hover:bg-gray-300 transition-colors"
+                          className="w-8 h-8 rounded-lg bg-gray-200 text-[color:var(--color-primary)] font-bold flex items-center justify-center hover:bg-gray-300 transition-colors"
                           onClick={() => handelIcreaseProductinCart(item)}
                           aria-label="Increase quantity"
                         >
@@ -158,7 +158,7 @@ const Cart = () => {
             ))}
 
             <div className="p-4 sm:p-6">
-              <button className="w-full sm:w-1/2 md:w-1/3 bg-pink-400 hover:bg-pink-500 text-white font-medium py-3 px-6 rounded-xl mx-auto flex justify-between items-center transition-colors">
+              <button className="w-full sm:w-1/2 md:w-1/3 bg-[color:var(--color-primary)] hover:bg-[color:var(--color-secondary)] text-white font-medium py-3 px-6 rounded-xl mx-auto flex justify-between items-center transition-colors">
                 <span>{t("Checkout")}</span>
                 <span>
                   $

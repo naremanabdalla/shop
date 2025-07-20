@@ -30,7 +30,7 @@ const TopHeader = () => {
         {/* Logo */}
         <Link to="/" className="shrink-0">
           <div className="flex gap-2 items-center">
-            <GiBowTieRibbon className="text-3xl md:text-4xl text-pink-400" />
+            <GiBowTieRibbon className="text-3xl md:text-4xl text-[color:var(--color-primary)]" />
             <p className="text-gray-700 font-bold">shopping</p>
           </div>
         </Link>
@@ -47,27 +47,27 @@ const TopHeader = () => {
               onClick={() => {
                 setLanguage(i18n.language == "ar" ? "en" : "ar");
               }}
-              className="cursor-pointer text-md md:text-xl text-gray-700 hover:text-pink-500 transition-colors "
+              className="cursor-pointer text-md md:text-xl text-gray-700 hover:text-[color:var(--color-primary)] transition-colors "
             />
           </div>
 
-          <div className="flex flex-col items-center  text-gray-700 hover:text-blue-500 transition-colors relative">
+          <div className="flex flex-col items-center  text-gray-700  transition-colors relative">
             <SearchPopup className="text-md md:text-xl" />
           </div>
 
           <Link to={"/favourite"}>
-            <div className="flex flex-col items-center text-gray-700 hover:text-pink-500 transition-colors relative">
+            <div className="flex flex-col items-center text-gray-700 hover:text-[color:var(--color-primary)] transition-colors relative">
               <FaRegHeart className="text-md md:text-xl" />
-              <span className="absolute -top-3 -right-3 bg-pink-400 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              <span className="absolute -top-3 -right-3 bg-[color:var(--color-secondary)] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                 {currentUser ? favoriteCount : 0}
               </span>
             </div>
           </Link>
 
           <Link to={"/cart"}>
-            <button className="flex flex-col items-center text-gray-700 hover:text-pink-500 transition-colors relative">
+            <button className="flex flex-col items-center text-gray-700 hover:text-[color:var(--color-primary)] transition-colors relative">
               <HiOutlineShoppingCart className="text-md md:text-xl" />
-              <span className="absolute -top-3 -right-3 bg-pink-400 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              <span className="absolute -top-3 -right-3 bg-[color:var(--color-secondary)]  text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                 {currentUser ? cartCount : 0}
               </span>
             </button>

@@ -56,7 +56,7 @@ const ResetPassword = () => {
         <button
           type="submit"
           disabled={loading}
-          className={`w-full bg-pink-500 text-white p-2 rounded ${
+          className={`w-full bg-[color:var(--color-secondary)] text-white p-2 rounded ${
             loading ? "opacity-50" : ""
           }`}
         >

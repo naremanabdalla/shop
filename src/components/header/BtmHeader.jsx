@@ -39,7 +39,7 @@ const BtmHeader = () => {
   return (
     <>
       <div
-        className={`relative flex justify-between items-center bg-pink-300 text-gray-800   md:px-20 py-2 md:py-1  
+        className={`relative flex justify-between items-center bg-[color:var(--color-secondary)] text-[color:var(--color-primary)]  md:px-20 py-2 md:py-1  
         `}
       >
         <div className="pl-5">
@@ -50,9 +50,9 @@ const BtmHeader = () => {
             }}
           />
         </div>
-
+{/* small screen */}
         <div
-          className={`flex-col lg:hidden absolute bg-pink-300  top-8 w-full ${
+          className={`flex-col lg:hidden absolute top-8 w-full ${
             openMenue ? "flex" : "hidden"
           }`}
         >
@@ -64,12 +64,13 @@ const BtmHeader = () => {
                   `/category/${e.target.value.replace(" ", "-").toLowerCase()}`
                 );
               }}
+              
             >
               <option value="" disabled hidden>
                 {t("Browse Categories")}
               </option>
               {BrowseCategory.map((cat, index) => (
-                <option value={cat} key={index} className="text-gray-700">
+                <option value={cat} key={index} >
                   {cat}
                 </option>
               ))}
@@ -91,6 +92,7 @@ const BtmHeader = () => {
             ))}
           </div>
         </div>
+{/* big screen */}
         <div className="hidden md:flex justify-between items-center gap-5">
           <div>
             <select
@@ -117,9 +119,9 @@ const BtmHeader = () => {
               <Link
                 to={link.path}
                 key={index}
-                className={`w-auto text-xs md:text-base hover:text-gray-800 transition-colors py-2 px-2 ${
+                className={`w-auto text-xs md:text-base hover:text-[color:var(--color-primary)] transition-colors py-2 px-2 ${
                   location.pathname === link.path
-                    ? "bg-gray-600 text-pink-300"
+                    ? "bg-gray-600 text-[color:var(--color-white)]"
                     : ""
                 }`}
               >
@@ -129,6 +131,7 @@ const BtmHeader = () => {
             ))}
           </div>
         </div>
+        {/*  */}
         <div className="flex justify-evenly items-center w-1/6 gap-2">
           {userLoggedIn ? (
             <>
