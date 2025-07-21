@@ -39,7 +39,7 @@ const BtmHeader = () => {
   return (
     <>
       <div
-        className={`relative flex justify-between items-center bg-[color:var(--color-secondary)] text-[color:var(--color-primary)]  md:px-20 py-2 md:py-1  
+        className={`  relative flex justify-between items-center bg-[color:var(--color-secondary)] text-[color:var(--color-primary)]  md:px-20 py-2 md:py-1  
         `}
       >
         <div className="pl-5">
@@ -56,7 +56,7 @@ const BtmHeader = () => {
             openMenue ? "flex" : "hidden"
           }`}
         >
-          <div className=" text-center">
+          <div className="bg-[color:var(--color-secondary)] text-center ">
             <select
               defaultValue=""
               onChange={(e) => {
@@ -65,11 +65,11 @@ const BtmHeader = () => {
                 );
               }}
             >
-              <option value="" disabled hidden>
+              <option value="" disabled hidden >  
                 {t("Browse Categories")}
               </option>
               {BrowseCategory.map((cat, index) => (
-                <option value={cat} key={index}>
+                <option value={cat} key={index}  className="text-gray-700">
                   {cat}
                 </option>
               ))}
@@ -82,7 +82,7 @@ const BtmHeader = () => {
                 key={index}
                 className={`text-xs text-center md:text-base hover:text-gray-800 rounded-sm transition-colors py-2 px-2 ${
                   location.pathname === link.path
-                    ? "bg-gray-600 w-full text-[color:var(--color-)] "
+                    ? "bg-gray-600 text-[color:var(--color-white)]"
                     : ""
                 }`}
               >
