@@ -53,7 +53,7 @@ const {t}=useTranslation()
         <ProductInfo item={item} />
       </div>
       <div>
-        <h2 className="capitalize font-medium text-4xl text-center mt-4 text-pink-500">
+        <h2 className="capitalize font-medium text-4xl text-center mt-4 text-[color:var(--color-primary)]">
           {item.category.replace("-", " ")}
         </h2>
       </div>

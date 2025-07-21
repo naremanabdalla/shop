@@ -116,7 +116,7 @@ const Cart = () => {
                       </h2>
                       <button
                         onClick={() => handelRemoveItemFromCart(item)}
-                        className="text-gray-600 hover:text-red-500 transition-colors"
+                        className="text-gray-600 hover:text-[color:var(--color-primary)] transition-colors"
                         aria-label="Remove item"
                       >
                         <HiOutlineTrash className="text-lg sm:text-xl" />

@@ -8,6 +8,9 @@ import { FaHeart } from "react-icons/fa";
 import { useAuth } from "../../Context/authContext";
 import { FavouriteContext } from "../../Context/FavouriteContextprovider";
 import { useTranslation } from "react-i18next";
+import ToastCart from "../../components/SlideProducts/ToastCart";
+import ToastFavourite from "../../components/SlideProducts/ToastFavourite";
+import StarRating from "../../components/StarRating";
 
 const ProductInfo = ({ item }) => {
   const { productID } = useParams();
@@ -51,23 +54,8 @@ const ProductInfo = ({ item }) => {
       addToCart(currentUser.uid, item);
       const updatedCart = await getCartItems(currentUser.uid);
       setIsInCart(updatedCart.some((ele) => ele.id === item.id));
-      toast.success(
-        <div className="flex gap-2 items-center justify-between">
-          <img src={item.thumbnail} alt="" className="h-15" />
-
-          <div className="text-sm">
-            <p>{item.title}</p>
-            added to cart
-          </div>
-          <div>
-            <Link to="/cart">
-              <button className="bg-pink-400 text-sm rounded-md px-1 py-1">
-                View Cart
-              </button>
-            </Link>
-          </div>
-        </div>,
-        { duration: 2500 }
+      toast.success( <ToastCart item={item}/>
+        ,{ duration: 3500 }
       );
     } else {
       toast.error(t("Please sign in to add to cart"));
@@ -81,29 +69,21 @@ const ProductInfo = ({ item }) => {
       const updatedFavourite = await getFavoriteItems(currentUser.uid);
       setIsInFavourite(updatedFavourite.some((ele) => ele.id === item.id));
       toast.success(
-        <div className="flex gap-2 items-center justify-between text-gray-800 font-medium">
-          <img src={item.thumbnail} alt="" className="h-15" />
-          <div className="text-sm">
-            <p>
-              {item.title} <span> {t("added to Favourite")}</span>
-            </p>
-          </div>
-          <div></div>
-        </div>,
-        {
-          duration: 2500,
-          icon: (
-            <FaHeart
-              className={`${
-                i18n.language === "ar" ? "mr-1" : "-mr-4"
-              }  text-2xl text-pink-500`}
-            />
-          ),
-          style: {
-            background: "pink",
-          },
-        }
-      );
+          <ToastFavourite item={item}/>,
+                {
+                  duration: 3500,
+                  icon: (
+                    <FaHeart
+                      className={`${
+                        i18n.language === "ar" ? "mr-1" : "-mr-4"
+                      }  text-2xl text-[color:var(--color-secondary)]`}
+                    />
+                  ),
+                  style: {
+                    background:" var(--color-primary)",
+                  },
+                }
+              );
     } else {
       toast.error(t("Please sign in to add to favourites"));
       navigate("/signin");
@@ -112,7 +92,7 @@ const ProductInfo = ({ item }) => {
 
   return (
     <div className="w-1/2 flex flex-col justify-center items-start">
-      <h2 className="capitalize font-medium text-2xl md:text-4xl text-pink-500 ">
+      <h2 className="capitalize font-medium text-2xl md:text-4xl text-[color:var(--color-primary)] ">
         {item.title}
       </h2>
       <p className=" text-gray-600 mt-2 text-sm md:text-md">
@@ -120,26 +100,22 @@ const ProductInfo = ({ item }) => {
       </p>
       <div className=" mt-4 text-sm md:text-md">
         {item.brand && (
-          <p className="text-gray-600 font-medium">
-            Brand :<span className="text-pink-500 "> {item.brand}</span>
+          <p className="text-[color:var(--color-secondary)] font-medium">
+            Brand :<span className="text-[color:var(--color-primary)] "> {item.brand}</span>
           </p>
         )}
-        <p className="text-gray-600 font-medium">
+        <p className="text-[color:var(--color-secondary)] font-medium">
           Availability :{" "}
-          <span className="text-pink-500">{item.availabilityStatus}</span>
+          <span className="text-[color:var(--color-primary)]">{item.availabilityStatus}</span>
         </p>
         <div className="flex text-sm text-yellow-500  my-2">
-          <FaStar />
-          <FaStar />
-          <FaStar />
-          <FaStar />
-          <FaStar />
-        </div>
-        <div className="text-xl text-pink-400 font-medium mt-4">
+               <StarRating rating={item.rating} />
+              </div>
+        <div className="text-xl text-[color:var(--color-primary)] font-medium mt-4">
           ${item.price}
         </div>
       </div>
-      <p className="text-gray-600 font-bold mt-4  text-sm md:text-lg">
+      <p className="text-[color:var(--color-secondary)] font-bold mt-4  text-sm md:text-lg">
         {t("Hurry Up! Only")} <span>{item.stock}</span>{" "}
         {t("products left in stock")}
       </p>
@@ -148,7 +124,7 @@ const ProductInfo = ({ item }) => {
           className={` px-2 py-1 md:px-6 md:py-2 rounded-lg transition duration-300 ${
             isInCart
               ? "bg-gray-200 text-gray-600"
-              : "bg-pink-500 text-white hover:bg-pink-600"
+              : "bg-[color:var(--color-secondary)] text-white hover:bg-[color:var(--color-primary)]"
           }`}
           onClick={() => {
             handelAddToCart();
@@ -161,11 +137,11 @@ const ProductInfo = ({ item }) => {
         <button disabled={isInFavourite} onClick={handelFavourite}>
           {isInFavourite ? (
             <FaHeart
-              className={` text-2xl cursor-pointer hover:text-pink-600 transition duration-300
-                      ${isInFavourite ? "text-pink-500" : ""}`}
+              className={` text-2xl cursor-pointer transition duration-300
+                      ${isInFavourite ? "text-[color:var(--color-secondary)]" : ""}`}
             />
           ) : (
-            <FaRegHeart className="text-2xl cursor-pointer hover:text-pink-600 transition duration-300 text-pink-500" />
+            <FaRegHeart className="text-2xl cursor-pointer hover:text-[color:var(--color-primary)] transition duration-300 text-[color:var(--color-secondary)]" />
           )}
         </button>
       </div>

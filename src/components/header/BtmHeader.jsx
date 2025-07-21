@@ -50,7 +50,7 @@ const BtmHeader = () => {
             }}
           />
         </div>
-{/* small screen */}
+        {/* small screen */}
         <div
           className={`flex-col lg:hidden absolute top-8 w-full ${
             openMenue ? "flex" : "hidden"
@@ -64,26 +64,25 @@ const BtmHeader = () => {
                   `/category/${e.target.value.replace(" ", "-").toLowerCase()}`
                 );
               }}
-              
             >
               <option value="" disabled hidden>
                 {t("Browse Categories")}
               </option>
               {BrowseCategory.map((cat, index) => (
-                <option value={cat} key={index} >
+                <option value={cat} key={index}>
                   {cat}
                 </option>
               ))}
             </select>
           </div>
-          <div className=" flex flex-col justify-between items-center gap-2 md:gap-6 lg:gap-8 xl:gap-10 pb-5 px-3">
+          <div className="bg-[color:var(--color-secondary)] flex flex-col justify-between items-center gap-2 md:gap-6 lg:gap-8 xl:gap-10 pb-5 px-3">
             {NavLinks.map((link, index) => (
               <Link
                 to={link.path}
                 key={index}
                 className={`text-xs text-center md:text-base hover:text-gray-800 rounded-sm transition-colors py-2 px-2 ${
                   location.pathname === link.path
-                    ? "bg-gray-600 w-full text-pink-300 "
+                    ? "bg-gray-600 w-full text-[color:var(--color-)] "
                     : ""
                 }`}
               >
@@ -92,7 +91,7 @@ const BtmHeader = () => {
             ))}
           </div>
         </div>
-{/* big screen */}
+        {/* big screen */}
         <div className="hidden md:flex justify-between items-center gap-5">
           <div>
             <select
@@ -104,8 +103,7 @@ const BtmHeader = () => {
               }}
             >
               <option value="" disabled hidden>
-                                {t("Browse Categories")}
-
+                {t("Browse Categories")}
               </option>
               {BrowseCategory.map((cat, index) => (
                 <option value={cat} key={index} className="text-gray-700">
@@ -125,8 +123,7 @@ const BtmHeader = () => {
                     : ""
                 }`}
               >
-              {t(`${link.title}`)}
-
+                {t(`${link.title}`)}
               </Link>
             ))}
           </div>
