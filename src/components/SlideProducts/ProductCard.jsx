@@ -14,8 +14,8 @@ import { useAuth } from "../../Context/authContext";
 import { FavouriteContext } from "../../Context/FavouriteContextprovider";
 import { useTranslation } from "react-i18next";
 import StarRating from "../StarRating";
-import ToastCart from "./toastCart";
-import ToastFavourite from "./toastFavourite";
+import ToastCart from "./ToastCart";
+import ToastFavourite from "./ToastFavourite";
 
 const ProductCard = ({ item }) => {
   const { addToCart, getCartItems } = useContext(CartContext);

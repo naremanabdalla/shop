@@ -53,7 +53,7 @@ const SignIn = () => {
               Password reset email sent! Check your inbox
             </div>
             <button className="bg-pink-400 text-sm rounded-md px-1 py-1"> 
-              Not done
+               done
             </button>
           </div>,
           { duration: 2500 }
