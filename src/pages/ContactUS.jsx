@@ -63,18 +63,9 @@ const ContactUS = () => {
           </p>
         </div>
 
-        <div className="bg-white rounded-xl overflow-hidden">
+        <div className=" rounded-xl overflow-hidden">
           <div className="grid grid-cols-1 w-9/10 lg:w-1/2 mx-auto">
-            {/* {submitStatus === "success" && (
-              <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-md">
-                {t("Message sent successfully! We'll get back to you soon.")}
-              </div>
-            )}
-            {submitStatus === "error" && (
-              <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-md">
-                {t("Failed to send message. Please try again later.")}
-              </div>
-            )} */}
+           
             {/* Contact Form */}
             <div className="p-8 lg:p-12">
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -92,7 +83,7 @@ const ContactUS = () => {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-pink-500 focus:border-pink-500"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-pink-500 focus:border-[color:var(--color-secondary)]"
                   />
                 </div>
 
@@ -110,7 +101,7 @@ const ContactUS = () => {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-pink-500 focus:border-pink-500"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-pink-500 focus:border-[color:var(--color-secondary)]"
                   />
                 </div>
 
@@ -128,7 +119,7 @@ const ContactUS = () => {
                     value={formData.subject}
                     onChange={handleChange}
                     required
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-pink-500 focus:border-pink-500"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-pink-500 focus:border-[color:var(--color-secondary)]"
                   />
                 </div>
 
@@ -146,7 +137,7 @@ const ContactUS = () => {
                     value={formData.message}
                     onChange={handleChange}
                     required
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-pink-500 focus:border-pink-500"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-pink-500 focus:border-[color:var(--color-secondary)]"
                   />
                 </div>
 
@@ -154,7 +145,7 @@ const ContactUS = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-pink-500 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[color:var(--color-secondary)] hover:bg-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
                   >
                     <FaPaperPlane className="mr-2 h-4 w-4" />
                     {t("Send Message")}
