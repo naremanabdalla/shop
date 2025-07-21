@@ -109,7 +109,7 @@ const SignUp = () => {
             onClick={(e) => {
               handleSignUp(e);
             }}
-            className="w-full bg-pink-400 text-white font-bold py-2 px-4 rounded hover:bg-pink-500 mt-4"
+            className="w-full bg-[color:var(--color-secondary)] text-white font-bold py-2 px-4 rounded hover:bg-[color:var(--color-primary)] mt-4"
           >
             {isRegistering ? t("Registering...") : t("Sign Up")}
           </button>

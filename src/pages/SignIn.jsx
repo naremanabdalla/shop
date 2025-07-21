@@ -142,7 +142,7 @@ const SignIn = () => {
           <button
             type="submit"
             disabled={isSigningIn}
-            className={`w-full bg-pink-400 text-white font-bold py-2 px-4 rounded hover:bg-pink-500 mt-4 ${
+            className={`w-full bg-[color:var(--color-secondary)] text-white font-bold py-2 px-4 rounded hover:bg-[color:var(--color-primary)] mt-4 ${
               isSigningIn ? "opacity-50" : ""
             }`}
           >
@@ -156,7 +156,7 @@ const SignIn = () => {
           </p>
         </form>
         <p
-          className="mt-4 text-center text-gray-600 cursor-pointer"
+          className="mt-4 text-center text-green-600 cursor-pointer"
           onClick={handleResetPassword}
         >
           {t("Forgot Password?")}
