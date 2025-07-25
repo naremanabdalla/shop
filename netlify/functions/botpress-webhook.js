@@ -1,4 +1,3 @@
-// netlify/functions/botpress-webhook.js
 let conversations = {};
 
 export const handler = async (event) => {
@@ -8,50 +7,50 @@ export const handler = async (event) => {
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
     };
 
-    if (event.httpMethod === 'OPTIONS') {
-        return { statusCode: 204, headers };
-    }
+    if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers };
 
     if (event.httpMethod === 'GET') {
-        const { conversationId } = event.queryStringParameters || {};
+        const { conversationId, lastMessageId } = event.queryStringParameters || {};
+        const convMessages = conversations[conversationId] || [];
+
+        // Only return messages newer than lastMessageId
+        const newMessages = lastMessageId
+            ? convMessages.filter(msg => msg.id > lastMessageId)
+            : convMessages;
+
         return {
             statusCode: 200,
             headers,
-            body: JSON.stringify({
-                messages: conversations[conversationId] || []
-            })
+            body: JSON.stringify({ messages: newMessages })
         };
     }
 
     if (event.httpMethod === 'POST') {
         try {
-            const { conversationId, text } = JSON.parse(event.body);
+            const botResponse = JSON.parse(event.body);
+            const conversationId = botResponse.conversationId || "default";
 
             if (!conversations[conversationId]) {
                 conversations[conversationId] = [];
             }
 
-            const newMessage = {
-                id: `msg-${Date.now()}`,
-                text: text || "I'm having trouble understanding. Can you rephrase?",
+            const botMessage = {
+                id: botResponse.botpressMessageId || `msg-${Date.now()}`,
+                text: botResponse.payload?.text || "I didn't understand that",
                 sender: 'bot',
-                timestamp: new Date().toISOString()
+                timestamp: Date.now(),
+                rawData: botResponse
             };
 
-            conversations[conversationId].push(newMessage);
-            console.log('New bot message:', newMessage);
+            conversations[conversationId].push(botMessage);
 
             return {
                 statusCode: 200,
                 headers,
-                body: JSON.stringify({ success: true, message: newMessage })
+                body: JSON.stringify({ success: true, lastMessageId: botMessage.id })
             };
         } catch (error) {
-            return {
-                statusCode: 500,
-                headers,
-                body: JSON.stringify({ error: error.message })
-            };
+            return { statusCode: 500, headers, body: JSON.stringify({ error: error.message }) };
         }
     }
 
