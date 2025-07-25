@@ -210,17 +210,6 @@ const Chat = () => {
         <button
           onClick={() => {
             setIsOpen(true);
-            // Optional: Add welcome message only if no existing messages
-            if (messages.length === 0) {
-              setMessages([
-                {
-                  id: "welcome",
-                  text: "Hello! How can I help you today?",
-                  sender: "bot",
-                  timestamp: Date.now(),
-                },
-              ]);
-            }
           }}
           className="bg-black text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-gray-800 transition"
         >
