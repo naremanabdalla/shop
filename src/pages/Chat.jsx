@@ -4,6 +4,8 @@ const Chat = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
+  const [userId] = useState(`user-${Math.random().toString(36).substr(2, 9)}`);
+
   // const [conversationId, setConversationId] = useState("");
   const messagesEndRef = useRef(null);
 
@@ -20,12 +22,12 @@ const Chat = () => {
   const sendMessage = async (text = inputValue) => {
     if (!text.trim()) return;
 
-    const conversationId = "remoteConversationIdD"; // Consistent ID
     const userMessage = {
       id: `msg-${Date.now()}`,
       text: text,
       sender: "user",
-      conversationId: conversationId,
+      userId: userId, // Make sure this is included
+      conversationId: "remoteConversationIdD", // Consistent conversation ID
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -36,9 +38,10 @@ const Chat = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...userMessage,
-          type: "text",
-          payload: { website: "https://shopping022.netlify.app/" },
+          text: userMessage.text,
+          userId: userMessage.userId,
+          conversationId: userMessage.conversationId,
+          messageId: userMessage.id,
         }),
       });
     } catch (error) {
