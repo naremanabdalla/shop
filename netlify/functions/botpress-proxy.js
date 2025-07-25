@@ -1,6 +1,6 @@
 // netlify/functions/botpress-proxy.js
 export const handler = async (event) => {
-    const BOTPRESS_URL = "https://webhook.botpress.cloud/772fb704-48bc-435c-8b83-23d299738100";
+    const BOTPRESS_URL = "https://webhost.botpress.cloud/77210704-480c-435c-8083-2262997/36180"; // Use OUTGOING URL
     const BOTPRESS_TOKEN = "bp_pat_se5aRM9MJCiKOr8oH0E7YuXBHBKdDijQn4nD";
 
     try {
@@ -14,21 +14,18 @@ export const handler = async (event) => {
         });
 
         const data = await response.json();
+        console.log('Botpress proxy response:', data);
 
         return {
             statusCode: 200,
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-            },
-            body: JSON.stringify(data),
+            headers: { 'Access-Control-Allow-Origin': '*' },
+            body: JSON.stringify(data)
         };
     } catch (error) {
         return {
             statusCode: 500,
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-            },
-            body: JSON.stringify({ error: error.message }),
+            headers: { 'Access-Control-Allow-Origin': '*' },
+            body: JSON.stringify({ error: "Proxy error: " + error.message })
         };
     }
 };
