@@ -77,29 +77,30 @@ const Chat = () => {
   useEffect(() => {
     if (!isOpen) return;
 
-    let lastMessageId =
-      messages.length > 0 ? messages[messages.length - 1].id : null;
+    let lastTimestamp =
+      messages.length > 0
+        ? Math.max(...messages.map((m) => m.timestamp || 0))
+        : Date.now();
 
     const pollInterval = setInterval(async () => {
       try {
-        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD${
-          lastMessageId ? `&lastMessageId=${lastMessageId}` : ""
-        }`;
+        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD&lastTimestamp=${lastTimestamp}`;
 
         const response = await fetch(url);
-        const { messages: newMessages } = await response.json();
+        const { messages: newMessages, lastTimestamp: newTimestamp } =
+          await response.json();
 
         if (newMessages.length > 0) {
           setMessages((prev) => [...prev, ...newMessages]);
-          lastMessageId = newMessages[newMessages.length - 1].id;
+          lastTimestamp = newTimestamp;
         }
       } catch (error) {
         console.error("Polling error:", error);
       }
-    }, 2000);
+    }, 1500); // Reduced polling interval
 
     return () => clearInterval(pollInterval);
-  }, [isOpen, messages.length]); // Add messages.length to dependencies
+  }, [isOpen, messages.length]);
 
   return (
     <div className="fixed bottom-6 right-6 z-100">
