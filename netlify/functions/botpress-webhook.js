@@ -15,7 +15,6 @@ export const handler = async (event) => {
         const { conversationId, lastTimestamp } = event.queryStringParameters || {};
         const convMessages = conversations[conversationId] || [];
 
-        // Filter messages newer than lastTimestamp
         const newMessages = lastTimestamp
             ? convMessages.filter(msg => msg.timestamp > parseInt(lastTimestamp))
             : convMessages;

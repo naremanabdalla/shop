@@ -2,14 +2,19 @@ import { useState, useEffect, useRef } from "react";
 
 const Chat = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("chatMessages");
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+  });
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   // const [conversationId, setConversationId] = useState("");
   const [userId] = useState(`user-${Math.random().toString(36).substr(2, 9)}`);
   const messagesEndRef = useRef(null);
 
-  // Your Botpress API configuration
   // Your Botpress API configuration
   const BOTPRESS_CONFIG = {
     // Use the OUTGOING URL from your integration panel
@@ -102,6 +107,11 @@ const Chat = () => {
     return () => clearInterval(pollInterval);
   }, [isOpen, messages.length]);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("chatMessages", JSON.stringify(messages));
+    }
+  }, [messages]);
   return (
     <div className="fixed bottom-6 right-6 z-100">
       {isOpen ? (
@@ -109,14 +119,30 @@ const Chat = () => {
           {/* Chat header */}
           <div className="bg-black text-white p-3 rounded-t-lg flex justify-between items-center">
             <h3 className="font-semibold">Support Bot</h3>
-            <button
-              onClick={() => {
-                setIsOpen(false);
-              }}
-              className="text-white hover:text-gray-300"
-            >
-              ×
-            </button>
+            <div>
+              <button
+                onClick={() => {
+                  localStorage.removeItem("chatMessages");
+                  setMessages([
+                    {
+                      id: "welcome",
+                      text: "Hello! How can I help you today?",
+                      sender: "bot",
+                      timestamp: Date.now(),
+                    },
+                  ]);
+                }}
+                className="text-xs bg-red-500 px-2 py-1 rounded mr-2"
+              >
+                New Chat
+              </button>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-white hover:text-gray-300"
+              >
+                ×
+              </button>
+            </div>
           </div>
 
           {/* Messages container */}
@@ -182,7 +208,20 @@ const Chat = () => {
         </div>
       ) : (
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={() => {
+            setIsOpen(true);
+            // Optional: Add welcome message only if no existing messages
+            if (messages.length === 0) {
+              setMessages([
+                {
+                  id: "welcome",
+                  text: "Hello! How can I help you today?",
+                  sender: "bot",
+                  timestamp: Date.now(),
+                },
+              ]);
+            }
+          }}
           className="bg-black text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-gray-800 transition"
         >
           <svg
