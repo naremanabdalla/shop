@@ -21,7 +21,7 @@ const Chat = () => {
     webhookUrl:
       "https://webhook.botpress.cloud/667e3082-09f1-4ad3-9071-30ade020ef3b",
     accessToken: "bp_pat_se5aRM9MJCiKOr8oH0E7YuXBHBKdDijQn4nD",
-    botId: "eb06d6c7-b0f8-4a53-a360-84a24643ecac",
+    botId: "b20dd108-4e50-43dc-8c55-1be2ee2a5417",
   };
 
   const sendMessage = async (text = inputValue) => {
