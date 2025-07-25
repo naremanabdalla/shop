@@ -5,7 +5,6 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
   // const [conversationId, setConversationId] = useState("");
-  const [userId] = useState(`user-${Math.random().toString(36).substr(2, 9)}`);
   const messagesEndRef = useRef(null);
 
   // Your Botpress API configuration
@@ -19,48 +18,31 @@ const Chat = () => {
   };
 
   const sendMessage = async (text = inputValue) => {
-    // Modified to accept parameter
     if (!text.trim()) return;
 
+    const conversationId = "remoteConversationIdD"; // Consistent ID
     const userMessage = {
       id: `msg-${Date.now()}`,
-      text: text, // Use the passed text
+      text: text,
       sender: "user",
+      conversationId: conversationId,
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    if (text === inputValue) setInputValue(""); // Only clear if using input
+    if (text === inputValue) setInputValue("");
 
     try {
-      const response = await fetch("/.netlify/functions/botpress-proxy", {
+      await fetch("/.netlify/functions/botpress-proxy", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: userId,
-          messageId: userMessage.id,
-          conversationId: "remoteConversationIdD",
+          ...userMessage,
           type: "text",
-          text: text, // Use the passed text
-          payload: {
-            website: "https://shopping022.netlify.app/",
-          },
+          payload: { website: "https://shopping022.netlify.app/" },
         }),
       });
-
-      const data = await response.json();
-      console.log("Proxy response:", data);
     } catch (error) {
-      console.error("Full error:", error);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `error-${Date.now()}`,
-          text: "Sorry, there was an error. Check console for details.",
-          sender: "bot",
-        },
-      ]);
+      console.error("Error:", error);
     }
   };
 
@@ -71,29 +53,26 @@ const Chat = () => {
   };
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || messages.length === 0) return;
 
+    const lastMessageId = messages[messages.length - 1].id;
     const pollInterval = setInterval(async () => {
       try {
         const response = await fetch(
-          `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD`
+          `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD&lastMessageId=${lastMessageId}`
         );
         const { messages: newMessages } = await response.json();
 
-        setMessages((prev) => {
-          const existingIds = prev.map((m) => m.id);
-          const filtered = newMessages.filter(
-            (msg) => !existingIds.includes(msg.id)
-          );
-          return filtered.length ? [...prev, ...filtered] : prev;
-        });
+        if (newMessages.length) {
+          setMessages((prev) => [...prev, ...newMessages]);
+        }
       } catch (error) {
         console.error("Polling error:", error);
       }
     }, 2000);
 
     return () => clearInterval(pollInterval);
-  }, [isOpen]);
+  }, [isOpen, messages]); // Add messages to dependencies
 
   return (
     <div className="fixed bottom-6 right-6 z-100">
@@ -105,6 +84,7 @@ const Chat = () => {
             <button
               onClick={() => {
                 setIsOpen(false);
+                setMessages([]); // Clear messages when closing
               }}
               className="text-white hover:text-gray-300"
             >

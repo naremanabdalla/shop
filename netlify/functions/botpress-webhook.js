@@ -7,58 +7,50 @@ export const handler = async (event) => {
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
     };
 
-    // Handle preflight
-    if (event.httpMethod === 'OPTIONS') {
-        return { statusCode: 204, headers };
-    }
+    if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers };
 
-    // Frontend polling
     if (event.httpMethod === 'GET') {
-        const { conversationId } = event.queryStringParameters || {};
+        const { conversationId, lastMessageId } = event.queryStringParameters || {};
+        const convMessages = conversations[conversationId] || [];
+
+        // Only return messages newer than lastMessageId
+        const newMessages = lastMessageId
+            ? convMessages.filter(msg => msg.id > lastMessageId)
+            : convMessages;
+
         return {
             statusCode: 200,
             headers,
-            body: JSON.stringify({
-                messages: conversations[conversationId] || []
-            })
+            body: JSON.stringify({ messages: newMessages })
         };
     }
 
-    // Handle Botpress webhook
     if (event.httpMethod === 'POST') {
         try {
             const botResponse = JSON.parse(event.body);
-            console.log('Raw Botpress response:', botResponse); // Debug log
-
             const conversationId = botResponse.conversationId || "default";
 
             if (!conversations[conversationId]) {
                 conversations[conversationId] = [];
             }
 
-            // Extract the actual message text from Botpress response
             const botMessage = {
                 id: botResponse.botpressMessageId || `msg-${Date.now()}`,
-                text: botResponse.payload?.text || "Received an unsupported message format",
+                text: botResponse.payload?.text || "I didn't understand that",
                 sender: 'bot',
-                rawData: botResponse // Store full payload for debugging
+                timestamp: Date.now(),
+                rawData: botResponse
             };
 
             conversations[conversationId].push(botMessage);
-            console.log('Processed bot message:', botMessage);
 
             return {
                 statusCode: 200,
                 headers,
-                body: JSON.stringify({ success: true })
+                body: JSON.stringify({ success: true, lastMessageId: botMessage.id })
             };
         } catch (error) {
-            console.error('Webhook error:', error);
-            return {
-                statusCode: 500,
-                headers,
-                body: JSON.stringify({ error: error.message })
-            };
+            return { statusCode: 500, headers, body: JSON.stringify({ error: error.message }) };
         }
     }
 
