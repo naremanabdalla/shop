@@ -13,7 +13,7 @@ const Chat = () => {
   const BOTPRESS_CONFIG = {
     // Use the OUTGOING URL from your integration panel
     webhookUrl:
-      "https://webhost.botpress.cloud/77210704-480c-435c-8083-2262997/36180",
+      "https://webhook.botpress.cloud/772fb704-48bc-435c-8b83-23d299738100",
     accessToken: "bp_pat_se5aRM9MJCiKOr8oH0E7YuXBHBKdDijQn4nD",
     botId: "eb06d6c7-b0f8-4a53-a360-84a24643ecac",
   };
@@ -39,6 +39,7 @@ const Chat = () => {
         headers: {
           Authorization: `Bearer ${BOTPRESS_CONFIG.accessToken}`,
           "Content-Type": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify({
           userId: userId,
@@ -82,20 +83,28 @@ const Chat = () => {
 
     const pollInterval = setInterval(async () => {
       try {
-        const response = await fetch(
-          "/.netlify/functions/botpress-webhook/latest"
-        );
+        const response = await fetch("/.netlify/functions/botpress-webhook", {
+          method: "GET",
+        });
         const data = await response.json();
-        if (data.newMessages) {
-          setMessages((prev) => [...prev, ...data.newMessages]);
+
+        if (data.messages?.length) {
+          // Filter out messages we already have
+          const newMessages = data.messages.filter(
+            (msg) => !messages.some((m) => m.id === msg.id)
+          );
+
+          if (newMessages.length) {
+            setMessages((prev) => [...prev, ...newMessages]);
+          }
         }
       } catch (error) {
         console.error("Polling error:", error);
       }
-    }, 3000); // Poll every 3 seconds
+    }, 3000);
 
     return () => clearInterval(pollInterval);
-  }, [isOpen]);
+  }, [isOpen, messages]); // Add messages to dependencies
 
   return (
     <div className="fixed bottom-6 right-6 z-50">

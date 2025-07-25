@@ -1,18 +1,54 @@
 // netlify/functions/botpress-webhook.js
+const messages = []; // Temporary storage for bot replies
 
 export const handler = async (event) => {
-    // 1. Verify this is a Botpress request
-    if (event.httpMethod !== 'POST') {
-        return { statusCode: 405, body: 'Method Not Allowed' }
+    // CORS headers
+    const headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+    };
+
+    // Handle preflight requests
+    if (event.httpMethod === 'OPTIONS') {
+        return { statusCode: 204, headers };
     }
 
-    // 2. Parse the bot's response
-    const botMessage = JSON.parse(event.body);
-    console.log('Bot says:', botMessage.text);
+    // Handle GET requests (for polling)
+    if (event.httpMethod === 'GET') {
+        return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({ messages })
+        };
+    }
 
-    // 3. Return success (Botpress expects HTTP 200)
-    return {
-        statusCode: 200,
-        body: JSON.stringify({ received: true })
-    };
+    // Handle POST requests (from Botpress)
+    if (event.httpMethod === 'POST') {
+        try {
+            const botMessage = JSON.parse(event.body);
+            console.log('Received from Botpress:', botMessage);
+
+            // Store the message
+            messages.push({
+                id: Date.now(),
+                text: botMessage.text,
+                sender: 'bot'
+            });
+
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({ success: true })
+            };
+        } catch (error) {
+            return {
+                statusCode: 500,
+                headers,
+                body: JSON.stringify({ error: error.message })
+            };
+        }
+    }
+
+    return { statusCode: 405, headers, body: 'Method Not Allowed' };
 };
