@@ -123,14 +123,6 @@ const Chat = () => {
               <button
                 onClick={() => {
                   localStorage.removeItem("chatMessages");
-                  setMessages([
-                    {
-                      id: "welcome",
-                      text: "Hello! How can I help you today?",
-                      sender: "bot",
-                      timestamp: Date.now(),
-                    },
-                  ]);
                 }}
                 className="text-xs bg-red-500 px-2 py-1 rounded mr-2"
               >
