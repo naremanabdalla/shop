@@ -124,7 +124,7 @@ const Chat = () => {
                 onClick={() => {
                   localStorage.removeItem("chatMessages");
                 }}
-                className="text-xs bg-red-500 px-2 py-1 rounded mr-2"
+                className="text-xs bg-[color:var(--color-primary)] px-2 py-1 rounded mr-2"
               >
                 New Chat
               </button>
