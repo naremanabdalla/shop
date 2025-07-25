@@ -95,15 +95,44 @@ const Chat = () => {
     return () => clearInterval(pollInterval);
   }, [isOpen]);
 
+  useEffect(() => {
+    return () => {
+      // Cleanup function runs when component unmounts or before re-running the effect
+      if (!isOpen) {
+        setMessages([]); // Clear all messages
+      }
+    };
+  }, [isOpen]); // Trigger when isOpen changes
+
+  const handleToggleChat = () => {
+    if (isOpen) {
+      // Closing chat
+      setMessages([]);
+    } else {
+      // Opening chat - optionally add welcome message
+      setMessages([
+        {
+          id: "welcome",
+          text: "Hello! How can I help you today?",
+          sender: "bot",
+        },
+      ]);
+    }
+    setIsOpen(!isOpen);
+  };
+
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-6 right-6 z-100">
       {isOpen ? (
-        <div className="w-80 h-96 bg-white rounded-lg shadow-xl flex flex-col">
+        <div className=" h-100 bg-white rounded-lg shadow-xl flex flex-col">
           {/* Chat header */}
           <div className="bg-black text-white p-3 rounded-t-lg flex justify-between items-center">
             <h3 className="font-semibold">Support Bot</h3>
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={() => {
+                setIsOpen(false);
+                setMessages([]); // Immediate clear when closing
+              }}
               className="text-white hover:text-gray-300"
             >
               ×
@@ -170,7 +199,7 @@ const Chat = () => {
         </div>
       ) : (
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={handleToggleChat}
           className="bg-black text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-gray-800 transition"
         >
           <svg
