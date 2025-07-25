@@ -1,5 +1,5 @@
 // netlify/functions/botpress-webhook.js
-let botMessages = []; // Store bot replies
+let conversations = {};
 
 export const handler = async (event) => {
     const headers = {
@@ -8,39 +8,43 @@ export const handler = async (event) => {
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
     };
 
-    // Handle preflight
     if (event.httpMethod === 'OPTIONS') {
         return { statusCode: 204, headers };
     }
 
-    // Frontend polls for messages
     if (event.httpMethod === 'GET') {
+        const { conversationId } = event.queryStringParameters || {};
         return {
             statusCode: 200,
             headers,
-            body: JSON.stringify({ messages: botMessages })
+            body: JSON.stringify({
+                messages: conversations[conversationId] || []
+            })
         };
     }
 
-    // Botpress sends replies here
     if (event.httpMethod === 'POST') {
         try {
-            const { text } = JSON.parse(event.body);
+            const { conversationId, text } = JSON.parse(event.body);
 
-            // Store the new bot message
+            if (!conversations[conversationId]) {
+                conversations[conversationId] = [];
+            }
+
             const newMessage = {
-                id: `bot-${Date.now()}`,
-                text: text || "I didn't understand that",
-                sender: 'bot'
+                id: `msg-${Date.now()}`,
+                text: text || "I'm having trouble understanding. Can you rephrase?",
+                sender: 'bot',
+                timestamp: new Date().toISOString()
             };
 
-            botMessages.push(newMessage);
-            console.log('Stored bot reply:', newMessage);
+            conversations[conversationId].push(newMessage);
+            console.log('New bot message:', newMessage);
 
             return {
                 statusCode: 200,
                 headers,
-                body: JSON.stringify({ success: true })
+                body: JSON.stringify({ success: true, message: newMessage })
             };
         } catch (error) {
             return {

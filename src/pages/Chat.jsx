@@ -75,31 +75,25 @@ const Chat = () => {
 
     const pollInterval = setInterval(async () => {
       try {
-        const response = await fetch("/.netlify/functions/botpress-webhook", {
-          method: "GET",
+        const response = await fetch(
+          `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD`
+        );
+        const { messages: newMessages } = await response.json();
+
+        setMessages((prev) => {
+          const existingIds = prev.map((m) => m.id);
+          const filtered = newMessages.filter(
+            (msg) => !existingIds.includes(msg.id)
+          );
+          return filtered.length ? [...prev, ...filtered] : prev;
         });
-        const data = await response.json();
-
-        // Extract the latest bot message from the conversation
-        if (data.messages?.length) {
-          const latestBotMessage = data.messages
-            .filter((msg) => msg.sender === "bot")
-            .pop(); // Get most recent
-
-          if (
-            latestBotMessage &&
-            !messages.some((m) => m.id === latestBotMessage.id)
-          ) {
-            setMessages((prev) => [...prev, latestBotMessage]);
-          }
-        }
       } catch (error) {
         console.error("Polling error:", error);
       }
-    }, 2000); // Reduced to 2s for better responsiveness
+    }, 2000);
 
     return () => clearInterval(pollInterval);
-  }, [isOpen, messages]);
+  }, [isOpen]);
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
