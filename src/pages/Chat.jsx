@@ -4,6 +4,7 @@ const Chat = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   // const [conversationId, setConversationId] = useState("");
   const [userId] = useState(`user-${Math.random().toString(36).substr(2, 9)}`);
   const messagesEndRef = useRef(null);
@@ -19,6 +20,7 @@ const Chat = () => {
   };
 
   const sendMessage = async (text = inputValue) => {
+    setIsLoading(true);
     // Modified to accept parameter
     if (!text.trim()) return;
 
@@ -61,6 +63,8 @@ const Chat = () => {
           sender: "bot",
         },
       ]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -73,27 +77,29 @@ const Chat = () => {
   useEffect(() => {
     if (!isOpen) return;
 
+    let lastMessageId =
+      messages.length > 0 ? messages[messages.length - 1].id : null;
+
     const pollInterval = setInterval(async () => {
       try {
-        const response = await fetch(
-          `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD`
-        );
+        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD${
+          lastMessageId ? `&lastMessageId=${lastMessageId}` : ""
+        }`;
+
+        const response = await fetch(url);
         const { messages: newMessages } = await response.json();
 
-        setMessages((prev) => {
-          const existingIds = prev.map((m) => m.id);
-          const filtered = newMessages.filter(
-            (msg) => !existingIds.includes(msg.id)
-          );
-          return filtered.length ? [...prev, ...filtered] : prev;
-        });
+        if (newMessages.length > 0) {
+          setMessages((prev) => [...prev, ...newMessages]);
+          lastMessageId = newMessages[newMessages.length - 1].id;
+        }
       } catch (error) {
         console.error("Polling error:", error);
       }
     }, 2000);
 
     return () => clearInterval(pollInterval);
-  }, [isOpen]);
+  }, [isOpen, messages.length]); // Add messages.length to dependencies
 
   return (
     <div className="fixed bottom-6 right-6 z-100">
@@ -154,12 +160,15 @@ const Chat = () => {
           <div className="p-3 border-t border-gray-200">
             <div className="flex">
               <input
+                disabled={isLoading}
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message..."
-                className="flex-1 border border-gray-300 rounded-l-lg p-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className={`flex-1 border border-gray-300 rounded-l-lg p-2 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                  isLoading ? "opacity-50" : ""
+                }`}
               />
               <button
                 onClick={sendMessage}

@@ -7,7 +7,9 @@ export const handler = async (event) => {
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
     };
 
-    if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers };
+    if (event.httpMethod === 'OPTIONS') {
+        return { statusCode: 204, headers };
+    }
 
     if (event.httpMethod === 'GET') {
         const { conversationId, lastMessageId } = event.queryStringParameters || {};
@@ -38,19 +40,28 @@ export const handler = async (event) => {
                 id: botResponse.botpressMessageId || `msg-${Date.now()}`,
                 text: botResponse.payload?.text || "I didn't understand that",
                 sender: 'bot',
-                timestamp: Date.now(),
-                rawData: botResponse
+                rawData: botResponse,
+                timestamp: Date.now() // Add timestamp for sorting
             };
 
             conversations[conversationId].push(botMessage);
 
+            // Keep only the last 10 messages to prevent memory buildup
+            conversations[conversationId] = conversations[conversationId]
+                .sort((a, b) => b.timestamp - a.timestamp)
+                .slice(0, 10);
+
             return {
                 statusCode: 200,
                 headers,
-                body: JSON.stringify({ success: true, lastMessageId: botMessage.id })
+                body: JSON.stringify({ success: true })
             };
         } catch (error) {
-            return { statusCode: 500, headers, body: JSON.stringify({ error: error.message }) };
+            return {
+                statusCode: 500,
+                headers,
+                body: JSON.stringify({ error: error.message })
+            };
         }
     }
 
