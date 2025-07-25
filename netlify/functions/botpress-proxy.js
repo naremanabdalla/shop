@@ -13,20 +13,22 @@ export const handler = async (event) => {
             body: event.body,
         });
 
-        const data = await response.json();
-        console.log('Botpress proxy response:', data);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         return {
             statusCode: 200,
             headers: { 'Access-Control-Allow-Origin': '*' },
-            body: JSON.stringify(data)
+            body: await response.text() // Forward raw response
         };
     } catch (error) {
+        console.error('Proxy error:', error);
         return {
             statusCode: 500,
             headers: { 'Access-Control-Allow-Origin': '*' },
-            body: JSON.stringify({ error: "Proxy error: " + error.message })
+            body: JSON.stringify({
+                error: "Failed to reach Botpress",
+                details: error.message
+            })
         };
     }
 };
-

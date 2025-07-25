@@ -4,9 +4,8 @@ const Chat = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
-  const [userId] = useState(`user-${Math.random().toString(36).substr(2, 9)}`);
-
   // const [conversationId, setConversationId] = useState("");
+  const [userId] = useState(`user-${Math.random().toString(36).substr(2, 9)}`);
   const messagesEndRef = useRef(null);
 
   // Your Botpress API configuration
@@ -19,40 +18,49 @@ const Chat = () => {
     botId: "eb06d6c7-b0f8-4a53-a360-84a24643ecac",
   };
 
-  const sendMessage = async () => {
-    if (!inputValue.trim()) return;
+  const sendMessage = async (text = inputValue) => {
+    // Modified to accept parameter
+    if (!text.trim()) return;
 
     const userMessage = {
       id: `msg-${Date.now()}`,
-      text: inputValue,
+      text: text, // Use the passed text
       sender: "user",
-      userId: userId, // Make sure this is included
-      conversationId: "remoteConversationIdD", // Consistent conversation ID
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
+    if (text === inputValue) setInputValue(""); // Only clear if using input
 
     try {
-      // Create a proxy endpoint in your Netlify function
       const response = await fetch("/.netlify/functions/botpress-proxy", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
-          text: userMessage.text,
-          userId: userMessage.userId,
-          conversationId: userMessage.conversationId,
+          userId: userId,
           messageId: userMessage.id,
           conversationId: "remoteConversationIdD",
           type: "text",
-          text: inputValue,
+          text: text, // Use the passed text
           payload: {
             website: "https://shopping022.netlify.app/",
           },
         }),
       });
+
+      const data = await response.json();
+      console.log("Proxy response:", data);
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Full error:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `error-${Date.now()}`,
+          text: "Sorry, there was an error. Check console for details.",
+          sender: "bot",
+        },
+      ]);
     }
   };
 
@@ -63,26 +71,29 @@ const Chat = () => {
   };
 
   useEffect(() => {
-    if (!isOpen || messages.length === 0) return;
+    if (!isOpen) return;
 
-    const lastMessageId = messages[messages.length - 1].id;
     const pollInterval = setInterval(async () => {
       try {
         const response = await fetch(
-          `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD&lastMessageId=${lastMessageId}`
+          `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD`
         );
         const { messages: newMessages } = await response.json();
 
-        if (newMessages.length) {
-          setMessages((prev) => [...prev, ...newMessages]);
-        }
+        setMessages((prev) => {
+          const existingIds = prev.map((m) => m.id);
+          const filtered = newMessages.filter(
+            (msg) => !existingIds.includes(msg.id)
+          );
+          return filtered.length ? [...prev, ...filtered] : prev;
+        });
       } catch (error) {
         console.error("Polling error:", error);
       }
     }, 2000);
 
     return () => clearInterval(pollInterval);
-  }, [isOpen, messages]); // Add messages to dependencies
+  }, [isOpen]);
 
   return (
     <div className="fixed bottom-6 right-6 z-100">
@@ -92,7 +103,9 @@ const Chat = () => {
           <div className="bg-black text-white p-3 rounded-t-lg flex justify-between items-center">
             <h3 className="font-semibold">Support Bot</h3>
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={() => {
+                setIsOpen(false);
+              }}
               className="text-white hover:text-gray-300"
             >
               ×
