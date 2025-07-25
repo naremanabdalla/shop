@@ -17,7 +17,7 @@ export const handler = async (event) => {
 
         const newMessages = lastTimestamp
             ? convMessages.filter(msg => msg.timestamp > parseInt(lastTimestamp))
-            : convMessages;
+            : [];
 
         return {
             statusCode: 200,
@@ -34,7 +34,8 @@ export const handler = async (event) => {
     if (event.httpMethod === 'POST') {
         try {
             const botResponse = JSON.parse(event.body);
-            const conversationId = botResponse.conversationId || "default";
+            const baseConversationId = botResponse.conversationId || "default";
+            const conversationId = `${baseConversationId}-${botResponse.conversationVersion || 0}`;
 
             if (!conversations[conversationId]) {
                 conversations[conversationId] = [];
@@ -48,11 +49,16 @@ export const handler = async (event) => {
                 timestamp: Date.now()
             };
 
-            conversations[conversationId].push(botMessage);
+            // Deduplicate before adding
+            const exists = conversations[conversationId].some(
+                m => m.id === botMessage.id
+            );
 
-            // Keep conversation history clean
-            conversations[conversationId] = conversations[conversationId]
-                .slice(-20); // Keep last 20 messages
+            if (!exists) {
+                conversations[conversationId].push(botMessage);
+                conversations[conversationId] = conversations[conversationId]
+                    .slice(-20);
+            }
 
             return {
                 statusCode: 200,

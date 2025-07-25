@@ -11,7 +11,7 @@ const Chat = () => {
   });
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  // const [conversationId, setConversationId] = useState("");
+  const [conversationVersion, setConversationVersion] = useState(0);
   const [userId] = useState(`user-${Math.random().toString(36).substr(2, 9)}`);
   const messagesEndRef = useRef(null);
 
@@ -82,30 +82,44 @@ const Chat = () => {
   useEffect(() => {
     if (!isOpen) return;
 
-    let lastTimestamp =
-      messages.length > 0
-        ? Math.max(...messages.map((m) => m.timestamp || 0))
-        : Date.now();
+    let lastTimestamp = Date.now();
+    let active = true;
 
-    const pollInterval = setInterval(async () => {
+    const poll = async () => {
       try {
-        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD&lastTimestamp=${lastTimestamp}`;
+        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&lastTimestamp=${lastTimestamp}`;
 
         const response = await fetch(url);
         const { messages: newMessages, lastTimestamp: newTimestamp } =
           await response.json();
 
-        if (newMessages.length > 0) {
-          setMessages((prev) => [...prev, ...newMessages]);
+        if (active && newMessages.length > 0) {
+          setMessages((prev) => {
+            // Deduplicate by message ID
+            const existingIds = new Set(prev.map((m) => m.id));
+            const filtered = newMessages.filter(
+              (msg) => !existingIds.has(msg.id)
+            );
+            return filtered.length > 0 ? [...prev, ...filtered] : prev;
+          });
           lastTimestamp = newTimestamp;
         }
       } catch (error) {
         console.error("Polling error:", error);
       }
-    }, 1500); // Reduced polling interval
+    };
 
-    return () => clearInterval(pollInterval);
-  }, [isOpen, messages.length]);
+    // Initial poll
+    poll();
+
+    // Slower polling interval (3000ms)
+    const pollInterval = setInterval(poll, 3000);
+
+    return () => {
+      active = false;
+      clearInterval(pollInterval);
+    };
+  }, [isOpen, conversationVersion]); // Add conversationVersion to dependencies
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -128,6 +142,7 @@ const Chat = () => {
                 onClick={() => {
                   localStorage.removeItem("chatMessages");
                   setMessages([]);
+                  setConversationVersion((prev) => prev + 1); // Force new conversation
                 }}
                 className="text-xs bg-[color:var(--color-primary)] px-2 py-1 rounded mr-2"
               >
