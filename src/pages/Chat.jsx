@@ -80,23 +80,26 @@ const Chat = () => {
         });
         const data = await response.json();
 
+        // Extract the latest bot message from the conversation
         if (data.messages?.length) {
-          // Filter out messages we already have
-          const newMessages = data.messages.filter(
-            (msg) => !messages.some((m) => m.id === msg.id)
-          );
+          const latestBotMessage = data.messages
+            .filter((msg) => msg.sender === "bot")
+            .pop(); // Get most recent
 
-          if (newMessages.length) {
-            setMessages((prev) => [...prev, ...newMessages]);
+          if (
+            latestBotMessage &&
+            !messages.some((m) => m.id === latestBotMessage.id)
+          ) {
+            setMessages((prev) => [...prev, latestBotMessage]);
           }
         }
       } catch (error) {
         console.error("Polling error:", error);
       }
-    }, 3000);
+    }, 2000); // Reduced to 2s for better responsiveness
 
     return () => clearInterval(pollInterval);
-  }, [isOpen, messages]); // Add messages to dependencies
+  }, [isOpen, messages]);
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
