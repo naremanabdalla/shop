@@ -18,7 +18,6 @@ const Chat = () => {
     botId: "eb06d6c7-b0f8-4a53-a360-84a24643ecac",
   };
 
-  // Updated sendMessage function
   const sendMessage = async () => {
     if (!inputValue.trim()) return;
 
@@ -32,21 +31,18 @@ const Chat = () => {
     setInputValue("");
 
     try {
-      console.log("Sending:", inputValue); // Debug log
-
-      const response = await fetch(BOTPRESS_CONFIG.webhookUrl, {
+      // Create a proxy endpoint in your Netlify function
+      const response = await fetch("/.netlify/functions/botpress-proxy", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${BOTPRESS_CONFIG.accessToken}`,
           "Content-Type": "application/json",
-          Accept: "application/json",
         },
         body: JSON.stringify({
           userId: userId,
-          messageId: userMessage.id, // Use dynamic ID
-          conversationId: "remoteConversationIdD", // Use state
+          messageId: userMessage.id,
+          conversationId: "remoteConversationIdD",
           type: "text",
-          text: inputValue, // Actual user input
+          text: inputValue,
           payload: {
             website: "https://shopping022.netlify.app/",
           },
@@ -54,11 +50,7 @@ const Chat = () => {
       });
 
       const data = await response.json();
-      console.log("Botpress response:", data); // Debug log
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      console.log("Proxy response:", data);
     } catch (error) {
       console.error("Full error:", error);
       setMessages((prev) => [
