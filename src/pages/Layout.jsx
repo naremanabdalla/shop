@@ -10,6 +10,7 @@ import Loading from "./Loading";
 import { auth } from "./../auth/firebse";
 import { onAuthStateChanged } from "firebase/auth";
 import Footer from "../components/Footer";
+import Chat from "./Chat";
 
 const Layout = () => {
   const location = useLocation();
@@ -29,7 +30,7 @@ const Layout = () => {
   return (
     <>
       <ScrollToTop />
-      <Toaster position="top-center" class />{" "}
+      <Toaster position="top-center" class /> <Chat />
       <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
         <TopHeader />
         <BtmHeader />
