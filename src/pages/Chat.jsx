@@ -18,20 +18,20 @@ const Chat = () => {
     botId: "eb06d6c7-b0f8-4a53-a360-84a24643ecac",
   };
 
-  const sendMessage = async () => {
-    if (!inputValue.trim()) return;
+  const sendMessage = async (text = inputValue) => {
+    // Modified to accept parameter
+    if (!text.trim()) return;
 
     const userMessage = {
       id: `msg-${Date.now()}`,
-      text: inputValue,
+      text: text, // Use the passed text
       sender: "user",
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
+    if (text === inputValue) setInputValue(""); // Only clear if using input
 
     try {
-      // Create a proxy endpoint in your Netlify function
       const response = await fetch("/.netlify/functions/botpress-proxy", {
         method: "POST",
         headers: {
@@ -42,7 +42,7 @@ const Chat = () => {
           messageId: userMessage.id,
           conversationId: "remoteConversationIdD",
           type: "text",
-          text: inputValue,
+          text: text, // Use the passed text
           payload: {
             website: "https://shopping022.netlify.app/",
           },
@@ -127,6 +127,21 @@ const Chat = () => {
                   }`}
                 >
                   {message.text}
+
+                  {/* Add this block right after {message.text} */}
+                  {message.rawData?.payload?.options && (
+                    <div className="flex space-x-2 mt-2">
+                      {message.rawData.payload.options.map((option) => (
+                        <button
+                          key={option.value}
+                          className="bg-blue-100 px-3 py-1 rounded text-sm"
+                          onClick={() => sendMessage(option.value)}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

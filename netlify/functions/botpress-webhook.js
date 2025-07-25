@@ -1,4 +1,3 @@
-// netlify/functions/botpress-webhook.js
 let conversations = {};
 
 export const handler = async (event) => {
@@ -8,10 +7,12 @@ export const handler = async (event) => {
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
     };
 
+    // Handle preflight
     if (event.httpMethod === 'OPTIONS') {
         return { statusCode: 204, headers };
     }
 
+    // Frontend polling
     if (event.httpMethod === 'GET') {
         const { conversationId } = event.queryStringParameters || {};
         return {
@@ -23,30 +24,36 @@ export const handler = async (event) => {
         };
     }
 
+    // Handle Botpress webhook
     if (event.httpMethod === 'POST') {
         try {
-            const { conversationId, text } = JSON.parse(event.body);
+            const botResponse = JSON.parse(event.body);
+            console.log('Raw Botpress response:', botResponse); // Debug log
+
+            const conversationId = botResponse.conversationId || "default";
 
             if (!conversations[conversationId]) {
                 conversations[conversationId] = [];
             }
 
-            const newMessage = {
-                id: `msg-${Date.now()}`,
-                text: text || "I'm having trouble understanding. Can you rephrase?",
+            // Extract the actual message text from Botpress response
+            const botMessage = {
+                id: botResponse.botpressMessageId || `msg-${Date.now()}`,
+                text: botResponse.payload?.text || "Received an unsupported message format",
                 sender: 'bot',
-                timestamp: new Date().toISOString()
+                rawData: botResponse // Store full payload for debugging
             };
 
-            conversations[conversationId].push(newMessage);
-            console.log('New bot message:', newMessage);
+            conversations[conversationId].push(botMessage);
+            console.log('Processed bot message:', botMessage);
 
             return {
                 statusCode: 200,
                 headers,
-                body: JSON.stringify({ success: true, message: newMessage })
+                body: JSON.stringify({ success: true })
             };
         } catch (error) {
+            console.error('Webhook error:', error);
             return {
                 statusCode: 500,
                 headers,
