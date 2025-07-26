@@ -95,7 +95,7 @@ const Chat = () => {
 
     const poll = async () => {
       try {
-        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&lastTimestamp=${lastTimestamp}`;
+        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&userId=${userId}&lastTimestamp=${lastTimestamp}`;
 
         const response = await fetch(url);
         const { messages: newMessages, lastTimestamp: newTimestamp } =
@@ -129,11 +129,6 @@ const Chat = () => {
     };
   }, [isOpen, conversationVersion]); // Add conversationVersion to dependencies
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("chatMessages", JSON.stringify(messages));
-    }
-  }, [messages]);
   return (
     <div className="fixed bottom-6 right-6 z-100">
       {isOpen ? (

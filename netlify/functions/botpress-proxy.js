@@ -8,6 +8,7 @@ export const handler = async (event) => {
         // Add conversation version to payload
         const enhancedPayload = {
             ...payload,
+            userId: payload.userId, // Forward the userId to Botpress
             conversationVersion: payload.conversationVersion || 0
         };
 

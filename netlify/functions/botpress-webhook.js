@@ -1,3 +1,4 @@
+// Store conversations in memory (for demo - replace with DB in production)
 let conversations = {};
 
 export const handler = async (event) => {
@@ -7,17 +8,23 @@ export const handler = async (event) => {
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
     };
 
+    // Handle CORS preflight
     if (event.httpMethod === 'OPTIONS') {
         return { statusCode: 204, headers };
     }
 
+    // GET - For polling new messages
     if (event.httpMethod === 'GET') {
-        const { conversationId, lastTimestamp } = event.queryStringParameters || {};
-        const convMessages = conversations[conversationId] || [];
+        const { conversationId, userId, lastTimestamp } = event.queryStringParameters || {};
 
+        // KEY CHANGE: Create unique conversation ID combining user + conversation
+        const userConversationKey = `${userId}_${conversationId}`;
+        const convMessages = conversations[userConversationKey] || [];
+
+        // Filter messages newer than lastTimestamp
         const newMessages = lastTimestamp
             ? convMessages.filter(msg => msg.timestamp > parseInt(lastTimestamp))
-            : [];
+            : convMessages;
 
         return {
             statusCode: 200,
@@ -31,33 +38,36 @@ export const handler = async (event) => {
         };
     }
 
+    // POST - For receiving bot responses
     if (event.httpMethod === 'POST') {
         try {
             const botResponse = JSON.parse(event.body);
-            const baseConversationId = botResponse.conversationId || "default";
-            const conversationId = `${baseConversationId}-${botResponse.conversationVersion || 0}`;
 
-            if (!conversations[conversationId]) {
-                conversations[conversationId] = [];
+            // KEY CHANGE: Include userId in conversation key
+            const userConversationKey = `${botResponse.userId}_${botResponse.conversationId || "default"}`;
+
+            if (!conversations[userConversationKey]) {
+                conversations[userConversationKey] = [];
             }
 
             const botMessage = {
-                id: botResponse.botpressMessageId || `msg-${Date.now()}`,
-                text: botResponse.payload?.text || "How can I help you?",
+                id: botResponse.messageId || `msg-${Date.now()}`,
+                text: botResponse.text || "How can I help you?",
                 sender: 'bot',
-                rawData: botResponse,
-                timestamp: Date.now()
+                userId: botResponse.userId, // Track which user this belongs to
+                timestamp: Date.now(),
+                rawData: botResponse.payload // Preserve original data
             };
 
-            // Deduplicate before adding
-            const exists = conversations[conversationId].some(
+            // Deduplicate messages
+            const exists = conversations[userConversationKey].some(
                 m => m.id === botMessage.id
             );
 
             if (!exists) {
-                conversations[conversationId].push(botMessage);
-                conversations[conversationId] = conversations[conversationId]
-                    .slice(-20);
+                conversations[userConversationKey].push(botMessage);
+                // Keep only the last 50 messages
+                conversations[userConversationKey] = conversations[userConversationKey].slice(-50);
             }
 
             return {
@@ -69,10 +79,17 @@ export const handler = async (event) => {
             return {
                 statusCode: 500,
                 headers,
-                body: JSON.stringify({ error: error.message })
+                body: JSON.stringify({
+                    error: "Failed to process message",
+                    details: error.message
+                })
             };
         }
     }
 
-    return { statusCode: 405, headers, body: 'Method Not Allowed' };
+    return {
+        statusCode: 405,
+        headers,
+        body: JSON.stringify({ error: "Method Not Allowed" })
+    };
 };
