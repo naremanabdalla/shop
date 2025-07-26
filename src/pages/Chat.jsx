@@ -11,7 +11,6 @@ const Chat = () => {
     return [];
   });
   const [inputValue, setInputValue] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [conversationVersion, setConversationVersion] = useState(0);
   const [userId] = useState(`user-${Math.random().toString(36).substr(2, 9)}`);
   const messagesEndRef = useRef(null);
@@ -26,7 +25,6 @@ const Chat = () => {
   };
 
   const sendMessage = async (text = inputValue) => {
-    setIsLoading(true);
     // Modified to accept parameter
     if (!text.trim()) return;
 
@@ -69,8 +67,6 @@ const Chat = () => {
           sender: "bot",
         },
       ]);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -196,15 +192,12 @@ const Chat = () => {
           <div className="p-3 border-t border-gray-200">
             <div className="flex">
               <input
-                disabled={isLoading}
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message..."
-                className={`flex-1 border border-gray-300 rounded-l-lg p-2 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                  isLoading ? "opacity-50" : ""
-                }`}
+                className={`flex-1 border border-gray-300 rounded-l-lg p-2 focus:outline-none focus:ring-1 focus:ring-blue-500`}
               />
               <button
                 onClick={sendMessage}
