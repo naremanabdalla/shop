@@ -5,35 +5,44 @@ export const handler = async (event) => {
     try {
         const payload = JSON.parse(event.body);
 
-        // Add conversation version to payload
-        const enhancedPayload = {
-            ...payload,
-            conversationVersion: payload.conversationVersion || 0
-        };
-
+        // Forward to Botpress with all required fields
         const response = await fetch(BOTPRESS_URL, {
             method: "POST",
             headers: {
-                Authorization: `Bearer ${BOTPRESS_TOKEN}`,
-                "Content-Type": "application/json",
+                "Authorization": `Bearer ${BOTPRESS_TOKEN}`,
+                "Content-Type": "application/json"
             },
-            body: JSON.stringify(enhancedPayload),
+            body: JSON.stringify({
+                type: "text",
+                text: payload.text,
+                userId: payload.userId,
+                conversationId: payload.conversationId,
+                payload: {
+                    ...payload.payload,
+                    metadata: {
+                        userId: payload.userId,
+                        website: "https://shopping022.netlify.app/"
+                    }
+                }
+            })
         });
 
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const responseData = await response.json();
+        console.log("Botpress response:", responseData);
 
+        // Forward the complete Botpress response
         return {
             statusCode: 200,
             headers: { 'Access-Control-Allow-Origin': '*' },
-            body: await response.text()
+            body: JSON.stringify(responseData)
         };
+
     } catch (error) {
-        console.error('Proxy error:', error);
         return {
             statusCode: 500,
             headers: { 'Access-Control-Allow-Origin': '*' },
             body: JSON.stringify({
-                error: "Failed to reach Botpress",
+                error: "Proxy error",
                 details: error.message
             })
         };

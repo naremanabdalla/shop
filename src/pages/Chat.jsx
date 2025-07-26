@@ -37,7 +37,7 @@ const Chat = () => {
         id: messageId,
         text: text.trim(),
         sender: "user",
-        userId, // Include userId in the message
+        userId,
       };
 
       setMessages((prev) => [...prev, userMessage]);
@@ -50,11 +50,9 @@ const Chat = () => {
           userId,
           messageId,
           conversationId: `remoteConversationIdD-${conversationVersion}`,
-          type: "text",
           text: text.trim(),
           payload: {
             website: "https://shopping022.netlify.app/",
-            metadata: { userId }, // Include userId in metadata
           },
         }),
       });
@@ -64,6 +62,20 @@ const Chat = () => {
 
       if (!response.ok) {
         throw new Error(data.error || "Bot response failed");
+      }
+
+      // Handle both direct responses and webhook-polled responses
+      if (data?.responses?.[0]?.payload?.text) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `bot-${Date.now()}`,
+            text: data.responses[0].payload.text,
+            sender: "bot",
+            userId,
+            rawData: data.responses[0].payload,
+          },
+        ]);
       }
     } catch (error) {
       setMessages((prev) => [
@@ -79,6 +91,8 @@ const Chat = () => {
       setIsLoading(false);
     }
   };
+
+  // Polling function remains the same as in previous solution
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
