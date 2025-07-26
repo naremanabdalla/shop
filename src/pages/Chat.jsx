@@ -209,7 +209,7 @@ const Chat = () => {
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message..."
-                className={`flex-1 border border-gray-300 rounded-l-lg py-2 px-1  focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                className={`w-30 md:w-auto flex-1 border border-gray-300 rounded-l-lg py-2 px-1  focus:outline-none focus:ring-1 focus:ring-blue-500 ${
                   isLoading ? "opacity-50" : ""
                 }`}
               />
