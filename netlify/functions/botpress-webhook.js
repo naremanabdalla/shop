@@ -10,68 +10,66 @@ export const handler = async (event) => {
         return { statusCode: 204, headers };
     }
 
-    // GET - For polling messages
+    // GET - For polling messages (updated for user isolation)
     if (event.httpMethod === 'GET') {
-        const { conversationId, userId } = event.queryStringParameters || {};
+        const { conversationId, userId, lastTimestamp } = event.queryStringParameters || {};
+        const userConvKey = `${userId}_${conversationId}`;
+        const convMessages = conversations[userConvKey] || [];
 
-        // Create unique key combining userId and conversationId
-        const userConversationKey = `${userId}_${conversationId}`;
-        const userMessages = conversations[userConversationKey] || [];
+        const newMessages = lastTimestamp
+            ? convMessages.filter(msg => msg.timestamp > parseInt(lastTimestamp))
+            : convMessages;
 
         return {
             statusCode: 200,
             headers,
             body: JSON.stringify({
-                messages: userMessages,
-                lastTimestamp: userMessages.length > 0
-                    ? Math.max(...userMessages.map(m => m.timestamp))
+                messages: newMessages,
+                lastTimestamp: newMessages.length > 0
+                    ? Math.max(...newMessages.map(m => m.timestamp))
                     : Date.now()
             })
         };
     }
 
-    // POST - For receiving bot responses
+    // POST - For receiving bot responses (keep rawData from old version)
     if (event.httpMethod === 'POST') {
         try {
-            const data = JSON.parse(event.body);
+            const botResponse = JSON.parse(event.body);
+            const userConvKey = `${botResponse.userId}_${botResponse.conversationId}`;
 
-            // Create unique conversation key
-            const userConversationKey = `${data.userId}_${data.conversationId}`;
-
-            if (!conversations[userConversationKey]) {
-                conversations[userConversationKey] = [];
+            if (!conversations[userConvKey]) {
+                conversations[userConvKey] = [];
             }
 
             const botMessage = {
-                id: data.messageId || `msg-${Date.now()}`,
-                text: data.text || (data.payload?.text || "How can I help?"),
+                id: botResponse.messageId || `msg-${Date.now()}`,
+                text: botResponse.text || botResponse.payload?.text || "How can I help?",
                 sender: 'bot',
-                userId: data.userId, // Track which user this belongs to
-                timestamp: Date.now(),
-                rawData: data.payload
+                userId: botResponse.userId, // Track user
+                rawData: botResponse.payload, // Keep rawData from old version
+                timestamp: Date.now()
             };
 
-            conversations[userConversationKey].push(botMessage);
-            // Keep only the last 50 messages
-            conversations[userConversationKey] = conversations[userConversationKey].slice(-50);
+            conversations[userConvKey].push(botMessage);
+            conversations[userConvKey] = conversations[userConvKey].slice(-50);
 
             return {
                 statusCode: 200,
                 headers,
-                body: JSON.stringify({ success: true, message: botMessage })
+                body: JSON.stringify({
+                    success: true,
+                    message: botMessage // Return full message
+                })
             };
         } catch (error) {
             return {
-                statusCode: 400,
+                statusCode: 500,
                 headers,
                 body: JSON.stringify({ error: error.message })
             };
         }
     }
 
-    return {
-        statusCode: 405,
-        headers,
-        body: JSON.stringify({ error: "Method not allowed" })
-    };
+    return { statusCode: 405, headers, body: 'Method Not Allowed' };
 };

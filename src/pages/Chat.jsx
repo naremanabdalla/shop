@@ -48,43 +48,35 @@ const Chat = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
-          messageId, // Include messageId
+          messageId,
           conversationId: `remoteConversationIdD-${conversationVersion}`,
           text: text.trim(),
           payload: {
-            metadata: {
-              userId,
-              conversationVersion,
-            },
+            website: "https://shopping022.netlify.app/",
           },
         }),
       });
 
       const data = await response.json();
-      console.log("Proxy response:", data);
 
       if (!response.ok) {
         throw new Error(data.error || "Bot response failed");
       }
 
-      // Temporary fallback - remove after confirming it works
-      setTimeout(() => {
+      // Process Botpress response if available
+      if (data?.responses?.length) {
         setMessages((prev) => [
           ...prev,
-          {
+          ...data.responses.map((res) => ({
             id: `bot-${Date.now()}`,
-            text: "This is a test response - remove me when real responses work",
+            text: res.text || res.payload?.text,
             sender: "bot",
             userId,
-          },
+            rawData: res.payload,
+          })),
         ]);
-      }, 1000);
+      }
     } catch (error) {
-      console.error("Send message error:", {
-        error: error.message,
-        response: error.response,
-      });
-
       setMessages((prev) => [
         ...prev,
         {
