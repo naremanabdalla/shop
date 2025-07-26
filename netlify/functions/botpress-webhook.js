@@ -31,6 +31,7 @@ export const handler = async (event) => {
         };
     }
 
+    // POST handler section
     if (event.httpMethod === 'POST') {
         try {
             const data = JSON.parse(event.body);
@@ -40,22 +41,22 @@ export const handler = async (event) => {
                 conversations[userConversationKey] = [];
             }
 
-            const newMessage = {
+            const botMessage = {
                 id: data.messageId || `msg-${Date.now()}`,
-                text: data.text || data.payload?.text || "Bot response",
+                text: data.text || (data.payload && data.payload.text) || "How can I help?",
                 sender: 'bot',
                 userId: data.userId,
                 timestamp: Date.now(),
                 rawData: data.payload
             };
 
-            conversations[userConversationKey].push(newMessage);
+            conversations[userConversationKey].push(botMessage);
             conversations[userConversationKey] = conversations[userConversationKey].slice(-50);
 
             return {
                 statusCode: 200,
                 headers,
-                body: JSON.stringify({ success: true })
+                body: JSON.stringify({ success: true, message: botMessage })
             };
         } catch (error) {
             return {

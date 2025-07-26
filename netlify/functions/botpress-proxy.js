@@ -42,8 +42,12 @@ export const handler = async (event) => {
         const responseText = await response.text();
 
         if (!response.ok) {
-            console.error("Botpress error response:", responseText);
-            throw new Error(`Botpress responded with ${response.status}`);
+            console.log("Botpress raw response:", responseText);
+            // Add this before returning
+            console.log("Final proxy response:", {
+                statusCode: 200,
+                body: responseText
+            }); throw new Error(`Botpress responded with ${response.status}`);
         }
 
         return {

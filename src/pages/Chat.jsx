@@ -75,7 +75,11 @@ const Chat = () => {
         throw new Error(data.error || "Bot response failed");
       }
 
-      console.log("Botpress response:", data);
+      // After getting the proxy response
+      console.log("Proxy response data:", data);
+      if (data?.responses) {
+        console.log("Bot responses:", data.responses);
+      }
     } catch (error) {
       console.error("Error:", error);
       setMessages((prev) => [
@@ -108,17 +112,16 @@ const Chat = () => {
         const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&userId=${userId}&lastTimestamp=${lastTimestamp}`;
 
         const response = await fetch(url);
-        const { messages: newMessages, lastTimestamp: newTimestamp } =
+        const { messages: newMessages = [], lastTimestamp: newTimestamp } =
           await response.json();
 
         if (active && newMessages.length > 0) {
           setMessages((prev) => {
-            // Deduplicate by message ID
             const existingIds = new Set(prev.map((m) => m.id));
             const filtered = newMessages.filter(
-              (msg) => !existingIds.has(msg.id)
+              (msg) => !existingIds.has(msg.id) && msg.sender === "bot" // Only add bot messages
             );
-            return filtered.length > 0 ? [...prev, ...filtered] : prev;
+            return [...prev, ...filtered];
           });
           lastTimestamp = newTimestamp;
         }
@@ -127,18 +130,14 @@ const Chat = () => {
       }
     };
 
-    // Initial poll
     poll();
-
-    // Slower polling interval (3000ms)
-    const pollInterval = setInterval(poll, 3000);
+    const pollInterval = setInterval(poll, 2000);
 
     return () => {
       active = false;
       clearInterval(pollInterval);
     };
-  }, [isOpen, conversationVersion]); // Add conversationVersion to dependencies
-
+  }, [isOpen, conversationVersion, userId]);
   return (
     <div className="fixed bottom-6 right-6 z-100">
       {isOpen ? (
