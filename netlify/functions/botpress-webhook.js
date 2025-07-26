@@ -10,34 +10,42 @@ export const handler = async (event) => {
         return { statusCode: 204, headers };
     }
 
-    // GET - For polling messages
-    if (event.httpMethod === 'GET') {
-        const { conversationId, userId, lastTimestamp } = event.queryStringParameters || {};
-        const userConvKey = `${userId}_${conversationId}`;
-        const convMessages = conversations[userConvKey] || [];
+    try {
+        if (event.httpMethod === 'GET') {
+            const { conversationId, userId, lastTimestamp } = event.queryStringParameters || {};
+            const userConvKey = `${userId}_${conversationId}`;
+            const convMessages = conversations[userConvKey] || [];
 
-        const newMessages = lastTimestamp
-            ? convMessages.filter(msg => msg.timestamp > parseInt(lastTimestamp))
-            : convMessages;
+            const newMessages = lastTimestamp
+                ? convMessages.filter(msg => msg.timestamp > parseInt(lastTimestamp))
+                : convMessages;
 
-        return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify({
-                messages: newMessages,
-                lastTimestamp: newMessages.length > 0
-                    ? Math.max(...newMessages.map(m => m.timestamp))
-                    : Date.now()
-            })
-        };
-    }
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({
+                    messages: newMessages,
+                    lastTimestamp: newMessages.length > 0
+                        ? Math.max(...newMessages.map(m => m.timestamp))
+                        : Date.now()
+                })
+            };
+        }
 
-    // POST - For receiving bot responses
-    if (event.httpMethod === 'POST') {
-        try {
-            const data = JSON.parse(event.body);
+        if (event.httpMethod === 'POST') {
+            let data;
+            try {
+                data = JSON.parse(event.body);
+            } catch (e) {
+                console.log(e);
+                return {
+                    statusCode: 400,
+                    headers,
+                    body: JSON.stringify({ error: "Invalid JSON payload" })
+                };
+            }
+
             const userConvKey = `${data.userId}_${data.conversationId}`;
-
             if (!conversations[userConvKey]) {
                 conversations[userConvKey] = [];
             }
@@ -47,7 +55,7 @@ export const handler = async (event) => {
                 text: data.text || (data.payload?.text || "How can I help?"),
                 sender: 'bot',
                 userId: data.userId,
-                rawData: data.payload,
+                rawData: data.payload || data,
                 timestamp: Date.now()
             };
 
@@ -62,14 +70,16 @@ export const handler = async (event) => {
                     message: botMessage
                 })
             };
-        } catch (error) {
-            return {
-                statusCode: 500,
-                headers,
-                body: JSON.stringify({ error: error.message })
-            };
         }
-    }
 
-    return { statusCode: 405, headers, body: 'Method Not Allowed' };
+        return { statusCode: 405, headers, body: 'Method Not Allowed' };
+
+    } catch (error) {
+        console.error('Webhook error:', error);
+        return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({ error: error.message })
+        };
+    }
 };

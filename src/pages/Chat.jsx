@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { RiRobot3Line } from "react-icons/ri";
+import { useAuth } from "../Context/authContext";
 
 const Chat = () => {
+  const { currentUser } = useAuth();
+
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState(() => {
     if (typeof window !== "undefined") {
@@ -13,7 +16,7 @@ const Chat = () => {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [conversationVersion, setConversationVersion] = useState(0);
-  const [userId] = useState(`user-${Math.random().toString(36).substr(2, 9)}`);
+  const [userId] = useState(`${currentUser.uid}`);
   const messagesEndRef = useRef(null);
 
   // Your Botpress API configuration
@@ -64,8 +67,9 @@ const Chat = () => {
         throw new Error(data.error || "Bot response failed");
       }
 
-      // Handle both direct responses and webhook-polled responses
+      // Handle all possible response formats
       if (data?.responses?.[0]?.payload?.text) {
+        // Standard Botpress format
         setMessages((prev) => [
           ...prev,
           {
@@ -76,8 +80,35 @@ const Chat = () => {
             rawData: data.responses[0].payload,
           },
         ]);
+      } else if (data?.message?.payload?.text) {
+        // Alternative format
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `bot-${Date.now()}`,
+            text: data.message.payload.text,
+            sender: "bot",
+            userId,
+            rawData: data.message.payload,
+          },
+        ]);
+      } else if (data?.text) {
+        // Simple text response
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `bot-${Date.now()}`,
+            text: data.text,
+            sender: "bot",
+            userId,
+          },
+        ]);
+      } else {
+        console.warn("Unexpected response format:", data);
+        throw new Error("Received unexpected response format from bot");
       }
     } catch (error) {
+      console.error("Send message error:", error);
       setMessages((prev) => [
         ...prev,
         {
