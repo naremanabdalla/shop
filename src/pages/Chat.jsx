@@ -28,77 +28,58 @@ const Chat = () => {
   const sendMessage = async (textOrEvent) => {
     setIsLoading(true);
 
-    let text;
-    if (typeof textOrEvent === "string") {
-      text = textOrEvent;
-    } else {
-      text = inputValue;
-    }
-
-    if (!text?.trim()) {
-      setIsLoading(false);
-      return;
-    }
-
-    const messageId = `msg-${Date.now()}`;
-    const userMessage = {
-      id: messageId,
-      text: text.trim(),
-      sender: "user",
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
-
     try {
+      const text = typeof textOrEvent === "string" ? textOrEvent : inputValue;
+      if (!text?.trim()) return;
+
+      const messageId = `msg-${Date.now()}`;
+      const userMessage = { id: messageId, text: text.trim(), sender: "user" };
+
+      setMessages((prev) => [...prev, userMessage]);
+      setInputValue("");
+
       const response = await fetch("/.netlify/functions/botpress-proxy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
-          messageId: messageId, // Include this
+          messageId,
           conversationId: `remoteConversationIdD-${conversationVersion}`,
-          type: "text",
           text: text.trim(),
-          payload: {
-            metadata: {
-              userId,
-              conversationVersion,
-            },
-          },
         }),
       });
 
       const data = await response.json();
+      console.log("Full proxy response:", data);
 
       if (!response.ok) {
         throw new Error(data.error || "Bot response failed");
-      } // In sendMessage after getting proxy response
-      console.log("Full proxy response:", data);
-      if (data?.message?.text) {
+      }
+
+      // Manually add bot response if needed
+      if (!data?.text) {
         setMessages((prev) => [
           ...prev,
           {
-            id: `temp-${Date.now()}`,
-            text: data.message.text,
+            id: `bot-${Date.now()}`,
+            text: data?.message?.text || "I'm thinking...",
             sender: "bot",
           },
         ]);
       }
-
-      // After getting the proxy response
-      console.log("Proxy response data:", data);
-      if (data?.responses) {
-        console.log("Bot responses:", data.responses);
-      }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Chat error details:", {
+        error: error.message,
+        response: error.response,
+      });
+
       setMessages((prev) => [
         ...prev,
         {
           id: `error-${Date.now()}`,
           text: `Error: ${error.message}`,
           sender: "bot",
+          isError: true,
         },
       ]);
     } finally {
