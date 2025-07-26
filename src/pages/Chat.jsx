@@ -103,15 +103,16 @@ const Chat = () => {
 
     const poll = async () => {
       try {
-        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&lastTimestamp=${lastTimestamp}`;
+        const url = `/.netlify/functions/botpress-webhook?conversationId=conv-${conversationVersion}&userId=${userId}&lastTimestamp=${lastTimestamp}`;
 
         const response = await fetch(url);
+        if (!response.ok) throw new Error("Network response was not ok");
+
         const { messages: newMessages, lastTimestamp: newTimestamp } =
           await response.json();
 
         if (active && newMessages.length > 0) {
           setMessages((prev) => {
-            // Deduplicate by message ID
             const existingIds = new Set(prev.map((m) => m.id));
             const filtered = newMessages.filter(
               (msg) => !existingIds.has(msg.id)
@@ -122,6 +123,7 @@ const Chat = () => {
         }
       } catch (error) {
         console.error("Polling error:", error);
+        // Don't show error to user to avoid spamming
       }
     };
 
