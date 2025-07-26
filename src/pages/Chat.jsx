@@ -33,7 +33,12 @@ const Chat = () => {
       if (!text?.trim()) return;
 
       const messageId = `msg-${Date.now()}`;
-      const userMessage = { id: messageId, text: text.trim(), sender: "user" };
+      const userMessage = {
+        id: messageId,
+        text: text.trim(),
+        sender: "user",
+        userId, // Include userId in the message
+      };
 
       setMessages((prev) => [...prev, userMessage]);
       setInputValue("");
@@ -46,33 +51,23 @@ const Chat = () => {
           messageId,
           conversationId: `remoteConversationIdD-${conversationVersion}`,
           text: text.trim(),
+          payload: {
+            metadata: {
+              userId,
+              website: "https://shopping022.netlify.app/",
+            },
+          },
         }),
       });
 
       const data = await response.json();
-      console.log("Full proxy response:", data);
+      console.log("Proxy response:", data);
 
       if (!response.ok) {
         throw new Error(data.error || "Bot response failed");
       }
-
-      // Manually add bot response if needed
-      if (!data?.text) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `bot-${Date.now()}`,
-            text: data?.message?.text || "I'm thinking...",
-            sender: "bot",
-          },
-        ]);
-      }
     } catch (error) {
-      console.error("Chat error details:", {
-        error: error.message,
-        response: error.response,
-      });
-
+      console.error("Error:", error);
       setMessages((prev) => [
         ...prev,
         {
@@ -96,25 +91,36 @@ const Chat = () => {
   useEffect(() => {
     if (!isOpen) return;
 
+    let active = true;
+
     const poll = async () => {
       try {
         const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&userId=${userId}`;
-        const response = await fetch(url);
-        const { messages = [] } = await response.json();
 
-        setMessages((prev) => {
-          const existingIds = new Set(prev.map((m) => m.id));
-          const newMsgs = messages.filter((msg) => !existingIds.has(msg.id));
-          return newMsgs.length ? [...prev, ...newMsgs] : prev;
-        });
+        const response = await fetch(url);
+        const { messages: newMessages = [] } = await response.json();
+
+        if (active && newMessages.length > 0) {
+          setMessages((prev) => {
+            const existingIds = new Set(prev.map((m) => m.id));
+            const filtered = newMessages.filter(
+              (msg) => !existingIds.has(msg.id) && msg.userId === userId // Only add messages for this user
+            );
+            return filtered.length > 0 ? [...prev, ...filtered] : prev;
+          });
+        }
       } catch (error) {
         console.error("Polling error:", error);
       }
     };
 
-    poll();
-    const interval = setInterval(poll, 2000);
-    return () => clearInterval(interval);
+    poll(); // Immediate poll
+    const interval = setInterval(poll, 2000); // Then every 2 seconds
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
   }, [isOpen, conversationVersion, userId]);
 
   return (

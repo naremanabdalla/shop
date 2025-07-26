@@ -10,42 +10,55 @@ export const handler = async (event) => {
         return { statusCode: 204, headers };
     }
 
+    // GET - For polling messages
     if (event.httpMethod === 'GET') {
         const { conversationId, userId } = event.queryStringParameters || {};
-        const convKey = `${userId}_${conversationId}`;
+
+        // Create unique key combining userId and conversationId
+        const userConversationKey = `${userId}_${conversationId}`;
+        const userMessages = conversations[userConversationKey] || [];
 
         return {
             statusCode: 200,
             headers,
             body: JSON.stringify({
-                messages: conversations[convKey] || [],
-                lastTimestamp: Date.now()
+                messages: userMessages,
+                lastTimestamp: userMessages.length > 0
+                    ? Math.max(...userMessages.map(m => m.timestamp))
+                    : Date.now()
             })
         };
     }
 
+    // POST - For receiving bot responses
     if (event.httpMethod === 'POST') {
         try {
             const data = JSON.parse(event.body);
-            const convKey = `${data.userId}_${data.conversationId}`;
 
-            if (!conversations[convKey]) {
-                conversations[convKey] = [];
+            // Create unique conversation key
+            const userConversationKey = `${data.userId}_${data.conversationId}`;
+
+            if (!conversations[userConversationKey]) {
+                conversations[userConversationKey] = [];
             }
 
-            const newMessage = {
-                id: `msg-${Date.now()}`,
-                text: data.text,
+            const botMessage = {
+                id: data.messageId || `msg-${Date.now()}`,
+                text: data.text || (data.payload?.text || "How can I help?"),
                 sender: 'bot',
-                timestamp: Date.now()
+                userId: data.userId, // Track which user this belongs to
+                timestamp: Date.now(),
+                rawData: data.payload
             };
 
-            conversations[convKey].push(newMessage);
+            conversations[userConversationKey].push(botMessage);
+            // Keep only the last 50 messages
+            conversations[userConversationKey] = conversations[userConversationKey].slice(-50);
 
             return {
                 statusCode: 200,
                 headers,
-                body: JSON.stringify({ success: true, message: newMessage })
+                body: JSON.stringify({ success: true, message: botMessage })
             };
         } catch (error) {
             return {
