@@ -103,29 +103,15 @@ const Chat = () => {
 
     const poll = async () => {
       try {
-        // Use the same conversation ID format as before
-        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&userId=${userId}&lastTimestamp=${lastTimestamp}`;
+        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&lastTimestamp=${lastTimestamp}`;
 
         const response = await fetch(url);
-
-        // First check if the response is OK
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || "Failed to fetch messages");
-        }
-
-        const data = await response.json();
-
-        // Make sure the response has the expected format
-        if (!data.messages || !Array.isArray(data.messages)) {
-          throw new Error("Invalid response format from server");
-        }
-
-        const newMessages = data.messages;
-        const newTimestamp = data.lastTimestamp || Date.now();
+        const { messages: newMessages, lastTimestamp: newTimestamp } =
+          await response.json();
 
         if (active && newMessages.length > 0) {
           setMessages((prev) => {
+            // Deduplicate by message ID
             const existingIds = new Set(prev.map((m) => m.id));
             const filtered = newMessages.filter(
               (msg) => !existingIds.has(msg.id)
@@ -136,8 +122,6 @@ const Chat = () => {
         }
       } catch (error) {
         console.error("Polling error:", error);
-        // Optionally retry after a delay
-        setTimeout(poll, 5000);
       }
     };
 
