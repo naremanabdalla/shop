@@ -24,28 +24,26 @@ export const handler = async (event) => {
                 userId: payload.userId,
                 conversationId: payload.conversationId,
                 messageId: payload.messageId,
-                payload: {
-                    ...payload.payload,
-                    metadata: {
-                        userId: payload.userId,
-                        website: "https://shopping022.netlify.app/"
-                    }
-                }
+                payload: payload.payload
             })
         });
 
-        const responseText = await response.text();
-        console.log("Raw Botpress response:", responseText);
+        const responseData = await response.json();
+        console.log("Botpress response:", responseData);
 
         if (!response.ok) {
-            throw new Error(`Botpress error: ${response.status} - ${responseText}`);
+            throw new Error(`Botpress error: ${response.status}`);
         }
 
-        // Forward the exact Botpress response
+        // Ensure we return the response in a consistent format
         return {
             statusCode: 200,
             headers,
-            body: responseText // Forward as-is
+            body: JSON.stringify({
+                ...responseData,
+                // Add fallback text if needed
+                text: responseData.message?.payload?.text || "Bot response received"
+            })
         };
 
     } catch (error) {

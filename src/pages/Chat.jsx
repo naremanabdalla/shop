@@ -64,18 +64,30 @@ const Chat = () => {
         throw new Error(data.error || "Bot response failed");
       }
 
-      // Handle both direct responses and webhook-polled responses
-      if (data?.responses) {
+      // Handle Botpress response format
+      if (data?.message?.payload?.text) {
         setMessages((prev) => [
           ...prev,
-          ...data.responses.map((res) => ({
+          {
             id: `bot-${Date.now()}`,
-            text: res.text || res.payload?.text || "I'm thinking...",
+            text: data.message.payload.text,
             sender: "bot",
             userId,
-            rawData: res.payload,
-          })),
+            rawData: data.message.payload,
+          },
         ]);
+      } else if (data?.text) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `bot-${Date.now()}`,
+            text: data.text,
+            sender: "bot",
+            userId,
+          },
+        ]);
+      } else {
+        console.warn("Unexpected Botpress response format:", data);
       }
     } catch (error) {
       console.error("Send message error:", error);

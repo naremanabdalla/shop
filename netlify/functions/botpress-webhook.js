@@ -42,13 +42,18 @@ export const handler = async (event) => {
                 conversations[userConvKey] = [];
             }
 
-            // Handle both direct Botpress responses and our proxy format
+            // Extract text from different possible response formats
+            const botText = data.message?.payload?.text ||
+                data.payload?.text ||
+                data.text ||
+                "How can I help?";
+
             const botMessage = {
                 id: data.messageId || `msg-${Date.now()}`,
-                text: data.text || (data.payload?.text || "How can I help?"),
+                text: botText,
                 sender: 'bot',
                 userId: data.userId,
-                rawData: data.payload || data, // Store complete response
+                rawData: data.payload || data.message?.payload || data,
                 timestamp: Date.now()
             };
 
