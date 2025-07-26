@@ -25,49 +25,54 @@ const Chat = () => {
     botId: "b20dd108-4e50-43dc-8c55-1be2ee2a5417",
   };
 
-  const sendMessage = async (text = inputValue) => {
+  const sendMessage = async (textOrEvent) => {
     setIsLoading(true);
-    const messageText = String(text || "").trim();
-    if (!messageText) {
+
+    // Handle both string input and event cases
+    let text;
+    if (typeof textOrEvent === "string") {
+      text = textOrEvent; // Direct text passed (e.g., from buttons)
+    } else {
+      text = inputValue; // Default to inputValue for button clicks
+    }
+
+    // Validate text
+    if (!text?.trim()) {
       setIsLoading(false);
       return;
     }
 
     const userMessage = {
       id: `msg-${Date.now()}`,
-      text: messageText, // Use the sanitized text
+      text: text.trim(),
       sender: "user",
     };
+
     setMessages((prev) => [...prev, userMessage]);
-    if (text === inputValue) setInputValue(""); // Only clear if using input
+    setInputValue(""); // Always clear input after send
 
     try {
       const response = await fetch("/.netlify/functions/botpress-proxy", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: userId,
+          userId,
           messageId: userMessage.id,
           conversationId: "remoteConversationIdD",
           type: "text",
-          text: text, // Use the passed text
-          payload: {
-            website: "https://shopping022.netlify.app/",
-          },
+          text: text.trim(),
+          payload: { website: "https://shopping022.netlify.app/" },
         }),
       });
-
       const data = await response.json();
       console.log("Proxy response:", data);
     } catch (error) {
-      console.error("Full error:", error);
+      console.error("Error:", error);
       setMessages((prev) => [
         ...prev,
         {
           id: `error-${Date.now()}`,
-          text: "Sorry, there was an error. Check console for details.",
+          text: "Sorry, there was an error. Please try again.",
           sender: "bot",
         },
       ]);
@@ -91,22 +96,18 @@ const Chat = () => {
     const poll = async () => {
       try {
         const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&lastTimestamp=${lastTimestamp}`;
+
         const response = await fetch(url);
         const { messages: newMessages, lastTimestamp: newTimestamp } =
           await response.json();
 
-        if (active && newMessages?.length > 0) {
+        if (active && newMessages.length > 0) {
           setMessages((prev) => {
+            // Deduplicate by message ID
             const existingIds = new Set(prev.map((m) => m.id));
-            const filtered = newMessages
-              .filter((msg) => {
-                // Ensure msg.text exists and is a string
-                return msg?.text && !existingIds.has(msg.id);
-              })
-              .map((msg) => ({
-                ...msg,
-                text: String(msg.text || ""), // Force string conversion
-              }));
+            const filtered = newMessages.filter(
+              (msg) => !existingIds.has(msg.id)
+            );
             return filtered.length > 0 ? [...prev, ...filtered] : prev;
           });
           lastTimestamp = newTimestamp;
@@ -213,7 +214,7 @@ const Chat = () => {
                 }`}
               />
               <button
-                onClick={sendMessage}
+                onClick={() => sendMessage()} // No event passed
                 className="bg-black text-white px-4 rounded-r-lg hover:bg-gray-800 transition"
               >
                 Send
