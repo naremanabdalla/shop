@@ -32,70 +32,49 @@ const Chat = () => {
       const text = typeof textOrEvent === "string" ? textOrEvent : inputValue;
       if (!text?.trim()) return;
 
-      const messageId = `msg-${Date.now()}`;
+      // Add user message
       const userMessage = {
-        id: messageId,
+        id: `msg-${Date.now()}`,
         text: text.trim(),
         sender: "user",
-        userId,
       };
-
       setMessages((prev) => [...prev, userMessage]);
       setInputValue("");
 
+      // Send to proxy
       const response = await fetch("/.netlify/functions/botpress-proxy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
-          messageId,
-          conversationId: `remoteConversationIdD-${conversationVersion}`,
+          conversationId: `conv-${conversationVersion}`,
           text: text.trim(),
-          payload: {
-            website: "https://shopping022.netlify.app/",
-          },
         }),
       });
 
       const data = await response.json();
-      console.log("Full proxy response:", data);
+      console.log("Botpress response:", data);
 
-      if (!response.ok) {
-        throw new Error(data.error || "Bot response failed");
-      }
-
-      // Handle Botpress response format
-      if (data?.message?.payload?.text) {
+      // Add bot response - SIMPLE VERSION
+      if (data?.responses?.[0]?.payload?.text) {
         setMessages((prev) => [
           ...prev,
           {
             id: `bot-${Date.now()}`,
-            text: data.message.payload.text,
+            text: data.responses[0].payload.text,
             sender: "bot",
-            userId,
-            rawData: data.message.payload,
-          },
-        ]);
-      } else if (data?.text) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `bot-${Date.now()}`,
-            text: data.text,
-            sender: "bot",
-            userId,
           },
         ]);
       } else {
-        console.warn("Unexpected Botpress response format:", data);
+        throw new Error("No valid bot response");
       }
     } catch (error) {
-      console.error("Send message error:", error);
+      console.log(error);
       setMessages((prev) => [
         ...prev,
         {
           id: `error-${Date.now()}`,
-          text: `Error: ${error.message}`,
+          text: "The bot didn't respond properly",
           sender: "bot",
           isError: true,
         },
