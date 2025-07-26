@@ -28,18 +28,14 @@ const Chat = () => {
   const sendMessage = async (text = inputValue) => {
     setIsLoading(true);
     // Modified to accept parameter
-    // Fix: Ensure text is a string before calling .trim()
-    const messageText = String(text || "").trim();
-    if (!messageText) {
-      setIsLoading(false);
-      return;
-    }
+    if (!text.trim()) return;
 
     const userMessage = {
       id: `msg-${Date.now()}`,
-      text: messageText, // Use the sanitized text
+      text: text, // Use the passed text
       sender: "user",
     };
+
     setMessages((prev) => [...prev, userMessage]);
     if (text === inputValue) setInputValue(""); // Only clear if using input
 
@@ -206,7 +202,7 @@ const Chat = () => {
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message..."
-                className={`flex-1 border border-gray-300 rounded-l-lg p-2 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                className={`flex-1 border border-gray-300 rounded-l-lg py-2 px-1  focus:outline-none focus:ring-1 focus:ring-blue-500 ${
                   isLoading ? "opacity-50" : ""
                 }`}
               />
