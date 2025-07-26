@@ -61,11 +61,28 @@ const Chat = () => {
           conversationId: "remoteConversationIdD",
           type: "text",
           text: text.trim(),
-          payload: { website: "https://shopping022.netlify.app/" },
+          payload: {
+            website: "https://shopping022.netlify.app/",
+            // Add this to ensure Botpress includes options
+            metadata: {
+              userId,
+              conversationVersion,
+            },
+          },
         }),
       });
       const data = await response.json();
       console.log("Proxy response:", data);
+      if (!data?.responses?.length) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `temp-${Date.now()}`,
+            text: "Thinking...",
+            sender: "bot",
+          },
+        ]);
+      }
     } catch (error) {
       console.error("Error:", error);
       setMessages((prev) => [
@@ -129,11 +146,6 @@ const Chat = () => {
     };
   }, [isOpen, conversationVersion]); // Add conversationVersion to dependencies
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("chatMessages", JSON.stringify(messages));
-    }
-  }, [messages]);
   return (
     <div className="fixed bottom-6 right-6 z-100">
       {isOpen ? (
