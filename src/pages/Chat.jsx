@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { RiRobot3Line } from "react-icons/ri";
 
 const Chat = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -132,7 +133,7 @@ const Chat = () => {
         <div className="w-99 h-100 bg-white rounded-lg shadow-xl flex flex-col">
           {/* Chat header */}
           <div className="bg-black text-white p-3 rounded-t-lg flex justify-between items-center">
-            <h3 className="font-semibold">Support Bot</h3>
+            <h3 className="font-semibold">Shopping Bot</h3>
             <div>
               <button
                 onClick={() => {
@@ -219,22 +220,9 @@ const Chat = () => {
           onClick={() => {
             setIsOpen(true);
           }}
-          className="bg-black text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-gray-800 transition"
+          className="bg-black text-[color:var(--color-primary)] rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-gray-800 transition"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-            />
-          </svg>
+          <RiRobot3Line />
         </button>
       )}
     </div>
