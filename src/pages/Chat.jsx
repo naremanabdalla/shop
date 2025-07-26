@@ -28,55 +28,52 @@ const Chat = () => {
   const sendMessage = async (textOrEvent) => {
     setIsLoading(true);
 
+    // Handle both string input and event cases
+    let text;
+    if (typeof textOrEvent === "string") {
+      text = textOrEvent; // Direct text passed (e.g., from buttons)
+    } else {
+      text = inputValue; // Default to inputValue for button clicks
+    }
+
+    // Validate text
+    if (!text?.trim()) {
+      setIsLoading(false);
+      return;
+    }
+
+    const userMessage = {
+      id: `msg-${Date.now()}`,
+      text: text.trim(),
+      sender: "user",
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue(""); // Always clear input after send
+
     try {
-      const text = typeof textOrEvent === "string" ? textOrEvent : inputValue;
-      if (!text?.trim()) return;
-
-      // Add user message
-      const userMessage = {
-        id: `msg-${Date.now()}`,
-        text: text.trim(),
-        sender: "user",
-      };
-      setMessages((prev) => [...prev, userMessage]);
-      setInputValue("");
-
-      // Send to proxy
       const response = await fetch("/.netlify/functions/botpress-proxy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
-          conversationId: `conv-${conversationVersion}`,
+          messageId: userMessage.id,
+          conversationId: "remoteConversationIdD",
+          type: "text",
           text: text.trim(),
+          payload: { website: "https://shopping022.netlify.app/" },
         }),
       });
-
       const data = await response.json();
-      console.log("Botpress response:", data);
-
-      // Add bot response - SIMPLE VERSION
-      if (data?.responses?.[0]?.payload?.text) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `bot-${Date.now()}`,
-            text: data.responses[0].payload.text,
-            sender: "bot",
-          },
-        ]);
-      } else {
-        throw new Error("No valid bot response");
-      }
+      console.log("Proxy response:", data);
     } catch (error) {
-      console.log(error);
+      console.error("Error:", error);
       setMessages((prev) => [
         ...prev,
         {
           id: `error-${Date.now()}`,
-          text: "The bot didn't respond properly",
+          text: "Sorry, there was an error. Please try again.",
           sender: "bot",
-          isError: true,
         },
       ]);
     } finally {
@@ -93,22 +90,23 @@ const Chat = () => {
   useEffect(() => {
     if (!isOpen) return;
 
-    let active = true;
     let lastTimestamp = Date.now();
+    let active = true;
 
     const poll = async () => {
       try {
-        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&userId=${userId}&lastTimestamp=${lastTimestamp}`;
+        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&lastTimestamp=${lastTimestamp}`;
 
         const response = await fetch(url);
-        const { messages: newMessages = [], lastTimestamp: newTimestamp } =
+        const { messages: newMessages, lastTimestamp: newTimestamp } =
           await response.json();
 
         if (active && newMessages.length > 0) {
           setMessages((prev) => {
+            // Deduplicate by message ID
             const existingIds = new Set(prev.map((m) => m.id));
             const filtered = newMessages.filter(
-              (msg) => !existingIds.has(msg.id) && msg.userId === userId
+              (msg) => !existingIds.has(msg.id)
             );
             return filtered.length > 0 ? [...prev, ...filtered] : prev;
           });
@@ -119,15 +117,23 @@ const Chat = () => {
       }
     };
 
+    // Initial poll
     poll();
-    const interval = setInterval(poll, 2000);
+
+    // Slower polling interval (3000ms)
+    const pollInterval = setInterval(poll, 3000);
 
     return () => {
       active = false;
-      clearInterval(interval);
+      clearInterval(pollInterval);
     };
-  }, [isOpen, conversationVersion, userId]);
+  }, [isOpen, conversationVersion]); // Add conversationVersion to dependencies
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("chatMessages", JSON.stringify(messages));
+    }
+  }, [messages]);
   return (
     <div className="fixed bottom-6 right-6 z-100">
       {isOpen ? (

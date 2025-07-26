@@ -3,22 +3,21 @@ let conversations = {};
 export const handler = async (event) => {
     const headers = {
         'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json'
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
     };
 
     if (event.httpMethod === 'OPTIONS') {
         return { statusCode: 204, headers };
     }
 
-    // GET - For polling messages
     if (event.httpMethod === 'GET') {
-        const { conversationId, userId, lastTimestamp } = event.queryStringParameters || {};
-        const userConvKey = `${userId}_${conversationId}`;
-        const convMessages = conversations[userConvKey] || [];
+        const { conversationId, lastTimestamp } = event.queryStringParameters || {};
+        const convMessages = conversations[conversationId] || [];
 
         const newMessages = lastTimestamp
             ? convMessages.filter(msg => msg.timestamp > parseInt(lastTimestamp))
-            : convMessages;
+            : [];
 
         return {
             statusCode: 200,
@@ -27,46 +26,44 @@ export const handler = async (event) => {
                 messages: newMessages,
                 lastTimestamp: newMessages.length > 0
                     ? Math.max(...newMessages.map(m => m.timestamp))
-                    : Date.now()
+                    : lastTimestamp || Date.now()
             })
         };
     }
 
-    // POST - For receiving bot responses
     if (event.httpMethod === 'POST') {
         try {
-            const data = JSON.parse(event.body);
-            const userConvKey = `${data.userId}_${data.conversationId}`;
+            const botResponse = JSON.parse(event.body);
+            const baseConversationId = botResponse.conversationId || "default";
+            const conversationId = `${baseConversationId}-${botResponse.conversationVersion || 0}`;
 
-            if (!conversations[userConvKey]) {
-                conversations[userConvKey] = [];
+            if (!conversations[conversationId]) {
+                conversations[conversationId] = [];
             }
 
-            // Extract text from different possible response formats
-            const botText = data.message?.payload?.text ||
-                data.payload?.text ||
-                data.text ||
-                "How can I help?";
-
             const botMessage = {
-                id: data.messageId || `msg-${Date.now()}`,
-                text: botText,
+                id: botResponse.botpressMessageId || `msg-${Date.now()}`,
+                text: botResponse.payload?.text || "How can I help you?",
                 sender: 'bot',
-                userId: data.userId,
-                rawData: data.payload || data.message?.payload || data,
+                rawData: botResponse,
                 timestamp: Date.now()
             };
 
-            conversations[userConvKey].push(botMessage);
-            conversations[userConvKey] = conversations[userConvKey].slice(-50);
+            // Deduplicate before adding
+            const exists = conversations[conversationId].some(
+                m => m.id === botMessage.id
+            );
+
+            if (!exists) {
+                conversations[conversationId].push(botMessage);
+                conversations[conversationId] = conversations[conversationId]
+                    .slice(-20);
+            }
 
             return {
                 statusCode: 200,
                 headers,
-                body: JSON.stringify({
-                    success: true,
-                    message: botMessage
-                })
+                body: JSON.stringify({ success: true })
             };
         } catch (error) {
             return {
