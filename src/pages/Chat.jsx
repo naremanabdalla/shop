@@ -11,6 +11,7 @@ const Chat = () => {
     return [];
   });
   const [inputValue, setInputValue] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [conversationVersion, setConversationVersion] = useState(0);
   const [userId] = useState(`user-${Math.random().toString(36).substr(2, 9)}`);
   const messagesEndRef = useRef(null);
@@ -25,15 +26,20 @@ const Chat = () => {
   };
 
   const sendMessage = async (text = inputValue) => {
+    setIsLoading(true);
     // Modified to accept parameter
-    if (!text.trim()) return;
+    // Fix: Ensure text is a string before calling .trim()
+    const messageText = String(text || "").trim();
+    if (!messageText) {
+      setIsLoading(false);
+      return;
+    }
 
     const userMessage = {
       id: `msg-${Date.now()}`,
-      text: text, // Use the passed text
+      text: messageText, // Use the sanitized text
       sender: "user",
     };
-
     setMessages((prev) => [...prev, userMessage]);
     if (text === inputValue) setInputValue(""); // Only clear if using input
 
@@ -67,6 +73,8 @@ const Chat = () => {
           sender: "bot",
         },
       ]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -126,7 +134,7 @@ const Chat = () => {
   return (
     <div className="fixed bottom-6 right-6 z-100">
       {isOpen ? (
-        <div className="w-99 h-100 bg-white rounded-lg shadow-xl flex flex-col">
+        <div className="w-60 md:w-99 h-100 bg-white rounded-lg shadow-xl flex flex-col">
           {/* Chat header */}
           <div className="bg-black text-white p-3 rounded-t-lg flex justify-between items-center">
             <h3 className="font-semibold">Shopping Bot</h3>
@@ -192,12 +200,15 @@ const Chat = () => {
           <div className="p-3 border-t border-gray-200">
             <div className="flex">
               <input
+                disabled={isLoading}
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message..."
-                className={`flex-1 border border-gray-300 rounded-l-lg p-2 focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                className={`flex-1 border border-gray-300 rounded-l-lg p-2 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                  isLoading ? "opacity-50" : ""
+                }`}
               />
               <button
                 onClick={sendMessage}
