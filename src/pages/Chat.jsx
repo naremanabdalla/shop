@@ -89,7 +89,7 @@ const Chat = () => {
         ...prev,
         {
           id: `error-${Date.now()}`,
-          text: "Sorry, there was an error. Please try again.",
+          text: `Error: ${error.message || "Failed to send message"}`,
           sender: "bot",
         },
       ]);
