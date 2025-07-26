@@ -8,9 +8,12 @@ export const handler = async (event) => {
         // Add conversation version to payload
         const enhancedPayload = {
             ...payload,
-            conversationVersion: payload.conversationVersion || 0
+            userId: payload.userId, // Make sure this is included
+            conversationVersion: payload.conversationVersion || 0,
+            // Ensure either messageId or botpressMessageId is included
+            messageId: payload.messageId,
+            botpressMessageId: payload.messageId // Send as both for compatibility
         };
-
         const response = await fetch(BOTPRESS_URL, {
             method: "POST",
             headers: {

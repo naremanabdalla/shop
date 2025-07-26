@@ -103,8 +103,7 @@ const Chat = () => {
 
     const poll = async () => {
       try {
-        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&lastTimestamp=${lastTimestamp}`;
-
+        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&userId=${userId}&lastTimestamp=${lastTimestamp}`;
         const response = await fetch(url);
         const { messages: newMessages, lastTimestamp: newTimestamp } =
           await response.json();
