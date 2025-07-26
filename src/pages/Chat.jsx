@@ -27,15 +27,17 @@ const Chat = () => {
 
   const sendMessage = async (text = inputValue) => {
     setIsLoading(true);
-    // Modified to accept parameter
-    if (!text.trim()) return;
+    const messageText = String(text || "").trim();
+    if (!messageText) {
+      setIsLoading(false);
+      return;
+    }
 
     const userMessage = {
       id: `msg-${Date.now()}`,
-      text: text, // Use the passed text
+      text: messageText, // Use the sanitized text
       sender: "user",
     };
-
     setMessages((prev) => [...prev, userMessage]);
     if (text === inputValue) setInputValue(""); // Only clear if using input
 
@@ -89,18 +91,22 @@ const Chat = () => {
     const poll = async () => {
       try {
         const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&lastTimestamp=${lastTimestamp}`;
-
         const response = await fetch(url);
         const { messages: newMessages, lastTimestamp: newTimestamp } =
           await response.json();
 
-        if (active && newMessages.length > 0) {
+        if (active && newMessages?.length > 0) {
           setMessages((prev) => {
-            // Deduplicate by message ID
             const existingIds = new Set(prev.map((m) => m.id));
-            const filtered = newMessages.filter(
-              (msg) => !existingIds.has(msg.id)
-            );
+            const filtered = newMessages
+              .filter((msg) => {
+                // Ensure msg.text exists and is a string
+                return msg?.text && !existingIds.has(msg.id);
+              })
+              .map((msg) => ({
+                ...msg,
+                text: String(msg.text || ""), // Force string conversion
+              }));
             return filtered.length > 0 ? [...prev, ...filtered] : prev;
           });
           lastTimestamp = newTimestamp;
