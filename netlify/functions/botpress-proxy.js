@@ -2,14 +2,20 @@ export const handler = async (event) => {
     const BOTPRESS_URL = "https://webhook.botpress.cloud/667e3082-09f1-4ad3-9071-30ade020ef3b";
     const BOTPRESS_TOKEN = "bp_pat_se5aRM9MJCiKOr8oH0E7YuXBHBKdDijQn4nD";
 
+    const headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json'
+    };
+
     try {
         const payload = JSON.parse(event.body);
 
-        // Forward to Botpress with all required fields
+        console.log("Forwarding to Botpress:", JSON.stringify(payload, null, 2));
+
         const response = await fetch(BOTPRESS_URL, {
             method: "POST",
             headers: {
-                Authorization: `Bearer ${BOTPRESS_TOKEN}`,
+                "Authorization": `Bearer ${BOTPRESS_TOKEN}`,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
@@ -28,19 +34,25 @@ export const handler = async (event) => {
             })
         });
 
-        const responseData = await response.json();
+        const responseText = await response.text();
+        console.log("Raw Botpress response:", responseText);
 
-        // Forward the complete Botpress response
+        if (!response.ok) {
+            throw new Error(`Botpress error: ${response.status} - ${responseText}`);
+        }
+
+        // Forward the exact Botpress response
         return {
             statusCode: 200,
-            headers: { 'Access-Control-Allow-Origin': '*' },
-            body: JSON.stringify(responseData)
+            headers,
+            body: responseText // Forward as-is
         };
 
     } catch (error) {
+        console.error('Proxy error:', error);
         return {
             statusCode: 500,
-            headers: { 'Access-Control-Allow-Origin': '*' },
+            headers,
             body: JSON.stringify({
                 error: "Proxy error",
                 details: error.message

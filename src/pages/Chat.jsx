@@ -58,18 +58,19 @@ const Chat = () => {
       });
 
       const data = await response.json();
+      console.log("Full proxy response:", data);
 
       if (!response.ok) {
         throw new Error(data.error || "Bot response failed");
       }
 
-      // Process Botpress response if available
-      if (data?.responses?.length) {
+      // Handle both direct responses and webhook-polled responses
+      if (data?.responses) {
         setMessages((prev) => [
           ...prev,
           ...data.responses.map((res) => ({
             id: `bot-${Date.now()}`,
-            text: res.text || res.payload?.text,
+            text: res.text || res.payload?.text || "I'm thinking...",
             sender: "bot",
             userId,
             rawData: res.payload,
@@ -77,6 +78,7 @@ const Chat = () => {
         ]);
       }
     } catch (error) {
+      console.error("Send message error:", error);
       setMessages((prev) => [
         ...prev,
         {
@@ -101,30 +103,33 @@ const Chat = () => {
     if (!isOpen) return;
 
     let active = true;
+    let lastTimestamp = Date.now();
 
     const poll = async () => {
       try {
-        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&userId=${userId}`;
+        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&userId=${userId}&lastTimestamp=${lastTimestamp}`;
 
         const response = await fetch(url);
-        const { messages: newMessages = [] } = await response.json();
+        const { messages: newMessages = [], lastTimestamp: newTimestamp } =
+          await response.json();
 
         if (active && newMessages.length > 0) {
           setMessages((prev) => {
             const existingIds = new Set(prev.map((m) => m.id));
             const filtered = newMessages.filter(
-              (msg) => !existingIds.has(msg.id) && msg.userId === userId // Only add messages for this user
+              (msg) => !existingIds.has(msg.id) && msg.userId === userId
             );
             return filtered.length > 0 ? [...prev, ...filtered] : prev;
           });
+          lastTimestamp = newTimestamp;
         }
       } catch (error) {
         console.error("Polling error:", error);
       }
     };
 
-    poll(); // Immediate poll
-    const interval = setInterval(poll, 2000); // Then every 2 seconds
+    poll();
+    const interval = setInterval(poll, 2000);
 
     return () => {
       active = false;

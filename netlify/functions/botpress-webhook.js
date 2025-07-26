@@ -10,7 +10,7 @@ export const handler = async (event) => {
         return { statusCode: 204, headers };
     }
 
-    // GET - For polling messages (updated for user isolation)
+    // GET - For polling messages
     if (event.httpMethod === 'GET') {
         const { conversationId, userId, lastTimestamp } = event.queryStringParameters || {};
         const userConvKey = `${userId}_${conversationId}`;
@@ -32,22 +32,23 @@ export const handler = async (event) => {
         };
     }
 
-    // POST - For receiving bot responses (keep rawData from old version)
+    // POST - For receiving bot responses
     if (event.httpMethod === 'POST') {
         try {
-            const botResponse = JSON.parse(event.body);
-            const userConvKey = `${botResponse.userId}_${botResponse.conversationId}`;
+            const data = JSON.parse(event.body);
+            const userConvKey = `${data.userId}_${data.conversationId}`;
 
             if (!conversations[userConvKey]) {
                 conversations[userConvKey] = [];
             }
 
+            // Handle both direct Botpress responses and our proxy format
             const botMessage = {
-                id: botResponse.messageId || `msg-${Date.now()}`,
-                text: botResponse.text || botResponse.payload?.text || "How can I help?",
+                id: data.messageId || `msg-${Date.now()}`,
+                text: data.text || (data.payload?.text || "How can I help?"),
                 sender: 'bot',
-                userId: botResponse.userId, // Track user
-                rawData: botResponse.payload, // Keep rawData from old version
+                userId: data.userId,
+                rawData: data.payload || data, // Store complete response
                 timestamp: Date.now()
             };
 
@@ -59,7 +60,7 @@ export const handler = async (event) => {
                 headers,
                 body: JSON.stringify({
                     success: true,
-                    message: botMessage // Return full message
+                    message: botMessage
                 })
             };
         } catch (error) {
