@@ -16,11 +16,11 @@ const Chat = () => {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [conversationVersion, setConversationVersion] = useState(0);
-  const [userId] = useState()(() => {
+  const [userId] = useState(() => {
     // Use currentUser's UID if available, otherwise generate a random ID
-    return currentUser
-      ? currentUser.uid
-      : `user-${Math.random().toString(36).substr(2, 9)}`;
+    return (
+      currentUser?.uid || `user-${Math.random().toString(36).substr(2, 9)}`
+    );
   });
   const messagesEndRef = useRef(null);
 
