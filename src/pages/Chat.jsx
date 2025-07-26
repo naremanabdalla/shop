@@ -40,8 +40,9 @@ const Chat = () => {
       return;
     }
 
+    const messageId = `msg-${Date.now()}`;
     const userMessage = {
-      id: `msg-${Date.now()}`,
+      id: messageId,
       text: text.trim(),
       sender: "user",
     };
@@ -55,7 +56,7 @@ const Chat = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
-          messageId: userMessage.id,
+          messageId: messageId, // Include this
           conversationId: `remoteConversationIdD-${conversationVersion}`,
           type: "text",
           text: text.trim(),
@@ -69,11 +70,12 @@ const Chat = () => {
       });
 
       const data = await response.json();
-      console.log("Proxy response:", data);
 
-      if (response.status !== 200) {
-        throw new Error(data.error || "Failed to get bot response");
+      if (!response.ok) {
+        throw new Error(data.error || "Bot response failed");
       }
+
+      console.log("Botpress response:", data);
     } catch (error) {
       console.error("Error:", error);
       setMessages((prev) => [
