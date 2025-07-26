@@ -220,7 +220,7 @@ const Chat = () => {
           onClick={() => {
             setIsOpen(true);
           }}
-          className="bg-black text-[color:var(--color-primary)] rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-gray-800 transition"
+          className="bg-black text-md text-[color:var(--color-primary)] rounded-full  flex items-center justify-center shadow-lg hover:bg-gray-800 transition"
         >
           <RiRobot3Line />
         </button>
