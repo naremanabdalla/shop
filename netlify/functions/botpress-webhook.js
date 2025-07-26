@@ -12,11 +12,14 @@ export const handler = async (event) => {
     }
 
     if (event.httpMethod === 'GET') {
-        const { conversationId, lastTimestamp } = event.queryStringParameters || {};
-        const convMessages = conversations[conversationId] || [];
+        const { conversationId, userId, lastTimestamp } = event.queryStringParameters || {};
+
+        // Create a unique conversation key combining userId and conversationId
+        const conversationKey = `${userId}-${conversationId}`;
+        const convMessages = conversations[conversationKey] || [];
 
         const newMessages = lastTimestamp
-            ? convMessages.filter(msg => msg.timestamp > parseInt(lastTimestamp))
+            ? convMessages.filter(msg => msg.timestamp > parseInt(lastTimestamp) && msg.userId === userId)
             : [];
 
         return {
@@ -35,29 +38,30 @@ export const handler = async (event) => {
         try {
             const botResponse = JSON.parse(event.body);
             const baseConversationId = botResponse.conversationId || "default";
-            const conversationId = `${baseConversationId}-${botResponse.conversationVersion || 0}`;
+            const conversationKey = `${botResponse.userId}-${baseConversationId}`;
 
-            if (!conversations[conversationId]) {
-                conversations[conversationId] = [];
+            if (!conversations[conversationKey]) {
+                conversations[conversationKey] = [];
             }
 
             const botMessage = {
-                id: botResponse.botpressMessageId || `msg-${Date.now()}`,
-                text: botResponse.payload?.text || "How can I help you?",
+                id: botResponse.messageId || `msg-${Date.now()}`,
+                text: botResponse.payload?.text || botResponse.text || "How can I help you?",
                 sender: 'bot',
+                userId: botResponse.userId, // Include userId in the message
                 rawData: botResponse,
                 timestamp: Date.now()
             };
 
             // Deduplicate before adding
-            const exists = conversations[conversationId].some(
+            const exists = conversations[conversationKey].some(
                 m => m.id === botMessage.id
             );
 
             if (!exists) {
-                conversations[conversationId].push(botMessage);
-                conversations[conversationId] = conversations[conversationId]
-                    .slice(-20);
+                conversations[conversationKey].push(botMessage);
+                // Keep only the last 20 messages per conversation
+                conversations[conversationKey] = conversations[conversationKey].slice(-20);
             }
 
             return {
