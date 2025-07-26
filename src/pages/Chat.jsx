@@ -37,7 +37,7 @@ const Chat = () => {
         id: messageId,
         text: text.trim(),
         sender: "user",
-        userId, // Include userId in the message
+        userId,
       };
 
       setMessages((prev) => [...prev, userMessage]);
@@ -48,13 +48,13 @@ const Chat = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
-          messageId,
+          messageId, // Include messageId
           conversationId: `remoteConversationIdD-${conversationVersion}`,
           text: text.trim(),
           payload: {
             metadata: {
               userId,
-              website: "https://shopping022.netlify.app/",
+              conversationVersion,
             },
           },
         }),
@@ -66,8 +66,25 @@ const Chat = () => {
       if (!response.ok) {
         throw new Error(data.error || "Bot response failed");
       }
+
+      // Temporary fallback - remove after confirming it works
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `bot-${Date.now()}`,
+            text: "This is a test response - remove me when real responses work",
+            sender: "bot",
+            userId,
+          },
+        ]);
+      }, 1000);
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Send message error:", {
+        error: error.message,
+        response: error.response,
+      });
+
       setMessages((prev) => [
         ...prev,
         {

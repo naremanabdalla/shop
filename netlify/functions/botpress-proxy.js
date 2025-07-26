@@ -17,11 +17,11 @@ export const handler = async (event) => {
     }
 
     try {
-        // Parse and validate incoming payload
+        // Parse and validate payload
         let payload;
         try {
             payload = JSON.parse(event.body);
-            if (!payload.text || !payload.userId) {
+            if (!payload.text || !payload.userId || !payload.messageId || !payload.conversationId) {
                 throw new Error('Missing required fields');
             }
         } catch (parseError) {
@@ -29,56 +29,58 @@ export const handler = async (event) => {
                 statusCode: 400,
                 headers,
                 body: JSON.stringify({
-                    error: 'Invalid request body',
-                    details: parseError.message
+                    error: 'Invalid request',
+                    details: parseError.message,
+                    required: ['text', 'userId', 'messageId', 'conversationId']
                 })
             };
         }
 
-        // Prepare Botpress payload
+        // Construct complete Botpress payload
         const bpPayload = {
             type: "text",
             text: payload.text,
             userId: payload.userId,
-            conversationId: payload.conversationId || `conv-${Date.now()}`,
+            conversationId: payload.conversationId,
+            messageId: payload.messageId, // Critical missing field
             payload: {
                 metadata: {
                     userId: payload.userId,
-                    website: "https://shopping022.netlify.app/"
+                    website: "https://shopping022.netlify.app/",
+                    // Include all original payload data
+                    ...(payload.payload || {})
                 }
             }
         };
 
-        // Make request to Botpress
+        console.log("Sending to Botpress:", JSON.stringify(bpPayload, null, 2));
+
         const response = await fetch(BOTPRESS_URL, {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${BOTPRESS_TOKEN}`,
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(bpPayload),
-            timeout: 5000 // Add timeout
+            body: JSON.stringify(bpPayload)
         });
 
-        // Handle Botpress response
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Botpress responded with ${response.status}: ${errorText}`);
-        }
+        const responseText = await response.text();
 
-        const responseData = await response.json();
+        if (!response.ok) {
+            console.error("Botpress error response:", responseText);
+            throw new Error(`Botpress error: ${response.status} - ${responseText}`);
+        }
 
         return {
             statusCode: 200,
             headers,
-            body: JSON.stringify(responseData)
+            body: responseText
         };
 
     } catch (error) {
-        console.error('Proxy error details:', {
-            error: error.message,
-            stack: error.stack,
-            event: event
+        console.error('Proxy error:', {
+            message: error.message,
+            stack: error.stack
         });
 
         return {
