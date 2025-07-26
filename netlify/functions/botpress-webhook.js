@@ -14,12 +14,16 @@ export const handler = async (event) => {
     if (event.httpMethod === 'GET') {
         const { conversationId, userId, lastTimestamp } = event.queryStringParameters || {};
 
-        // Create a unique conversation key combining userId and conversationId
-        const conversationKey = `${userId}-${conversationId}`;
-        const convMessages = conversations[conversationKey] || [];
+        // Create conversation key with version if available
+        const versionMatch = conversationId?.match(/-(\d+)$/);
+        const version = versionMatch ? versionMatch[1] : 0;
+        const baseId = versionMatch ? conversationId.slice(0, -versionMatch[0].length) : conversationId;
+        const conversationKey = `${userId}-${baseId || "default"}`;
+
+        const convMessages = conversations[conversationKey]?.[version] || [];
 
         const newMessages = lastTimestamp
-            ? convMessages.filter(msg => msg.timestamp > parseInt(lastTimestamp) && msg.userId === userId)
+            ? convMessages.filter(msg => msg.timestamp > parseInt(lastTimestamp))
             : [];
 
         return {
@@ -37,31 +41,36 @@ export const handler = async (event) => {
     if (event.httpMethod === 'POST') {
         try {
             const botResponse = JSON.parse(event.body);
-            const baseConversationId = botResponse.conversationId || "default";
+            const baseConversationId = botResponse.conversationId?.replace(/-\d+$/, "") || "default";
+            const version = botResponse.conversationVersion || 0;
             const conversationKey = `${botResponse.userId}-${baseConversationId}`;
 
+            // Initialize conversation structure if needed
             if (!conversations[conversationKey]) {
-                conversations[conversationKey] = [];
+                conversations[conversationKey] = {};
+            }
+            if (!conversations[conversationKey][version]) {
+                conversations[conversationKey][version] = [];
             }
 
             const botMessage = {
-                id: botResponse.messageId || `msg-${Date.now()}`,
+                id: botResponse.botpressMessageId || botResponse.messageId || `msg-${Date.now()}`,
                 text: botResponse.payload?.text || botResponse.text || "How can I help you?",
                 sender: 'bot',
-                userId: botResponse.userId, // Include userId in the message
+                userId: botResponse.userId,
                 rawData: botResponse,
                 timestamp: Date.now()
             };
 
             // Deduplicate before adding
-            const exists = conversations[conversationKey].some(
+            const exists = conversations[conversationKey][version].some(
                 m => m.id === botMessage.id
             );
 
             if (!exists) {
-                conversations[conversationKey].push(botMessage);
-                // Keep only the last 20 messages per conversation
-                conversations[conversationKey] = conversations[conversationKey].slice(-20);
+                conversations[conversationKey][version].push(botMessage);
+                // Keep only the last 20 messages per conversation version
+                conversations[conversationKey][version] = conversations[conversationKey][version].slice(-20);
             }
 
             return {
@@ -70,6 +79,7 @@ export const handler = async (event) => {
                 body: JSON.stringify({ success: true })
             };
         } catch (error) {
+            console.error('Webhook error:', error);
             return {
                 statusCode: 500,
                 headers,
