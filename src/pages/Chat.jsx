@@ -36,99 +36,58 @@ const Chat = () => {
   const sendMessage = async (textOrEvent) => {
     setIsLoading(true);
 
+    // Handle both string input and event cases
+    let text;
+    if (typeof textOrEvent === "string") {
+      text = textOrEvent; // Direct text passed (e.g., from buttons)
+    } else {
+      text = inputValue; // Default to inputValue for button clicks
+    }
+
+    // Validate text
+    if (!text?.trim()) {
+      setIsLoading(false);
+      return;
+    }
+
+    const userMessage = {
+      id: `msg-${Date.now()}`,
+      text: text.trim(),
+      sender: "user",
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue(""); // Always clear input after send
+
     try {
-      const text = typeof textOrEvent === "string" ? textOrEvent : inputValue;
-      if (!text?.trim()) return;
-
-      const messageId = `msg-${Date.now()}`;
-      const userMessage = {
-        id: messageId,
-        text: text.trim(),
-        sender: "user",
-        userId,
-      };
-
-      setMessages((prev) => [...prev, userMessage]);
-      setInputValue("");
-
       const response = await fetch("/.netlify/functions/botpress-proxy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
-          messageId,
-          conversationId: `remoteConversationIdD-${conversationVersion}`,
+          messageId: userMessage.id,
+          conversationId: "remoteConversationIdD",
+          type: "text",
           text: text.trim(),
-          payload: {
-            website: "https://shopping022.netlify.app/",
-          },
+          payload: { website: "https://shopping022.netlify.app/" },
         }),
       });
-
       const data = await response.json();
       console.log("Proxy response:", data);
-
-      if (!response.ok) {
-        throw new Error(data.error || "Bot response failed");
-      }
-
-      // Handle all possible response formats
-      if (data?.responses?.[0]?.payload?.text) {
-        // Standard Botpress format
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `bot-${Date.now()}`,
-            text: data.responses[0].payload.text,
-            sender: "bot",
-            userId,
-            rawData: data.responses[0].payload,
-          },
-        ]);
-      } else if (data?.message?.payload?.text) {
-        // Alternative format
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `bot-${Date.now()}`,
-            text: data.message.payload.text,
-            sender: "bot",
-            userId,
-            rawData: data.message.payload,
-          },
-        ]);
-      } else if (data?.text) {
-        // Simple text response
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `bot-${Date.now()}`,
-            text: data.text,
-            sender: "bot",
-            userId,
-          },
-        ]);
-      } else {
-        console.warn("Unexpected response format:", data);
-        throw new Error("Received unexpected response format from bot");
-      }
     } catch (error) {
-      console.error("Send message error:", error);
+      console.error("Error:", error);
       setMessages((prev) => [
         ...prev,
         {
           id: `error-${Date.now()}`,
-          text: `Error: ${error.message}`,
+          text: "Sorry, there was an error. Please try again.",
           sender: "bot",
-          isError: true,
         },
       ]);
     } finally {
       setIsLoading(false);
     }
   };
-
-  // Polling function remains the same as in previous solution
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
@@ -144,7 +103,7 @@ const Chat = () => {
 
     const poll = async () => {
       try {
-        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&userId=${userId}&lastTimestamp=${lastTimestamp}`;
+        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&lastTimestamp=${lastTimestamp}`;
 
         const response = await fetch(url);
         const { messages: newMessages, lastTimestamp: newTimestamp } =
@@ -152,9 +111,10 @@ const Chat = () => {
 
         if (active && newMessages.length > 0) {
           setMessages((prev) => {
+            // Deduplicate by message ID
             const existingIds = new Set(prev.map((m) => m.id));
             const filtered = newMessages.filter(
-              (msg) => !existingIds.has(msg.id) && msg.userId === userId // Only show messages for this user
+              (msg) => !existingIds.has(msg.id)
             );
             return filtered.length > 0 ? [...prev, ...filtered] : prev;
           });
@@ -165,13 +125,18 @@ const Chat = () => {
       }
     };
 
+    // Initial poll
     poll();
-    const interval = setInterval(poll, 2000);
+
+    // Slower polling interval (3000ms)
+    const pollInterval = setInterval(poll, 3000);
+
     return () => {
       active = false;
-      clearInterval(interval);
+      clearInterval(pollInterval);
     };
-  }, [isOpen, conversationVersion, userId]);
+  }, [isOpen, conversationVersion]); // Add conversationVersion to dependencies
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem("chatMessages", JSON.stringify(messages));
