@@ -11,52 +11,41 @@ export const handler = async (event) => {
     }
 
     if (event.httpMethod === 'GET') {
-        const { conversationId, userId, lastTimestamp } = event.queryStringParameters || {};
-        const userConversationKey = `${userId}_${conversationId}`;
-
-        const convMessages = conversations[userConversationKey] || [];
-        const filteredMessages = lastTimestamp
-            ? convMessages.filter(msg => msg.timestamp > parseInt(lastTimestamp))
-            : convMessages;
+        const { conversationId, userId } = event.queryStringParameters || {};
+        const convKey = `${userId}_${conversationId}`;
 
         return {
             statusCode: 200,
             headers,
             body: JSON.stringify({
-                messages: filteredMessages,
-                lastTimestamp: filteredMessages.length > 0
-                    ? Math.max(...filteredMessages.map(m => m.timestamp))
-                    : Date.now()
+                messages: conversations[convKey] || [],
+                lastTimestamp: Date.now()
             })
         };
     }
 
-    // POST handler section
     if (event.httpMethod === 'POST') {
         try {
             const data = JSON.parse(event.body);
-            const userConversationKey = `${data.userId}_${data.conversationId}`;
+            const convKey = `${data.userId}_${data.conversationId}`;
 
-            if (!conversations[userConversationKey]) {
-                conversations[userConversationKey] = [];
+            if (!conversations[convKey]) {
+                conversations[convKey] = [];
             }
 
-            const botMessage = {
-                id: data.messageId || `msg-${Date.now()}`,
-                text: data.text || (data.payload && data.payload.text) || "How can I help?",
+            const newMessage = {
+                id: `msg-${Date.now()}`,
+                text: data.text,
                 sender: 'bot',
-                userId: data.userId,
-                timestamp: Date.now(),
-                rawData: data.payload
+                timestamp: Date.now()
             };
 
-            conversations[userConversationKey].push(botMessage);
-            conversations[userConversationKey] = conversations[userConversationKey].slice(-50);
+            conversations[convKey].push(newMessage);
 
             return {
                 statusCode: 200,
                 headers,
-                body: JSON.stringify({ success: true, message: botMessage })
+                body: JSON.stringify({ success: true, message: newMessage })
             };
         } catch (error) {
             return {

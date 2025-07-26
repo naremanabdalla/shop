@@ -73,6 +73,17 @@ const Chat = () => {
 
       if (!response.ok) {
         throw new Error(data.error || "Bot response failed");
+      } // In sendMessage after getting proxy response
+      console.log("Full proxy response:", data);
+      if (data?.message?.text) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `temp-${Date.now()}`,
+            text: data.message.text,
+            sender: "bot",
+          },
+        ]);
       }
 
       // After getting the proxy response
@@ -104,40 +115,27 @@ const Chat = () => {
   useEffect(() => {
     if (!isOpen) return;
 
-    let lastTimestamp = Date.now();
-    let active = true;
-
     const poll = async () => {
       try {
-        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&userId=${userId}&lastTimestamp=${lastTimestamp}`;
-
+        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&userId=${userId}`;
         const response = await fetch(url);
-        const { messages: newMessages = [], lastTimestamp: newTimestamp } =
-          await response.json();
+        const { messages = [] } = await response.json();
 
-        if (active && newMessages.length > 0) {
-          setMessages((prev) => {
-            const existingIds = new Set(prev.map((m) => m.id));
-            const filtered = newMessages.filter(
-              (msg) => !existingIds.has(msg.id) && msg.sender === "bot" // Only add bot messages
-            );
-            return [...prev, ...filtered];
-          });
-          lastTimestamp = newTimestamp;
-        }
+        setMessages((prev) => {
+          const existingIds = new Set(prev.map((m) => m.id));
+          const newMsgs = messages.filter((msg) => !existingIds.has(msg.id));
+          return newMsgs.length ? [...prev, ...newMsgs] : prev;
+        });
       } catch (error) {
         console.error("Polling error:", error);
       }
     };
 
     poll();
-    const pollInterval = setInterval(poll, 2000);
-
-    return () => {
-      active = false;
-      clearInterval(pollInterval);
-    };
+    const interval = setInterval(poll, 2000);
+    return () => clearInterval(interval);
   }, [isOpen, conversationVersion, userId]);
+
   return (
     <div className="fixed bottom-6 right-6 z-100">
       {isOpen ? (

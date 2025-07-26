@@ -1,6 +1,5 @@
 export const handler = async (event) => {
     const BOTPRESS_URL = "https://webhook.botpress.cloud/667e3082-09f1-4ad3-9071-30ade020ef3b";
-    const BOTPRESS_TOKEN = "bp_pat_se5aRM9MJCiKOr8oH0E7YuXBHBKdDijQn4nD";
 
     const headers = {
         'Access-Control-Allow-Origin': '*',
@@ -10,59 +9,43 @@ export const handler = async (event) => {
     try {
         const payload = JSON.parse(event.body);
 
-        // Generate messageId if not provided
-        const messageId = payload.messageId || `msg-${Date.now()}`;
-
-        const botpressPayload = {
-            type: "text",
-            text: payload.text,
-            userId: payload.userId,
-            conversationId: payload.conversationId,
-            messageId: messageId,  // Ensure this is included
-            payload: {
-                ...payload.payload,
-                metadata: {
-                    userId: payload.userId,
-                    website: "https://shopping022.netlify.app/"
-                }
-            }
-        };
-
-        console.log("Sending to Botpress:", JSON.stringify(botpressPayload, null, 2));
+        console.log("Sending to Botpress:", payload);
 
         const response = await fetch(BOTPRESS_URL, {
             method: "POST",
             headers: {
-                Authorization: `Bearer ${BOTPRESS_TOKEN}`,
                 "Content-Type": "application/json",
+                "Authorization": `Bearer bp_pat_se5aRM9MJCiKOr8oH0E7YuXBHBKdDijQn4nD`
             },
-            body: JSON.stringify(botpressPayload),
+            body: JSON.stringify({
+                type: "text",
+                text: payload.text,
+                userId: payload.userId,
+                conversationId: payload.conversationId,
+                payload: {
+                    metadata: {
+                        userId: payload.userId
+                    }
+                }
+            })
         });
 
-        const responseText = await response.text();
-
-        if (!response.ok) {
-            console.log("Botpress raw response:", responseText);
-            // Add this before returning
-            console.log("Final proxy response:", {
-                statusCode: 200,
-                body: responseText
-            }); throw new Error(`Botpress responded with ${response.status}`);
-        }
+        const responseData = await response.json();
+        console.log("Botpress response:", responseData);
 
         return {
             statusCode: 200,
             headers,
-            body: responseText
+            body: JSON.stringify(responseData)
         };
 
     } catch (error) {
-        console.error('Proxy error:', error);
+        console.error("Proxy error:", error);
         return {
             statusCode: 500,
             headers,
             body: JSON.stringify({
-                error: "Failed to process request",
+                error: "Proxy error",
                 details: error.message
             })
         };
