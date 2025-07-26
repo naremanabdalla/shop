@@ -28,15 +28,13 @@ const Chat = () => {
   const sendMessage = async (textOrEvent) => {
     setIsLoading(true);
 
-    // Handle both string input and event cases
     let text;
     if (typeof textOrEvent === "string") {
-      text = textOrEvent; // Direct text passed (e.g., from buttons)
+      text = textOrEvent;
     } else {
-      text = inputValue; // Default to inputValue for button clicks
+      text = inputValue;
     }
 
-    // Validate text
     if (!text?.trim()) {
       setIsLoading(false);
       return;
@@ -49,7 +47,7 @@ const Chat = () => {
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInputValue(""); // Always clear input after send
+    setInputValue("");
 
     try {
       const response = await fetch("/.netlify/functions/botpress-proxy", {
@@ -58,12 +56,10 @@ const Chat = () => {
         body: JSON.stringify({
           userId,
           messageId: userMessage.id,
-          conversationId: "remoteConversationIdD",
+          conversationId: `remoteConversationIdD-${conversationVersion}`,
           type: "text",
           text: text.trim(),
           payload: {
-            website: "https://shopping022.netlify.app/",
-            // Add this to ensure Botpress includes options
             metadata: {
               userId,
               conversationVersion,
@@ -71,17 +67,12 @@ const Chat = () => {
           },
         }),
       });
+
       const data = await response.json();
       console.log("Proxy response:", data);
-      if (!data?.responses?.length) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `temp-${Date.now()}`,
-            text: "Thinking...",
-            sender: "bot",
-          },
-        ]);
+
+      if (response.status !== 200) {
+        throw new Error(data.error || "Failed to get bot response");
       }
     } catch (error) {
       console.error("Error:", error);
@@ -89,7 +80,7 @@ const Chat = () => {
         ...prev,
         {
           id: `error-${Date.now()}`,
-          text: `Error: ${error.message || "Failed to send message"}`,
+          text: `Error: ${error.message}`,
           sender: "bot",
         },
       ]);
