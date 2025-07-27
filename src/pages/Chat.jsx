@@ -74,37 +74,30 @@ const Chat = () => {
     const data = await response.json();
     console.log("Full Proxy response:", data);
 
-    // Handle Botpress response format
-    if (data.message?.payload?.text) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `bot-${Date.now()}`,
-          text: data.message.payload.text,
-          sender: "bot",
-          rawData: data.message.payload,
-        },
-      ]);
-    } else if (data.message?.text) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `bot-${Date.now()}`,
-          text: data.message.text,
-          sender: "bot",
-        },
-      ]);
-    } else {
-      console.warn("Unexpected response format:", data);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `bot-${Date.now()}`,
-          text: "I didn't understand that. Please try again.",
-          sender: "bot",
-        },
-      ]);
+    // Extract the bot's response text correctly
+    let botResponseText = "How can I help you?"; // Default fallback
+    
+    // Try different response formats
+    if (data?.responses?.[0]?.payload?.text) {
+      botResponseText = data.responses[0].payload.text;
+    } else if (data?.message?.payload?.text) {
+      botResponseText = data.message.payload.text;
+    } else if (data?.message?.text) {
+      botResponseText = data.message.text;
+    } else if (data?.text) {
+      botResponseText = data.text;
     }
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `bot-${Date.now()}`,
+        text: botResponseText,
+        sender: "bot",
+        rawData: data,
+      },
+    ]);
+
   } catch (error) {
     console.error("Error:", error);
     setMessages((prev) => [

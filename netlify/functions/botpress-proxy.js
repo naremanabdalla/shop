@@ -11,7 +11,7 @@ export const handler = async (event) => {
                 Authorization: `Bearer ${BOTPRESS_TOKEN}`,
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(payload), // Send the payload exactly as received
+            body: JSON.stringify(payload),
         });
 
         if (!response.ok) {
@@ -20,15 +20,10 @@ export const handler = async (event) => {
 
         const responseData = await response.json();
         
-        // Ensure we return the response in the expected format
         return {
             statusCode: 200,
             headers: { 'Access-Control-Allow-Origin': '*' },
-            body: JSON.stringify({
-                message: responseData, // Preserve the entire Botpress response
-                userId: payload.userId,
-                conversationId: payload.conversationId
-            })
+            body: JSON.stringify(responseData) // Return the raw Botpress response
         };
     } catch (error) {
         console.error('Proxy error:', error);
