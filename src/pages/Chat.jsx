@@ -70,24 +70,18 @@ const Chat = () => {
     });
 
     const responseData = await response.json();
-    console.log("Botpress Response:", responseData);
+    console.log("Full Botpress Response:", responseData);
 
-    // Handle the specific response format you're getting
-    let botReply = "How can I help you?"; // Default fallback
+    // Extract the actual bot response
+    let botReply = extractBotReply(responseData);
     
-    if (responseData.payload?.text) {
-      botReply = responseData.payload.text;
-    } else if (responseData.text) {
-      botReply = responseData.text;
-    }
-
     setMessages((prev) => [
       ...prev,
       {
         id: `bot-${Date.now()}`,
-        text: botReply,
+        text: botReply.text,
         sender: "bot",
-        rawData: responseData
+        rawData: botReply.payload
       }
     ]);
 
@@ -106,7 +100,39 @@ const Chat = () => {
   }
 };
 
-// Helper function to extract bot reply from different response formats
+// Helper function to extract bot response
+function extractBotReply(response) {
+  // Format 1: Direct payload text
+  if (response.payload?.text) {
+    return {
+      text: response.payload.text,
+      payload: response.payload
+    };
+  }
+  
+  // Format 2: Standard Botpress response
+  if (response.responses?.[0]?.payload?.text) {
+    return {
+      text: response.responses[0].payload.text,
+      payload: response.responses[0].payload
+    };
+  }
+  
+  // Format 3: Simple text response
+  if (response.text) {
+    return {
+      text: response.text,
+      payload: response
+    };
+  }
+  
+  // Fallback if no reply found
+  return {
+    text: "How can I help you?",
+    payload: null
+  };
+}
+
 
 
   const handleKeyPress = (e) => {
