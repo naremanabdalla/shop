@@ -1,15 +1,13 @@
 export const handler = async (event) => {
-  const BOTPRESS_URL =
-    "https://webhook.botpress.cloud/667e3082-09f1-4ad3-9071-30ade020ef3b";
+  const BOTPRESS_URL = "https://webhook.botpress.cloud/667e3082-09f1-4ad3-9071-30ade020ef3b";
   const BOTPRESS_TOKEN = "bp_pat_se5aRM9MJCiKOr8oH0E7YuXBHBKdDijQn4nD";
 
   const headers = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*'
   };
 
-  if (event.httpMethod === "OPTIONS") {
+  if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 204, headers };
   }
 
@@ -24,20 +22,13 @@ export const handler = async (event) => {
       body: JSON.stringify(payload),
     });
 
-    if (!response.ok) {
-      console.error("Botpress error:", await response.text());
-      throw new Error(`Botpress error: ${response.status}`);
-    }
-    return {
-      statusCode: 200,
-      headers,
-      body: await response.text(),
-    };
+    const data = await response.text();
+    return { statusCode: 200, headers, body: data };
   } catch (error) {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: error.message }),
+      body: JSON.stringify({ error: error.message })
     };
   }
 };

@@ -24,7 +24,6 @@ const Chat = () => {
     );
   });
   const messagesEndRef = useRef(null);
-  const conversationId = `conv_${userId}_${Date.now()}`;
   const BOTPRESS_CONFIG = {
     webhookUrl:
       "https://webhook.botpress.cloud/667e3082-09f1-4ad3-9071-30ade020ef3b",

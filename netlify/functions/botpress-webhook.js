@@ -1,57 +1,30 @@
-// Session storage (in-memory)
 const sessionStore = new Map();
 const SECRET = process.env.X_DB_SECRET;
 
-// Session cleanup helper
-const cleanOldSessions = () => {
-  const now = Date.now();
-  sessionStore.forEach((msgs, userId) => {
-    sessionStore.set(userId, msgs.filter(m => now - m.timestamp < 3600000));
-  });
+const headers = {
+  'Content-Type': 'application/json',
+  'Access-Control-Allow-Origin': '*'
 };
 
 export const handler = async (event) => {
-  // Verify the secret first
+  // Secret verification
   if (event.headers['x-db-secret'] !== SECRET) {
-    return { statusCode: 401, body: 'Unauthorized' };
-  }
-
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
-  };
-
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 204, headers };
+    return { statusCode: 401, headers, body: JSON.stringify({ error: 'Unauthorized' }) };
   }
 
   try {
-    cleanOldSessions(); // Cleanup on each request
-
-    // Handle GET requests
     if (event.httpMethod === 'GET') {
       const { userId, lastTimestamp } = event.queryStringParameters || {};
       if (!userId) throw new Error('Missing userId');
       
-      const userMessages = sessionStore.get(userId) || [];
-      const newMessages = lastTimestamp
-        ? userMessages.filter(msg => msg.timestamp > parseInt(lastTimestamp))
-        : userMessages;
-
+      const messages = sessionStore.get(userId) || [];
       return {
         statusCode: 200,
         headers,
-        body: JSON.stringify({
-          messages: newMessages,
-          lastTimestamp: newMessages.length > 0
-            ? Math.max(...newMessages.map(m => m.timestamp))
-            : lastTimestamp || Date.now()
-        })
+        body: JSON.stringify({ messages })
       };
     }
 
-    // Handle POST requests
     if (event.httpMethod === 'POST') {
       const { event: eventType, data } = JSON.parse(event.body);
       
@@ -84,14 +57,10 @@ export const handler = async (event) => {
 
     return { statusCode: 405, headers, body: 'Method not allowed' };
   } catch (error) {
-    console.error('Error:', error);
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({
-        error: "Internal server error",
-        details: error.message
-      })
-    };
-  }
-};
+      body: JSON.stringify({ error: error.message })
+    }
+}
+}
