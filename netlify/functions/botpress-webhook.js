@@ -2,7 +2,6 @@
 const sessionStore = new Map();
 
 export const handler = async (event) => {
-    // CORS headers
     const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
@@ -17,12 +16,10 @@ export const handler = async (event) => {
         // Handle GET requests (frontend polling)
         if (event.httpMethod === 'GET') {
             const { userId, lastTimestamp } = event.queryStringParameters || {};
-            
             if (!userId) throw new Error('Missing userId');
-
+            
             const userMessages = sessionStore.get(userId) || [];
             
-            // Filter messages newer than lastTimestamp
             const newMessages = lastTimestamp
                 ? userMessages.filter(msg => msg.timestamp > parseInt(lastTimestamp))
                 : userMessages;
@@ -51,38 +48,24 @@ export const handler = async (event) => {
                 sessionStore.set(userId, []);
             }
 
-            const botMessage = {
-                id: botResponse.messageId || `msg-${Date.now()}`,
-                text: botResponse.payload?.text || "Bot response",
+            // Store bot reply in SESSION (not Firestore)
+            sessionStore.get(userId).push({
+                id: botResponse.message.id,
+                text: botResponse.message.payload.text,
                 sender: 'bot',
                 timestamp: Date.now(),
                 rawData: botResponse
-            };
+            });
 
-            // Add to session storage
-            sessionStore.get(userId).push(botMessage);
-
-            return {
-                statusCode: 200,
-                headers,
-                body: JSON.stringify({ success: true })
-            };
+            return { statusCode: 200, headers };
         }
 
-        return {
-            statusCode: 405,
-            headers,
-            body: 'Method not allowed'
-        };
+        return { statusCode: 405, headers, body: 'Method not allowed' };
     } catch (error) {
-        console.error('Webhook error:', error);
         return {
             statusCode: 500,
             headers,
-            body: JSON.stringify({
-                error: "Internal server error",
-                details: error.message
-            })
+            body: JSON.stringify({ error: error.message })
         };
     }
 };

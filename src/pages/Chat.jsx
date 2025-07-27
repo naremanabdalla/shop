@@ -103,23 +103,20 @@ useEffect(() => {
     let lastTimestamp = Date.now();
     let active = true;
 
-    const poll = async () => {
-    try {
-        const url = `/.netlify/functions/botpress-webhook?userId=${userId}&lastTimestamp=${lastTimestamp}`;
-        const response = await fetch(url);
-        const { messages: newMessages = [], lastTimestamp: newTimestamp } = 
-            await response.json();
+// Update the polling function to check Firestore:
+const poll = async () => {
+    const url = `/.netlify/functions/botpress-webhook?userId=${userId}&lastTimestamp=${lastTimestamp}`;
+    const response = await fetch(url);
+    const { messages = [] } = await response.json();
 
-        if (active && newMessages.length > 0) {
-            setMessages((prev) => {
-                const existingIds = new Set(prev.map((m) => m.id));
-                const filtered = newMessages.filter(msg => !existingIds.has(msg.id));
-                return [...prev, ...filtered];
-            });
-            lastTimestamp = newTimestamp;
-        }
-    } catch (error) {
-        console.error("Polling error:", error);
+    if (messages.length > 0) {
+        setMessages(prev => [
+            ...prev,
+            ...messages.filter(msg => 
+                !prev.some(m => m.id === msg.id) // Deduplicate
+            )
+        ]);
+        lastTimestamp = Date.now();
     }
 };
 
