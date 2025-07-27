@@ -12,22 +12,12 @@ export const handler = async (event) => {
     }
 
     if (event.httpMethod === 'GET') {
-        const { conversationId, userId, lastTimestamp } = event.queryStringParameters || {};
-        
-        if (!userId) {
-            return {
-                statusCode: 400,
-                headers,
-                body: JSON.stringify({ error: "userId is required" })
-            };
-        }
-
-        const conversationKey = `${userId}-${conversationId || 'default'}`;
-        const convMessages = conversations[conversationKey] || [];
+        const { conversationId, lastTimestamp } = event.queryStringParameters || {};
+        const convMessages = conversations[conversationId] || [];
 
         const newMessages = lastTimestamp
             ? convMessages.filter(msg => msg.timestamp > parseInt(lastTimestamp))
-            : convMessages;
+            : [];
 
         return {
             statusCode: 200,
@@ -44,28 +34,31 @@ export const handler = async (event) => {
     if (event.httpMethod === 'POST') {
         try {
             const botResponse = JSON.parse(event.body);
-            const { userId, conversationId = 'default' } = botResponse;
+            const baseConversationId = botResponse.conversationId || "default";
+            const conversationId = `${baseConversationId}-${botResponse.conversationVersion || 0}`;
 
-            if (!userId) {
-                throw new Error("userId is required");
-            }
-
-            const conversationKey = `${userId}-${conversationId}`;
-            if (!conversations[conversationKey]) {
-                conversations[conversationKey] = [];
+            if (!conversations[conversationId]) {
+                conversations[conversationId] = [];
             }
 
             const botMessage = {
-                id: botResponse.message?.id || `msg-${Date.now()}`,
-                text: botResponse.message?.payload?.text || botResponse.message?.text || "How can I help you?",
+                id: botResponse.botpressMessageId || `msg-${Date.now()}`,
+                text: botResponse.payload?.text || "How can I help you?",
                 sender: 'bot',
-                userId,
-                timestamp: Date.now(),
-                rawData: botResponse.message?.payload
+                rawData: botResponse,
+                timestamp: Date.now()
             };
 
-            conversations[conversationKey].push(botMessage);
-            conversations[conversationKey] = conversations[conversationKey].slice(-20);
+            // Deduplicate before adding
+            const exists = conversations[conversationId].some(
+                m => m.id === botMessage.id
+            );
+
+            if (!exists) {
+                conversations[conversationId].push(botMessage);
+                conversations[conversationId] = conversations[conversationId]
+                    .slice(-20);
+            }
 
             return {
                 statusCode: 200,
@@ -73,7 +66,6 @@ export const handler = async (event) => {
                 body: JSON.stringify({ success: true })
             };
         } catch (error) {
-            console.error('Webhook error:', error);
             return {
                 statusCode: 500,
                 headers,

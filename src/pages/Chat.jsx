@@ -33,125 +33,110 @@ const Chat = () => {
     botId: "b20dd108-4e50-43dc-8c55-1be2ee2a5417",
   };
 
- const sendMessage = async (textOrEvent) => {
-  setIsLoading(true);
+  const sendMessage = async (textOrEvent) => {
+    setIsLoading(true);
 
-  // Get the input text
-  const text = typeof textOrEvent === "string" ? textOrEvent : inputValue;
-  if (!text?.trim()) {
-    setIsLoading(false);
-    return;
-  }
-
-  // Add user message to chat
-  const userMessage = {
-    id: `user-${Date.now()}`,
-    text: text.trim(),
-    sender: "user",
-  };
-  setMessages((prev) => [...prev, userMessage]);
-  setInputValue("");
-
-  try {
-    // Send to Botpress
-    const response = await fetch("/.netlify/functions/botpress-proxy", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type: "text",
-        text: text.trim(),
-        userId,
-        conversationId: `conv-${conversationVersion}`,
-        payload: {}
-      }),
-    });
-
-    const botResponse = await response.json();
-    console.log("Raw Botpress Response:", botResponse);
-
-    // Process bot response
-    let botText = "Sorry, I didn't understand that";
-    let payload = null;
-
-    // Handle different response formats
-    if (botResponse.responses?.[0]?.payload?.text) {
-      botText = botResponse.responses[0].payload.text;
-      payload = botResponse.responses[0].payload;
-    } else if (botResponse.text) {
-      botText = botResponse.text;
-      payload = botResponse;
+    // Handle both string input and event cases
+    let text;
+    if (typeof textOrEvent === "string") {
+      text = textOrEvent; // Direct text passed (e.g., from buttons)
+    } else {
+      text = inputValue; // Default to inputValue for button clicks
     }
 
-    // Add bot message to chat
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: `bot-${Date.now()}`,
-        text: botText,
-        sender: "bot",
-        rawData: payload,
-      },
-    ]);
+    // Validate text
+    if (!text?.trim()) {
+      setIsLoading(false);
+      return;
+    }
 
-  } catch (error) {
-    console.error("Chat error:", error);
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: `error-${Date.now()}`,
-        text: "Sorry, I'm having trouble responding",
-        sender: "bot",
-      },
-    ]);
-  } finally {
-    setIsLoading(false);
-  }
-};
+    const userMessage = {
+      id: `msg-${Date.now()}`,
+      text: text.trim(),
+      sender: "user",
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue(""); // Always clear input after send
+
+    try {
+      const response = await fetch("/.netlify/functions/botpress-proxy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          messageId: userMessage.id,
+          conversationId: "remoteConversationIdD",
+          type: "text",
+          text: text.trim(),
+          payload: { website: "https://shopping022.netlify.app/" },
+        }),
+      });
+      const data = await response.json();
+      console.log("Proxy response:", data);
+    } catch (error) {
+      console.error("Error:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `error-${Date.now()}`,
+          text: "Sorry, there was an error. Please try again.",
+          sender: "bot",
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
       sendMessage();
     }
   };
-useEffect(() => {
-  messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-}, [messages]);
- useEffect(() => {
-  if (!isOpen) return;
 
-  let lastTimestamp = Date.now();
-  let active = true;
+  useEffect(() => {
+    if (!isOpen) return;
 
-  const poll = async () => {
-    try {
-      const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&userId=${userId}&lastTimestamp=${lastTimestamp}`;
+    let lastTimestamp = Date.now();
+    let active = true;
 
-      const response = await fetch(url);
-      const { messages: newMessages, lastTimestamp: newTimestamp } = await response.json();
+    const poll = async () => {
+      try {
+        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&lastTimestamp=${lastTimestamp}`;
 
-      if (active && newMessages.length > 0) {
-        setMessages((prev) => {
-          const existingIds = new Set(prev.map((m) => m.id));
-          const filtered = newMessages.filter(
-            (msg) => !existingIds.has(msg.id) && msg.sender === "bot"
-          );
-          return filtered.length > 0 ? [...prev, ...filtered] : prev;
-        });
-        lastTimestamp = newTimestamp;
+        const response = await fetch(url);
+        const { messages: newMessages, lastTimestamp: newTimestamp } =
+          await response.json();
+
+        if (active && newMessages.length > 0) {
+          setMessages((prev) => {
+            // Deduplicate by message ID
+            const existingIds = new Set(prev.map((m) => m.id));
+            const filtered = newMessages.filter(
+              (msg) => !existingIds.has(msg.id)
+            );
+            return filtered.length > 0 ? [...prev, ...filtered] : prev;
+          });
+          lastTimestamp = newTimestamp;
+        }
+      } catch (error) {
+        console.error("Polling error:", error);
       }
-    } catch (error) {
-      console.error("Polling error:", error);
-    }
-  };
+    };
 
-  poll();
-  const interval = setInterval(poll, 3000);
-  
-  return () => {
-    active = false;
-    clearInterval(interval);
-  };
-}, [isOpen, conversationVersion, userId]);
+    // Initial poll
+    poll();
+
+    // Slower polling interval (3000ms)
+    const pollInterval = setInterval(poll, 3000);
+
+    return () => {
+      active = false;
+      clearInterval(pollInterval);
+    };
+  }, [isOpen, conversationVersion]); // Add conversationVersion to dependencies
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem("chatMessages", JSON.stringify(messages));
