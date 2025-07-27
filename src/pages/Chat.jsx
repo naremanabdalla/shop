@@ -41,9 +41,13 @@ const Chat = () => {
     return;
   }
 
+  // Generate unique IDs
+  const messageId = `msg-${Date.now()}`;
+  const userId = currentUser?.uid || `anon-${Date.now()}`;
+
   // Add user message
   const userMessage = {
-    id: `user-${Date.now()}`,
+    id: messageId,
     text: text.trim(),
     sender: "user",
   };
@@ -55,8 +59,10 @@ const Chat = () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        type: "text",
         text: text.trim(),
-        userId: currentUser?.uid || `anon-${Date.now()}`,
+        userId,
+        messageId, // This was missing!
         conversationId: `conv-${conversationVersion}`,
         payload: {
           website: "https://shopping022.netlify.app/"
@@ -64,7 +70,6 @@ const Chat = () => {
       }),
     });
 
-    // Handle both JSON and text responses
     const responseText = await response.text();
     let data;
     
@@ -81,14 +86,10 @@ const Chat = () => {
     console.log("Botpress Response:", data);
 
     // Extract bot reply
-    let botReply = "I didn't understand that. Could you rephrase?";
-    if (data.responses?.[0]?.payload?.text) {
-      botReply = data.responses[0].payload.text;
-    } else if (data.text) {
-      botReply = data.text;
-    } else if (data.message) {
-      botReply = data.message;
-    }
+    let botReply = data.responses?.[0]?.payload?.text || 
+                  data.text || 
+                  data.message || 
+                  "I didn't understand that. Could you rephrase?";
 
     setMessages((prev) => [
       ...prev,
@@ -106,7 +107,9 @@ const Chat = () => {
       ...prev,
       {
         id: `error-${Date.now()}`,
-        text: "Sorry, I'm having trouble responding. Please try again.",
+        text: error.message.includes("Validation") 
+              ? "Sorry, there was a configuration error" 
+              : "Sorry, I'm having trouble responding",
         sender: "bot",
       },
     ]);
@@ -116,37 +119,7 @@ const Chat = () => {
 };
 
 // Helper function to extract bot reply from different response formats
-function extractBotReply(response) {
-  // Format 1: Standard Botpress response
-  if (response?.responses?.[0]?.payload?.text) {
-    return {
-      text: response.responses[0].payload.text,
-      payload: response.responses[0].payload
-    };
-  }
-  
-  // Format 2: Alternative structure
-  if (response?.message?.payload?.text) {
-    return {
-      text: response.message.payload.text,
-      payload: response.message.payload
-    };
-  }
-  
-  // Format 3: Simple text response
-  if (response?.text) {
-    return {
-      text: response.text,
-      payload: response
-    };
-  }
-  
-  // Fallback if no reply found
-  return {
-    text: "I didn't understand that. Could you rephrase?",
-    payload: null
-  };
-}
+
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
