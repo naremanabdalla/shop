@@ -32,108 +32,61 @@ const Chat = () => {
     botId: "b20dd108-4e50-43dc-8c55-1be2ee2a5417",
   };
 
- const sendMessage = async (textOrEvent) => {
-  setIsLoading(true);
-  
-  const text = typeof textOrEvent === "string" ? textOrEvent : inputValue;
-  if (!text?.trim()) {
-    setIsLoading(false);
-    return;
-  }
+  const sendMessage = async (textOrEvent) => {
+    setIsLoading(true);
 
-  const messageId = `msg-${Date.now()}`;
-  const userId = currentUser?.uid || `user_${Date.now()}`;
+    // Handle both string input and event cases
+    let text;
+    if (typeof textOrEvent === "string") {
+      text = textOrEvent; // Direct text passed (e.g., from buttons)
+    } else {
+      text = inputValue; // Default to inputValue for button clicks
+    }
 
-  // Add user message
-  const userMessage = {
-    id: messageId,
-    text: text.trim(),
-    sender: "user",
+    // Validate text
+    if (!text?.trim()) {
+      setIsLoading(false);
+      return;
+    }
+
+    const userMessage = {
+      id: `msg-${Date.now()}`,
+      text: text.trim(),
+      sender: "user",
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue(""); // Always clear input after send
+
+    try {
+      const response = await fetch("/.netlify/functions/botpress-proxy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          messageId: userMessage.id,
+          conversationId: "remoteConversationIdD",
+          type: "text",
+          text: text.trim(),
+          payload: { website: "https://shopping022.netlify.app/" },
+        }),
+      });
+      const data = await response.json();
+      console.log("Proxy response:", data);
+    } catch (error) {
+      console.error("Error:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `error-${Date.now()}`,
+          text: "Sorry, there was an error. Please try again.",
+          sender: "bot",
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
   };
-  setMessages((prev) => [...prev, userMessage]);
-  setInputValue("");
-
-  try {
-    const response = await fetch("/.netlify/functions/botpress-proxy", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type: "text",
-        text: text.trim(),
-        userId,
-        messageId,
-        conversationId: `conv-${conversationVersion}`,
-        payload: {
-          website: "https://shopping022.netlify.app/"
-        }
-      }),
-    });
-
-    const responseData = await response.json();
-    console.log("Full Botpress Response:", responseData);
-
-    // Extract the actual bot response
-    let botReply = extractBotReply(responseData);
-    
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: `bot-${Date.now()}`,
-        text: botReply.text,
-        sender: "bot",
-        rawData: botReply.payload
-      }
-    ]);
-
-  } catch (error) {
-    console.error("Chat error:", error);
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: `error-${Date.now()}`,
-        text: "Sorry, I'm having trouble responding",
-        sender: "bot",
-      },
-    ]);
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-// Helper function to extract bot response
-function extractBotReply(response) {
-  // Format 1: Direct payload text
-  if (response.payload?.text) {
-    return {
-      text: response.payload.text,
-      payload: response.payload
-    };
-  }
-  
-  // Format 2: Standard Botpress response
-  if (response.responses?.[0]?.payload?.text) {
-    return {
-      text: response.responses[0].payload.text,
-      payload: response.responses[0].payload
-    };
-  }
-  
-  // Format 3: Simple text response
-  if (response.text) {
-    return {
-      text: response.text,
-      payload: response
-    };
-  }
-  
-  // Fallback if no reply found
-  return {
-    text: "How can I help you?",
-    payload: null
-  };
-}
-
-
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
@@ -217,32 +170,39 @@ function extractBotReply(response) {
 
           {/* Messages container */}
           <div className="flex-1 p-3 overflow-y-auto">
-            {/* In your messages rendering */}
-{messages.map((message) => (
-  <div key={message.id} className={`mb-3 ${message.sender === "user" ? "text-right" : "text-left"}`}>
-    <div className={`inline-block p-2 rounded-lg ${
-      message.sender === "user" ? "bg-blue-500 text-white" : "bg-gray-200 text-black"
-    }`}>
-      {/* Ensure we only render strings */}
-      {typeof message.text === 'string' ? message.text : JSON.stringify(message.text)}
-      
-      {/* Safely render options if they exist */}
-      {message.rawData?.payload?.options && (
-        <div className="flex space-x-2 mt-2">
-          {message.rawData.payload.options.map((option) => (
-            <button
-              key={option.value}
-              className="bg-blue-100 px-3 py-1 rounded text-sm"
-              onClick={() => sendMessage(option.value)}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  </div>
-))}
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`mb-3 ${
+                  message.sender === "user" ? "text-right" : "text-left"
+                }`}
+              >
+                <div
+                  className={`inline-block p-2 rounded-lg ${
+                    message.sender === "user"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-200 text-black"
+                  }`}
+                >
+                  {message.text}
+
+                  {/* Add this block right after {message.text} */}
+                  {message.rawData?.payload?.options && (
+                    <div className="flex space-x-2 mt-2">
+                      {message.rawData.payload.options.map((option) => (
+                        <button
+                          key={option.value}
+                          className="bg-blue-100 px-3 py-1 rounded text-sm"
+                          onClick={() => sendMessage(option.value)}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
             <div ref={messagesEndRef} />
           </div>
 

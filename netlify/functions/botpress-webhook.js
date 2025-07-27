@@ -1,8 +1,6 @@
-
 let conversations = {};
 
 export const handler = async (event) => {
-    console.log('Incoming request:', event.httpMethod, event.queryStringParameters, event.body);
     const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
