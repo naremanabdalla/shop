@@ -1,4 +1,4 @@
-import { db } from '../lib/firebase'; // Your Firebase initialization file
+import { db } from "../../src/auth/firebse"; // Your Firebase initialization file
 
 export const handler = async (event) => {
     const BOTPRESS_URL = "https://webhook.botpress.cloud/667e3082-09f1-4ad3-9071-30ade020ef3b";
