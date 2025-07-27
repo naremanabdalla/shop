@@ -12,12 +12,15 @@ export const handler = async (event) => {
     }
 
     if (event.httpMethod === 'GET') {
-        const { conversationId, lastTimestamp } = event.queryStringParameters || {};
-        const convMessages = conversations[conversationId] || [];
+        const { conversationId, userId, lastTimestamp } = event.queryStringParameters || {};
+        
+        // Create unique conversation key combining userId and conversationId
+        const conversationKey = `${userId}-${conversationId || 'default'}`;
+        const convMessages = conversations[conversationKey] || [];
 
         const newMessages = lastTimestamp
-            ? convMessages.filter(msg => msg.timestamp > parseInt(lastTimestamp))
-            : [];
+            ? convMessages.filter(msg => msg.timestamp > parseInt(lastTimestamp) && msg.userId === userId)
+            : convMessages.filter(msg => msg.userId === userId);
 
         return {
             statusCode: 200,
@@ -34,30 +37,28 @@ export const handler = async (event) => {
     if (event.httpMethod === 'POST') {
         try {
             const botResponse = JSON.parse(event.body);
-            const baseConversationId = botResponse.conversationId || "default";
-            const conversationId = `${baseConversationId}-${botResponse.conversationVersion || 0}`;
+            const { userId, conversationId = 'default' } = botResponse;
+            
+            if (!userId) throw new Error("userId is required");
 
-            if (!conversations[conversationId]) {
-                conversations[conversationId] = [];
+            const conversationKey = `${userId}-${conversationId}`;
+            if (!conversations[conversationKey]) {
+                conversations[conversationKey] = [];
             }
 
             const botMessage = {
-                id: botResponse.botpressMessageId || `msg-${Date.now()}`,
-                text: botResponse.payload?.text || "How can I help you?",
+                id: botResponse.messageId || `msg-${Date.now()}`,
+                text: botResponse.payload?.text || botResponse.text || "How can I help you?",
                 sender: 'bot',
+                userId: userId, // Include userId in message
                 rawData: botResponse,
                 timestamp: Date.now()
             };
 
-            // Deduplicate before adding
-            const exists = conversations[conversationId].some(
-                m => m.id === botMessage.id
-            );
-
-            if (!exists) {
-                conversations[conversationId].push(botMessage);
-                conversations[conversationId] = conversations[conversationId]
-                    .slice(-20);
+            // Deduplicate and store
+            if (!conversations[conversationKey].some(m => m.id === botMessage.id)) {
+                conversations[conversationKey].push(botMessage);
+                conversations[conversationKey] = conversations[conversationKey].slice(-20);
             }
 
             return {
