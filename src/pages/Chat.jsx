@@ -41,7 +41,6 @@ const Chat = () => {
     return;
   }
 
-  // Generate unique IDs
   const messageId = `msg-${Date.now()}`;
   const userId = currentUser?.uid || `anon-${Date.now()}`;
 
@@ -62,7 +61,7 @@ const Chat = () => {
         type: "text",
         text: text.trim(),
         userId,
-        messageId, // This was missing!
+        messageId,
         conversationId: `conv-${conversationVersion}`,
         payload: {
           website: "https://shopping022.netlify.app/"
@@ -76,40 +75,45 @@ const Chat = () => {
     try {
       data = JSON.parse(responseText);
     } catch {
+      // If response isn't JSON, treat it as plain text
       data = { text: responseText };
     }
 
     if (!response.ok) {
-      throw new Error(data.error || data.details || "Botpress request failed");
+      throw new Error(data.error?.message || data.details || "Request failed");
     }
 
     console.log("Botpress Response:", data);
 
-    // Extract bot reply
-    let botReply = data.responses?.[0]?.payload?.text || 
-                  data.text || 
-                  data.message || 
-                  "I didn't understand that. Could you rephrase?";
+    // Safely extract bot reply text
+    const getBotReply = () => {
+      if (typeof data === 'string') return data;
+      if (data.responses?.[0]?.payload?.text) return data.responses[0].payload.text;
+      if (data.text) return data.text;
+      if (data.message) return data.message;
+      return "I didn't understand that. Could you rephrase?";
+    };
 
+    const botReply = getBotReply();
+
+    // Ensure we're only storing strings in message.text
     setMessages((prev) => [
       ...prev,
       {
         id: `bot-${Date.now()}`,
-        text: botReply,
+        text: typeof botReply === 'string' ? botReply : JSON.stringify(botReply),
         sender: "bot",
         rawData: data
       }
     ]);
 
   } catch (error) {
-    console.error("Chat error:", error.message);
+    console.error("Chat error:", error);
     setMessages((prev) => [
       ...prev,
       {
         id: `error-${Date.now()}`,
-        text: error.message.includes("Validation") 
-              ? "Sorry, there was a configuration error" 
-              : "Sorry, I'm having trouble responding",
+        text: error.message,
         sender: "bot",
       },
     ]);
@@ -203,39 +207,32 @@ const Chat = () => {
 
           {/* Messages container */}
           <div className="flex-1 p-3 overflow-y-auto">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`mb-3 ${
-                  message.sender === "user" ? "text-right" : "text-left"
-                }`}
-              >
-                <div
-                  className={`inline-block p-2 rounded-lg ${
-                    message.sender === "user"
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200 text-black"
-                  }`}
-                >
-                  {message.text}
-
-                  {/* Add this block right after {message.text} */}
-                  {message.rawData?.payload?.options && (
-                    <div className="flex space-x-2 mt-2">
-                      {message.rawData.payload.options.map((option) => (
-                        <button
-                          key={option.value}
-                          className="bg-blue-100 px-3 py-1 rounded text-sm"
-                          onClick={() => sendMessage(option.value)}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
+            {/* In your messages rendering */}
+{messages.map((message) => (
+  <div key={message.id} className={`mb-3 ${message.sender === "user" ? "text-right" : "text-left"}`}>
+    <div className={`inline-block p-2 rounded-lg ${
+      message.sender === "user" ? "bg-blue-500 text-white" : "bg-gray-200 text-black"
+    }`}>
+      {/* Ensure we only render strings */}
+      {typeof message.text === 'string' ? message.text : JSON.stringify(message.text)}
+      
+      {/* Safely render options if they exist */}
+      {message.rawData?.payload?.options && (
+        <div className="flex space-x-2 mt-2">
+          {message.rawData.payload.options.map((option) => (
+            <button
+              key={option.value}
+              className="bg-blue-100 px-3 py-1 rounded text-sm"
+              onClick={() => sendMessage(option.value)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+))}
             <div ref={messagesEndRef} />
           </div>
 
