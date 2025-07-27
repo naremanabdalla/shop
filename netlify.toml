@@ -2,3 +2,9 @@
   from = "/*"
   to = "/index.html"
   status = 200
+  [build]
+  command = "npm run build"
+  functions = "functions"
+
+[build.environment]
+  X_DB_SECRET = "your-generated-secret-here" # Same as in Netlify UI

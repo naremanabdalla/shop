@@ -3,7 +3,7 @@ import { RiRobot3Line } from "react-icons/ri";
 import { useAuth } from "../Context/authContext";
 
 const Chat = () => {
-    const { currentUser } = useAuth();
+  const { currentUser } = useAuth();
 
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState(() => {
@@ -16,14 +16,16 @@ const Chat = () => {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [conversationVersion, setConversationVersion] = useState(0);
- const [userId] = useState(() => {
-    return currentUser?.uid || localStorage.getItem('chatUserId') || `user-${crypto.randomUUID()}`;
-});
- const messagesEndRef = useRef(null);
-
-  // Your Botpress API configuration
+  const [userId] = useState(() => {
+    return (
+      currentUser?.uid ||
+      localStorage.getItem("chatUserId") ||
+      `user-${crypto.randomUUID()}`
+    );
+  });
+  const messagesEndRef = useRef(null);
+  const conversationId = `conv_${userId}_${Date.now()}`;
   const BOTPRESS_CONFIG = {
-    // Use the OUTGOING URL from your integration panel
     webhookUrl:
       "https://webhook.botpress.cloud/667e3082-09f1-4ad3-9071-30ade020ef3b",
     accessToken: "bp_pat_se5aRM9MJCiKOr8oH0E7YuXBHBKdDijQn4nD",
@@ -63,7 +65,7 @@ const Chat = () => {
         body: JSON.stringify({
           userId,
           messageId: userMessage.id,
-          conversationId: "remoteConversationIdD",
+          conversationId: `conv_${userId}_${Date.now()}`,
           type: "text",
           text: text.trim(),
           payload: { website: "https://shopping022.netlify.app/" },
@@ -92,51 +94,54 @@ const Chat = () => {
     }
   };
 
-useEffect(() => {
-    if (!currentUser && !localStorage.getItem('chatUserId')) {
-        localStorage.setItem('chatUserId', userId);
+  useEffect(() => {
+    if (!currentUser && !localStorage.getItem("chatUserId")) {
+      localStorage.setItem("chatUserId", userId);
     }
-}, [userId]);
+  }, [userId]);
   useEffect(() => {
     if (!isOpen) return;
 
-    let lastTimestamp = Date.now();
     let active = true;
+    let lastTimestamp = Date.now();
 
-// Update the polling function to check Firestore:
-const poll = async () => {
-    const url = `/.netlify/functions/botpress-webhook?userId=${userId}&lastTimestamp=${lastTimestamp}`;
-    const response = await fetch(url);
-    const { messages = [] } = await response.json();
+    const poll = async () => {
+      try {
+        const url = `/.netlify/functions/botpress-webhook?userId=${userId}&lastTimestamp=${lastTimestamp}`;
+        const response = await fetch(url);
+        const { messages: newMessages = [] } = await response.json();
 
-    if (messages.length > 0) {
-        setMessages(prev => [
-            ...prev,
-            ...messages.filter(msg => 
-                !prev.some(m => m.id === msg.id) // Deduplicate
-            )
-        ]);
-        lastTimestamp = Date.now();
-    }
-};
+        if (active && newMessages.length > 0) {
+          setMessages((prev) => {
+            const existingIds = new Set(prev.map((m) => m.id));
+            const filtered = newMessages.filter(
+              (msg) => !existingIds.has(msg.id)
+            );
+            return [...prev, ...filtered];
+          });
+          lastTimestamp = Date.now();
+        }
+      } catch (error) {
+        console.error("Polling error:", error);
+      }
+    };
 
-    // Initial poll
+    // Immediate poll then set interval
     poll();
-
-    // Slower polling interval (3000ms)
     const pollInterval = setInterval(poll, 3000);
 
     return () => {
       active = false;
       clearInterval(pollInterval);
     };
-  }, [isOpen, conversationVersion]); // Add conversationVersion to dependencies
-
+  }, [isOpen, conversationVersion, userId]);
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem("chatMessages", JSON.stringify(messages));
     }
   }, [messages]);
+
+ 
   return (
     <div className="fixed bottom-6 right-6 z-100">
       {isOpen ? (
