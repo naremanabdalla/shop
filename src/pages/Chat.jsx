@@ -105,8 +105,7 @@ useEffect(() => {
 
     const poll = async () => {
       try {
-const url = `/.netlify/functions/botpress-webhook?userId=${userId}`;
-        const response = await fetch(url);
+const url = `/.netlify/functions/botpress-webhook?userId=${userId}&lastTimestamp=${lastTimestamp}`;        const response = await fetch(url);
         const { messages: newMessages, lastTimestamp: newTimestamp } =
           await response.json();
 
