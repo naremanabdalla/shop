@@ -4,36 +4,32 @@ export const handler = async (event) => {
 
     try {
         const payload = JSON.parse(event.body);
-
-        // Add conversation version to payload
-        const enhancedPayload = {
-            ...payload,
-            conversationVersion: payload.conversationVersion || 0
-        };
-
+        
         const response = await fetch(BOTPRESS_URL, {
             method: "POST",
             headers: {
-                Authorization: `Bearer ${BOTPRESS_TOKEN}`,
                 "Content-Type": "application/json",
+                "Authorization": `Bearer ${BOTPRESS_TOKEN}`
             },
-            body: JSON.stringify(enhancedPayload),
+            body: JSON.stringify(payload),
         });
 
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!response.ok) {
+            throw new Error(`Botpress returned ${response.status}`);
+        }
 
+        // Return the COMPLETE response from Botpress
         return {
             statusCode: 200,
             headers: { 'Access-Control-Allow-Origin': '*' },
-            body: await response.text()
+            body: await response.text() // Preserve the exact response
         };
     } catch (error) {
-        console.error('Proxy error:', error);
         return {
             statusCode: 500,
             headers: { 'Access-Control-Allow-Origin': '*' },
             body: JSON.stringify({
-                error: "Failed to reach Botpress",
+                error: "Failed to communicate with Botpress",
                 details: error.message
             })
         };

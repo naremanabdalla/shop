@@ -33,60 +33,100 @@ const Chat = () => {
   };
 
   const sendMessage = async (textOrEvent) => {
-    setIsLoading(true);
+  setIsLoading(true);
+  
+  const text = typeof textOrEvent === "string" ? textOrEvent : inputValue;
+  if (!text?.trim()) {
+    setIsLoading(false);
+    return;
+  }
 
-    // Handle both string input and event cases
-    let text;
-    if (typeof textOrEvent === "string") {
-      text = textOrEvent; // Direct text passed (e.g., from buttons)
-    } else {
-      text = inputValue; // Default to inputValue for button clicks
-    }
-
-    // Validate text
-    if (!text?.trim()) {
-      setIsLoading(false);
-      return;
-    }
-
-    const userMessage = {
-      id: `msg-${Date.now()}`,
-      text: text.trim(),
-      sender: "user",
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInputValue(""); // Always clear input after send
-
-    try {
-      const response = await fetch("/.netlify/functions/botpress-proxy", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId,
-          messageId: userMessage.id,
-          conversationId: "remoteConversationIdD",
-          type: "text",
-          text: text.trim(),
-          payload: { website: "https://shopping022.netlify.app/" },
-        }),
-      });
-      const data = await response.json();
-      console.log("Proxy response:", data);
-    } catch (error) {
-      console.error("Error:", error);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `error-${Date.now()}`,
-          text: "Sorry, there was an error. Please try again.",
-          sender: "bot",
-        },
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
+  // Add user message
+  const userMessage = {
+    id: `user-${Date.now()}`,
+    text: text.trim(),
+    sender: "user",
   };
+  setMessages((prev) => [...prev, userMessage]);
+  setInputValue("");
+
+  try {
+    const response = await fetch("/.netlify/functions/botpress-proxy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "text",
+        text: text.trim(),
+        userId,
+        conversationId: `conv-${conversationVersion}`,
+        payload: {}
+      }),
+    });
+
+    const botResponse = await response.json();
+    console.log("Raw Botpress Response:", botResponse);
+
+    // Extract the actual bot reply from different possible response formats
+    const botReply = extractBotReply(botResponse);
+    
+    // Add bot message to UI
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `bot-${Date.now()}`,
+        text: botReply.text,
+        sender: "bot",
+        rawData: botReply.payload,
+      },
+    ]);
+
+  } catch (error) {
+    console.error("Chat error:", error);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `error-${Date.now()}`,
+        text: "Sorry, I'm having trouble responding",
+        sender: "bot",
+      },
+    ]);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+// Helper function to extract bot reply from different response formats
+function extractBotReply(response) {
+  // Format 1: Standard Botpress response
+  if (response?.responses?.[0]?.payload?.text) {
+    return {
+      text: response.responses[0].payload.text,
+      payload: response.responses[0].payload
+    };
+  }
+  
+  // Format 2: Alternative structure
+  if (response?.message?.payload?.text) {
+    return {
+      text: response.message.payload.text,
+      payload: response.message.payload
+    };
+  }
+  
+  // Format 3: Simple text response
+  if (response?.text) {
+    return {
+      text: response.text,
+      payload: response
+    };
+  }
+  
+  // Fallback if no reply found
+  return {
+    text: "I didn't understand that. Could you rephrase?",
+    payload: null
+  };
+}
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
