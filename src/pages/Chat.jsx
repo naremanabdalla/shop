@@ -16,12 +16,10 @@ const Chat = () => {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [conversationVersion, setConversationVersion] = useState(0);
-  const [userId] = useState(() => {
-    // Use currentUser's UID if available, otherwise generate a random ID
-    return (
-      currentUser?.uid || `user-${Math.random().toString(36).substr(2, 9)}`
-    );
-  });  const messagesEndRef = useRef(null);
+ const [userId] = useState(() => {
+    return currentUser?.uid || localStorage.getItem('chatUserId') || `user-${crypto.randomUUID()}`;
+});
+ const messagesEndRef = useRef(null);
 
   // Your Botpress API configuration
   const BOTPRESS_CONFIG = {
@@ -94,6 +92,11 @@ const Chat = () => {
     }
   };
 
+useEffect(() => {
+    if (!currentUser && !localStorage.getItem('chatUserId')) {
+        localStorage.setItem('chatUserId', userId);
+    }
+}, [userId]);
   useEffect(() => {
     if (!isOpen) return;
 
@@ -102,8 +105,7 @@ const Chat = () => {
 
     const poll = async () => {
       try {
-        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&lastTimestamp=${lastTimestamp}`;
-
+const url = `/.netlify/functions/botpress-webhook?userId=${userId}`;
         const response = await fetch(url);
         const { messages: newMessages, lastTimestamp: newTimestamp } =
           await response.json();
