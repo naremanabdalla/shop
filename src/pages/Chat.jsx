@@ -105,25 +105,42 @@ const Chat = () => {
     let lastTimestamp = Date.now();
 
     const poll = async () => {
-      try {
-        const url = `/.netlify/functions/botpress-webhook?userId=${userId}&lastTimestamp=${lastTimestamp}`;
-        const response = await fetch(url);
-        const { messages: newMessages = [] } = await response.json();
-
-        if (active && newMessages.length > 0) {
-          setMessages((prev) => {
-            const existingIds = new Set(prev.map((m) => m.id));
-            const filtered = newMessages.filter(
-              (msg) => !existingIds.has(msg.id)
-            );
-            return [...prev, ...filtered];
-          });
-          lastTimestamp = Date.now();
-        }
-      } catch (error) {
-        console.error("Polling error:", error);
-      }
-    };
+  try {
+    const url = `/.netlify/functions/botpress-webhook?userId=${userId}&lastTimestamp=${lastTimestamp}`;
+    const response = await fetch(url);
+    
+    // First check if response is OK
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    // Verify content type is JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType?.includes('application/json')) {
+      const text = await response.text();
+      throw new Error(`Expected JSON, got: ${text.substring(0, 100)}`);
+    }
+    
+    const { messages = [] } = await response.json();
+    
+    if (messages.length > 0) {
+      setMessages(prev => {
+        const existingIds = new Set(prev.map(m => m.id));
+        const newMessages = messages.filter(msg => !existingIds.has(msg.id));
+        return [...prev, ...newMessages];
+      });
+      lastTimestamp = Date.now();
+    }
+  } catch (error) {
+    console.error("Polling error:", error);
+    // Optional: Add user-facing error message
+    setMessages(prev => [...prev, {
+      id: `error-${Date.now()}`,
+      text: "Connection issue - retrying...",
+      sender: "system"
+    }]);
+  }
+};
 
     // Immediate poll then set interval
     poll();
