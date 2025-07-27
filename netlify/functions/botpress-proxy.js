@@ -1,41 +1,35 @@
 export const handler = async (event) => {
-    const BOTPRESS_URL = "https://webhook.botpress.cloud/667e3082-09f1-4ad3-9071-30ade020ef3b";
-    const BOTPRESS_TOKEN = "bp_pat_se5aRM9MJCiKOr8oH0E7YuXBHBKdDijQn4nD";
+  const BOTPRESS_URL = "https://webhook.botpress.cloud/667e3082-09f1-4ad3-9071-30ade020ef3b";
+  const BOTPRESS_TOKEN = "bp_pat_se5aRM9MJCiKOr8oH0E7YuXBHBKdDijQn4nD";
 
-    try {
-        const payload = JSON.parse(event.body);
-        
-        const response = await fetch(BOTPRESS_URL, {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${BOTPRESS_TOKEN}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
-        });
+  try {
+    // Forward the exact same payload to Botpress
+    const response = await fetch(BOTPRESS_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${BOTPRESS_TOKEN}`
+      },
+      body: event.body // Forward the exact same body
+    });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Botpress error: ${errorText}`);
-        }
+    if (!response.ok) throw new Error(`Botpress returned ${response.status}`);
 
-        const responseData = await response.json();
-        
-        // Ensure we're returning the complete response structure
-        return {
-            statusCode: 200,
-            headers: { 'Access-Control-Allow-Origin': '*' },
-            body: JSON.stringify(responseData)
-        };
-    } catch (error) {
-        console.error('Proxy error:', error);
-        return {
-            statusCode: 500,
-            headers: { 'Access-Control-Allow-Origin': '*' },
-            body: JSON.stringify({
-                error: "Failed to reach Botpress",
-                details: error.message
-            })
-        };
-    }
+    // Return the raw Botpress response
+    return {
+      statusCode: 200,
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      body: await response.text()
+    };
+
+  } catch (error) {
+    return {
+      statusCode: 500,
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      body: JSON.stringify({
+        error: "Failed to communicate with Botpress",
+        details: error.message
+      })
+    };
+  }
 };

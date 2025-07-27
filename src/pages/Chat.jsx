@@ -36,71 +36,70 @@ const Chat = () => {
  const sendMessage = async (textOrEvent) => {
   setIsLoading(true);
 
-  let text;
-  if (typeof textOrEvent === "string") {
-    text = textOrEvent;
-  } else {
-    text = inputValue;
-  }
-
+  // Get the input text
+  const text = typeof textOrEvent === "string" ? textOrEvent : inputValue;
   if (!text?.trim()) {
     setIsLoading(false);
     return;
   }
 
+  // Add user message to chat
   const userMessage = {
-    id: `msg-${Date.now()}`,
+    id: `user-${Date.now()}`,
     text: text.trim(),
     sender: "user",
   };
-
   setMessages((prev) => [...prev, userMessage]);
   setInputValue("");
 
   try {
+    // Send to Botpress
     const response = await fetch("/.netlify/functions/botpress-proxy", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        userId,
-        messageId: userMessage.id,
-        conversationId: `remoteConversationIdD-${conversationVersion}`,
         type: "text",
         text: text.trim(),
-        payload: { website: "https://shopping022.netlify.app/" },
+        userId,
+        conversationId: `conv-${conversationVersion}`,
+        payload: {}
       }),
     });
 
-    const data = await response.json();
-    console.log("Full Botpress response:", data);
+    const botResponse = await response.json();
+    console.log("Raw Botpress Response:", botResponse);
 
-    // Extract bot response correctly
-    let botResponse = extractBotResponse(data);
-    
-    if (!botResponse) {
-      botResponse = {
-        text: "I'm having trouble responding. Please try again later.",
-        payload: null
-      };
+    // Process bot response
+    let botText = "Sorry, I didn't understand that";
+    let payload = null;
+
+    // Handle different response formats
+    if (botResponse.responses?.[0]?.payload?.text) {
+      botText = botResponse.responses[0].payload.text;
+      payload = botResponse.responses[0].payload;
+    } else if (botResponse.text) {
+      botText = botResponse.text;
+      payload = botResponse;
     }
 
+    // Add bot message to chat
     setMessages((prev) => [
       ...prev,
       {
         id: `bot-${Date.now()}`,
-        text: botResponse.text,
+        text: botText,
         sender: "bot",
-        rawData: botResponse.payload,
+        rawData: payload,
       },
     ]);
 
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Chat error:", error);
     setMessages((prev) => [
       ...prev,
       {
         id: `error-${Date.now()}`,
-        text: "Sorry, there was an error. Please try again.",
+        text: "Sorry, I'm having trouble responding",
         sender: "bot",
       },
     ]);
@@ -109,36 +108,14 @@ const Chat = () => {
   }
 };
 
-// Helper function to extract bot response
-function extractBotResponse(data) {
-  // Try different response formats
-  if (data?.responses?.[0]?.payload?.text) {
-    return {
-      text: data.responses[0].payload.text,
-      payload: data.responses[0].payload
-    };
-  }
-  if (data?.message?.payload?.text) {
-    return {
-      text: data.message.payload.text,
-      payload: data.message.payload
-    };
-  }
-  if (data?.text) {
-    return {
-      text: data.text,
-      payload: data
-    };
-  }
-  return null;
-}
-
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
       sendMessage();
     }
   };
-
+useEffect(() => {
+  messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+}, [messages]);
  useEffect(() => {
   if (!isOpen) return;
 
