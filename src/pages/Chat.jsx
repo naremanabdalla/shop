@@ -1,10 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { RiRobot3Line } from "react-icons/ri";
-import { useAuth } from "../Context/authContext";
 
 const Chat = () => {
-  const { currentUser } = useAuth();
-
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState(() => {
     if (typeof window !== "undefined") {
@@ -16,12 +13,7 @@ const Chat = () => {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [conversationVersion, setConversationVersion] = useState(0);
-  const [userId] = useState(() => {
-    // Use currentUser's UID if available, otherwise generate a random ID
-    return (
-      currentUser?.uid || `user-${Math.random().toString(36).substr(2, 9)}`
-    );
-  });
+  const [userId] = useState(`user-${Math.random().toString(36).substr(2, 9)}`);
   const messagesEndRef = useRef(null);
 
   // Your Botpress API configuration
