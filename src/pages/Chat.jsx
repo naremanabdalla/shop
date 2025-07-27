@@ -104,26 +104,24 @@ useEffect(() => {
     let active = true;
 
     const poll = async () => {
-      try {
-const url = `/.netlify/functions/botpress-webhook?userId=${userId}&lastTimestamp=${lastTimestamp}`;        const response = await fetch(url);
-        const { messages: newMessages, lastTimestamp: newTimestamp } =
-          await response.json();
+    try {
+        const url = `/.netlify/functions/botpress-webhook?userId=${userId}&lastTimestamp=${lastTimestamp}`;
+        const response = await fetch(url);
+        const { messages: newMessages = [], lastTimestamp: newTimestamp } = 
+            await response.json();
 
         if (active && newMessages.length > 0) {
-          setMessages((prev) => {
-            // Deduplicate by message ID
-            const existingIds = new Set(prev.map((m) => m.id));
-            const filtered = newMessages.filter(
-              (msg) => !existingIds.has(msg.id)
-            );
-            return filtered.length > 0 ? [...prev, ...filtered] : prev;
-          });
-          lastTimestamp = newTimestamp;
+            setMessages((prev) => {
+                const existingIds = new Set(prev.map((m) => m.id));
+                const filtered = newMessages.filter(msg => !existingIds.has(msg.id));
+                return [...prev, ...filtered];
+            });
+            lastTimestamp = newTimestamp;
         }
-      } catch (error) {
+    } catch (error) {
         console.error("Polling error:", error);
-      }
-    };
+    }
+};
 
     // Initial poll
     poll();

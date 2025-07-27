@@ -1,6 +1,8 @@
-import { db } from '../../src/auth/firebse'; // Make sure path is correct
+// Session storage (in-memory)
+const sessionStore = new Map();
 
 export const handler = async (event) => {
+    // CORS headers
     const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
@@ -12,62 +14,53 @@ export const handler = async (event) => {
     }
 
     try {
-        // Handle GET requests (polling from frontend)
+        // Handle GET requests (frontend polling)
         if (event.httpMethod === 'GET') {
             const { userId, lastTimestamp } = event.queryStringParameters || {};
             
-            if (!userId) {
-                throw new Error('Missing userId');
-            }
+            if (!userId) throw new Error('Missing userId');
 
-            // Query messages from Firestore
-            const messagesRef = db.collection('conversations')
-                .doc(userId)
-                .collection('messages')
-                .orderBy('timestamp', 'asc');
-
-            const snapshot = await messagesRef.get();
-            const allMessages = snapshot.docs.map(doc => doc.data());
-
-            // Filter by timestamp if provided
-            const newMessages = lastTimestamp 
-                ? allMessages.filter(msg => msg.timestamp > parseInt(lastTimestamp))
-                : allMessages;
+            const userMessages = sessionStore.get(userId) || [];
+            
+            // Filter messages newer than lastTimestamp
+            const newMessages = lastTimestamp
+                ? userMessages.filter(msg => msg.timestamp > parseInt(lastTimestamp))
+                : userMessages;
 
             return {
                 statusCode: 200,
                 headers,
                 body: JSON.stringify({
                     messages: newMessages,
-                    lastTimestamp: newMessages.length > 0 
+                    lastTimestamp: newMessages.length > 0
                         ? Math.max(...newMessages.map(m => m.timestamp))
                         : lastTimestamp || Date.now()
                 })
             };
         }
 
-        // Handle POST requests (from Botpress webhook)
+        // Handle POST requests (from Botpress)
         if (event.httpMethod === 'POST') {
             const botResponse = JSON.parse(event.body);
             const { userId } = botResponse;
 
-            if (!userId) {
-                throw new Error('Missing userId in webhook payload');
+            if (!userId) throw new Error('Missing userId');
+
+            // Initialize session if it doesn't exist
+            if (!sessionStore.has(userId)) {
+                sessionStore.set(userId, []);
             }
 
             const botMessage = {
                 id: botResponse.messageId || `msg-${Date.now()}`,
-                text: botResponse.payload?.text || botResponse.text || "Bot response",
+                text: botResponse.payload?.text || "Bot response",
                 sender: 'bot',
-                rawData: botResponse,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                rawData: botResponse
             };
 
-            // Store in Firestore
-            await db.collection('conversations')
-                .doc(userId)
-                .collection('messages')
-                .add(botMessage);
+            // Add to session storage
+            sessionStore.get(userId).push(botMessage);
 
             return {
                 statusCode: 200,
@@ -79,9 +72,8 @@ export const handler = async (event) => {
         return {
             statusCode: 405,
             headers,
-            body: JSON.stringify({ error: 'Method not allowed' })
+            body: 'Method not allowed'
         };
-
     } catch (error) {
         console.error('Webhook error:', error);
         return {
