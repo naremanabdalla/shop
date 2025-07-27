@@ -2,23 +2,32 @@ export const handler = async (event) => {
     const BOTPRESS_URL = "https://webhook.botpress.cloud/667e3082-09f1-4ad3-9071-30ade020ef3b";
     const BOTPRESS_TOKEN = "bp_pat_se5aRM9MJCiKOr8oH0E7YuXBHBKdDijQn4nD";
 
-    try {
-        // Parse and validate the incoming request
-        const payload = JSON.parse(event.body);
-        console.log('Received payload:', payload);
+    // Set CORS headers
+    const headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json'
+    };
 
-        // Construct the proper Botpress message format
+    try {
+        // Parse incoming payload
+        const payload = JSON.parse(event.body);
+        
+        // Validate required fields
+        if (!payload.text || typeof payload.text !== 'string') {
+            throw new Error("Missing or invalid 'text' in payload");
+        }
+
+        // Construct proper Botpress message format
         const botpressMessage = {
             type: 'text',
             text: payload.text,
-            userId: payload.userId,
-            conversationId: payload.conversationId,
+            userId: payload.userId || `anon-${Date.now()}`,
+            conversationId: payload.conversationId || 'default',
             channel: 'web',
             payload: payload.payload || {}
         };
 
-        console.log('Sending to Botpress:', botpressMessage);
-
+        // Send to Botpress
         const response = await fetch(BOTPRESS_URL, {
             method: "POST",
             headers: {
@@ -28,24 +37,40 @@ export const handler = async (event) => {
             body: JSON.stringify(botpressMessage),
         });
 
-        const responseData = await response.json();
+        // Handle text responses that might not be JSON
+        const responseText = await response.text();
+        let responseData;
         
-        if (!response.ok) {
-            console.error('Botpress error:', responseData);
-            throw new Error(`Botpress returned ${response.status}`);
+        try {
+            responseData = JSON.parse(responseText);
+        } catch {
+            // If not JSON, return the raw text
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({
+                    text: responseText,
+                    rawResponse: responseText
+                })
+            };
         }
 
-        console.log('Botpress response:', responseData);
+        if (!response.ok) {
+            console.error('Botpress error:', responseData);
+            throw new Error(responseData.message || `Botpress returned ${response.status}`);
+        }
+
         return {
             statusCode: 200,
-            headers: { 'Access-Control-Allow-Origin': '*' },
+            headers,
             body: JSON.stringify(responseData)
         };
+
     } catch (error) {
         console.error('Proxy error:', error);
         return {
             statusCode: 500,
-            headers: { 'Access-Control-Allow-Origin': '*' },
+            headers,
             body: JSON.stringify({
                 error: "Failed to process request",
                 details: error.message

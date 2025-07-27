@@ -64,20 +64,30 @@ const Chat = () => {
       }),
     });
 
-    const data = await response.json();
+    // Handle both JSON and text responses
+    const responseText = await response.text();
+    let data;
     
-    if (data.error) {
-      throw new Error(data.details || data.error);
+    try {
+      data = JSON.parse(responseText);
+    } catch {
+      data = { text: responseText };
     }
 
-    console.log("Botpress API Response:", data);
+    if (!response.ok) {
+      throw new Error(data.error || data.details || "Botpress request failed");
+    }
 
-    // Handle different response formats
+    console.log("Botpress Response:", data);
+
+    // Extract bot reply
     let botReply = "I didn't understand that. Could you rephrase?";
     if (data.responses?.[0]?.payload?.text) {
       botReply = data.responses[0].payload.text;
     } else if (data.text) {
       botReply = data.text;
+    } else if (data.message) {
+      botReply = data.message;
     }
 
     setMessages((prev) => [
@@ -91,7 +101,7 @@ const Chat = () => {
     ]);
 
   } catch (error) {
-    console.error("Chat error:", error);
+    console.error("Chat error:", error.message);
     setMessages((prev) => [
       ...prev,
       {
