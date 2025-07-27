@@ -4,28 +4,29 @@ export const handler = async (event) => {
 
     try {
         const payload = JSON.parse(event.body);
-
-        // Add conversation version to payload
-        const enhancedPayload = {
-            ...payload,
-            conversationVersion: payload.conversationVersion || 0
-        };
-
+        
         const response = await fetch(BOTPRESS_URL, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${BOTPRESS_TOKEN}`,
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(enhancedPayload),
+            body: JSON.stringify({
+                ...payload,
+                conversationVersion: payload.conversationVersion || 0
+            }),
         });
 
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
 
+        const responseData = await response.json();
+        
         return {
             statusCode: 200,
             headers: { 'Access-Control-Allow-Origin': '*' },
-            body: await response.text()
+            body: JSON.stringify(responseData) // Return the full Botpress response
         };
     } catch (error) {
         console.error('Proxy error:', error);

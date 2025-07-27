@@ -34,60 +34,72 @@ const Chat = () => {
   };
 
   const sendMessage = async (textOrEvent) => {
-    setIsLoading(true);
+  setIsLoading(true);
 
-    // Handle both string input and event cases
-    let text;
-    if (typeof textOrEvent === "string") {
-      text = textOrEvent; // Direct text passed (e.g., from buttons)
-    } else {
-      text = inputValue; // Default to inputValue for button clicks
-    }
+  let text;
+  if (typeof textOrEvent === "string") {
+    text = textOrEvent;
+  } else {
+    text = inputValue;
+  }
 
-    // Validate text
-    if (!text?.trim()) {
-      setIsLoading(false);
-      return;
-    }
+  if (!text?.trim()) {
+    setIsLoading(false);
+    return;
+  }
 
-    const userMessage = {
-      id: `msg-${Date.now()}`,
-      text: text.trim(),
-      sender: "user",
-    };
+  const userMessage = {
+    id: `msg-${Date.now()}`,
+    text: text.trim(),
+    sender: "user",
+  };
 
-    setMessages((prev) => [...prev, userMessage]);
-    setInputValue(""); // Always clear input after send
+  setMessages((prev) => [...prev, userMessage]);
+  setInputValue("");
 
-    try {
-      const response = await fetch("/.netlify/functions/botpress-proxy", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId,
-          messageId: userMessage.id,
-          conversationId: "remoteConversationIdD",
-          type: "text",
-          text: text.trim(),
-          payload: { website: "https://shopping022.netlify.app/" },
-        }),
-      });
-      const data = await response.json();
-      console.log("Proxy response:", data);
-    } catch (error) {
-      console.error("Error:", error);
+  try {
+    const response = await fetch("/.netlify/functions/botpress-proxy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId,
+        messageId: userMessage.id,
+        conversationId: `remoteConversationIdD-${conversationVersion}`,
+        type: "text",
+        text: text.trim(),
+        payload: { website: "https://shopping022.netlify.app/" },
+      }),
+    });
+
+    const data = await response.json();
+    console.log("Proxy response:", data);
+
+    // Add this block to handle the bot response immediately
+    if (data?.responses?.[0]?.payload?.text) {
       setMessages((prev) => [
         ...prev,
         {
-          id: `error-${Date.now()}`,
-          text: "Sorry, there was an error. Please try again.",
+          id: `bot-${Date.now()}`,
+          text: data.responses[0].payload.text,
           sender: "bot",
+          rawData: data.responses[0].payload,
         },
       ]);
-    } finally {
-      setIsLoading(false);
     }
-  };
+  } catch (error) {
+    console.error("Error:", error);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `error-${Date.now()}`,
+        text: "Sorry, there was an error. Please try again.",
+        sender: "bot",
+      },
+    ]);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
@@ -101,29 +113,30 @@ const Chat = () => {
     let lastTimestamp = Date.now();
     let active = true;
 
-    const poll = async () => {
-      try {
-        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&lastTimestamp=${lastTimestamp}`;
+   const poll = async () => {
+  try {
+    const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&userId=${userId}&lastTimestamp=${lastTimestamp}`;
 
-        const response = await fetch(url);
-        const { messages: newMessages, lastTimestamp: newTimestamp } =
-          await response.json();
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Polling failed');
+    
+    const { messages: newMessages, lastTimestamp: newTimestamp } = await response.json();
 
-        if (active && newMessages.length > 0) {
-          setMessages((prev) => {
-            // Deduplicate by message ID
-            const existingIds = new Set(prev.map((m) => m.id));
-            const filtered = newMessages.filter(
-              (msg) => !existingIds.has(msg.id)
-            );
-            return filtered.length > 0 ? [...prev, ...filtered] : prev;
-          });
-          lastTimestamp = newTimestamp;
-        }
-      } catch (error) {
-        console.error("Polling error:", error);
-      }
-    };
+    if (active && newMessages.length > 0) {
+      setMessages((prev) => {
+        const existingIds = new Set(prev.map((m) => m.id));
+        const filtered = newMessages.filter(
+          (msg) => !existingIds.has(msg.id)
+        );
+        return filtered.length > 0 ? [...prev, ...filtered] : prev;
+      });
+      lastTimestamp = newTimestamp;
+    }
+  } catch (error) {
+    console.error("Polling error:", error);
+    setTimeout(poll, 5000); // Retry after 5 seconds
+  }
+};
 
     // Initial poll
     poll();
