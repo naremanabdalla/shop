@@ -32,7 +32,7 @@ const Chat = () => {
     botId: "b20dd108-4e50-43dc-8c55-1be2ee2a5417",
   };
 
-  const sendMessage = async (textOrEvent) => {
+ const sendMessage = async (textOrEvent) => {
   setIsLoading(true);
   
   const text = typeof textOrEvent === "string" ? textOrEvent : inputValue;
@@ -55,29 +55,39 @@ const Chat = () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        type: "text",
         text: text.trim(),
-        userId,
+        userId: currentUser?.uid || `anon-${Date.now()}`,
         conversationId: `conv-${conversationVersion}`,
-        payload: {}
+        payload: {
+          website: "https://shopping022.netlify.app/"
+        }
       }),
     });
 
-    const botResponse = await response.json();
-    console.log("Raw Botpress Response:", botResponse);
-
-    // Extract the actual bot reply from different possible response formats
-    const botReply = extractBotReply(botResponse);
+    const data = await response.json();
     
-    // Add bot message to UI
+    if (data.error) {
+      throw new Error(data.details || data.error);
+    }
+
+    console.log("Botpress API Response:", data);
+
+    // Handle different response formats
+    let botReply = "I didn't understand that. Could you rephrase?";
+    if (data.responses?.[0]?.payload?.text) {
+      botReply = data.responses[0].payload.text;
+    } else if (data.text) {
+      botReply = data.text;
+    }
+
     setMessages((prev) => [
       ...prev,
       {
         id: `bot-${Date.now()}`,
-        text: botReply.text,
+        text: botReply,
         sender: "bot",
-        rawData: botReply.payload,
-      },
+        rawData: data
+      }
     ]);
 
   } catch (error) {
@@ -86,7 +96,7 @@ const Chat = () => {
       ...prev,
       {
         id: `error-${Date.now()}`,
-        text: "Sorry, I'm having trouble responding",
+        text: "Sorry, I'm having trouble responding. Please try again.",
         sender: "bot",
       },
     ]);
