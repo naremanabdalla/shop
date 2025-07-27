@@ -72,17 +72,36 @@ const Chat = () => {
     });
 
     const data = await response.json();
-    console.log("Proxy response:", data);
+    console.log("Full Proxy response:", data);
 
-    // Add this block to handle the bot response immediately
-    if (data?.responses?.[0]?.payload?.text) {
+    // Handle Botpress response format
+    if (data.message?.payload?.text) {
       setMessages((prev) => [
         ...prev,
         {
           id: `bot-${Date.now()}`,
-          text: data.responses[0].payload.text,
+          text: data.message.payload.text,
           sender: "bot",
-          rawData: data.responses[0].payload,
+          rawData: data.message.payload,
+        },
+      ]);
+    } else if (data.message?.text) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `bot-${Date.now()}`,
+          text: data.message.text,
+          sender: "bot",
+        },
+      ]);
+    } else {
+      console.warn("Unexpected response format:", data);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `bot-${Date.now()}`,
+          text: "I didn't understand that. Please try again.",
+          sender: "bot",
         },
       ]);
     }
@@ -107,49 +126,42 @@ const Chat = () => {
     }
   };
 
-  useEffect(() => {
-    if (!isOpen) return;
+ useEffect(() => {
+  if (!isOpen) return;
 
-    let lastTimestamp = Date.now();
-    let active = true;
+  let lastTimestamp = Date.now();
+  let active = true;
 
-   const poll = async () => {
-  try {
-    const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&userId=${userId}&lastTimestamp=${lastTimestamp}`;
+  const poll = async () => {
+    try {
+      const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&userId=${userId}&lastTimestamp=${lastTimestamp}`;
 
-    const response = await fetch(url);
-    if (!response.ok) throw new Error('Polling failed');
-    
-    const { messages: newMessages, lastTimestamp: newTimestamp } = await response.json();
+      const response = await fetch(url);
+      const { messages: newMessages, lastTimestamp: newTimestamp } = await response.json();
 
-    if (active && newMessages.length > 0) {
-      setMessages((prev) => {
-        const existingIds = new Set(prev.map((m) => m.id));
-        const filtered = newMessages.filter(
-          (msg) => !existingIds.has(msg.id)
-        );
-        return filtered.length > 0 ? [...prev, ...filtered] : prev;
-      });
-      lastTimestamp = newTimestamp;
+      if (active && newMessages.length > 0) {
+        setMessages((prev) => {
+          const existingIds = new Set(prev.map((m) => m.id));
+          const filtered = newMessages.filter(
+            (msg) => !existingIds.has(msg.id) && msg.sender === "bot"
+          );
+          return filtered.length > 0 ? [...prev, ...filtered] : prev;
+        });
+        lastTimestamp = newTimestamp;
+      }
+    } catch (error) {
+      console.error("Polling error:", error);
     }
-  } catch (error) {
-    console.error("Polling error:", error);
-    setTimeout(poll, 5000); // Retry after 5 seconds
-  }
-};
+  };
 
-    // Initial poll
-    poll();
-
-    // Slower polling interval (3000ms)
-    const pollInterval = setInterval(poll, 3000);
-
-    return () => {
-      active = false;
-      clearInterval(pollInterval);
-    };
-  }, [isOpen, conversationVersion]); // Add conversationVersion to dependencies
-
+  poll();
+  const interval = setInterval(poll, 3000);
+  
+  return () => {
+    active = false;
+    clearInterval(interval);
+  };
+}, [isOpen, conversationVersion, userId]);
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem("chatMessages", JSON.stringify(messages));

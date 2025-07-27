@@ -56,12 +56,12 @@ export const handler = async (event) => {
             }
 
             const botMessage = {
-                id: botResponse.messageId || `msg-${Date.now()}`,
-                text: botResponse.payload?.text || botResponse.text || "How can I help you?",
+                id: botResponse.message?.id || `msg-${Date.now()}`,
+                text: botResponse.message?.payload?.text || botResponse.message?.text || "How can I help you?",
                 sender: 'bot',
                 userId,
                 timestamp: Date.now(),
-                rawData: botResponse
+                rawData: botResponse.message?.payload
             };
 
             conversations[conversationKey].push(botMessage);
