@@ -10,9 +10,19 @@ export const handler = async (event) => {
     try {
         const payload = JSON.parse(event.body);
         
+        // Validate required fields
         if (!payload.text || !payload.messageId) {
             throw new Error("Missing required fields");
         }
+
+        const botpressMessage = {
+            type: payload.type || 'text',
+            text: payload.text,
+            userId: payload.userId,
+            messageId: payload.messageId,
+            conversationId: payload.conversationId || 'default',
+            payload: payload.payload || {}
+        };
 
         const response = await fetch(BOTPRESS_URL, {
             method: "POST",
@@ -20,27 +30,12 @@ export const handler = async (event) => {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${BOTPRESS_TOKEN}`
             },
-            body: JSON.stringify({
-                type: payload.type || 'text',
-                text: payload.text,
-                userId: payload.userId,
-                messageId: payload.messageId,
-                conversationId: payload.conversationId || 'default',
-                channel: 'web',
-                payload: payload.payload || {}
-            }),
+            body: JSON.stringify(botpressMessage),
         });
 
-        // Handle both JSON and text responses
-        const responseText = await response.text();
-        let responseData;
+        // Handle both success and error responses
+        const responseData = await response.json();
         
-        try {
-            responseData = JSON.parse(responseText);
-        } catch {
-            responseData = { text: responseText };
-        }
-
         if (!response.ok) {
             console.error('Botpress error:', responseData);
             throw new Error(responseData.message || `Error ${response.status}`);

@@ -42,7 +42,7 @@ const Chat = () => {
   }
 
   const messageId = `msg-${Date.now()}`;
-  const userId = currentUser?.uid || `anon-${Date.now()}`;
+  const userId = currentUser?.uid || `user_${Date.now()}`;
 
   // Add user message
   const userMessage = {
@@ -69,41 +69,25 @@ const Chat = () => {
       }),
     });
 
-    const responseText = await response.text();
-    let data;
+    const responseData = await response.json();
+    console.log("Botpress Response:", responseData);
+
+    // Handle the specific response format you're getting
+    let botReply = "How can I help you?"; // Default fallback
     
-    try {
-      data = JSON.parse(responseText);
-    } catch {
-      // If response isn't JSON, treat it as plain text
-      data = { text: responseText };
+    if (responseData.payload?.text) {
+      botReply = responseData.payload.text;
+    } else if (responseData.text) {
+      botReply = responseData.text;
     }
 
-    if (!response.ok) {
-      throw new Error(data.error?.message || data.details || "Request failed");
-    }
-
-    console.log("Botpress Response:", data);
-
-    // Safely extract bot reply text
-    const getBotReply = () => {
-      if (typeof data === 'string') return data;
-      if (data.responses?.[0]?.payload?.text) return data.responses[0].payload.text;
-      if (data.text) return data.text;
-      if (data.message) return data.message;
-      return "I didn't understand that. Could you rephrase?";
-    };
-
-    const botReply = getBotReply();
-
-    // Ensure we're only storing strings in message.text
     setMessages((prev) => [
       ...prev,
       {
         id: `bot-${Date.now()}`,
-        text: typeof botReply === 'string' ? botReply : JSON.stringify(botReply),
+        text: botReply,
         sender: "bot",
-        rawData: data
+        rawData: responseData
       }
     ]);
 
@@ -113,7 +97,7 @@ const Chat = () => {
       ...prev,
       {
         id: `error-${Date.now()}`,
-        text: error.message,
+        text: "Sorry, I'm having trouble responding",
         sender: "bot",
       },
     ]);
