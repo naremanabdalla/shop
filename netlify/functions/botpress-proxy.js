@@ -1,6 +1,6 @@
 export const handler = async (event) => {
-    const BOTPRESS_URL = "https://webhook.botpress.cloud/YOUR_WEBHOOK";
-    const BOTPRESS_TOKEN = "YOUR_TOKEN";
+    const BOTPRESS_URL = "https://webhook.botpress.cloud/667e3082-09f1-4ad3-9071-30ade020ef3b";
+    const BOTPRESS_TOKEN = "bp_pat_se5aRM9MJCiKOr8oH0E7YuXBHBKdDijQn4nD";
 
     const headers = {
         'Access-Control-Allow-Origin': '*',
