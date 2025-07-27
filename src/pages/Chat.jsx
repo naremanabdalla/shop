@@ -33,7 +33,7 @@ const Chat = () => {
     botId: "b20dd108-4e50-43dc-8c55-1be2ee2a5417",
   };
 
-  const sendMessage = async (textOrEvent) => {
+ const sendMessage = async (textOrEvent) => {
   setIsLoading(true);
 
   let text;
@@ -72,29 +72,25 @@ const Chat = () => {
     });
 
     const data = await response.json();
-    console.log("Full Proxy response:", data);
+    console.log("Full Botpress response:", data);
 
-    // Extract the bot's response text correctly
-    let botResponseText = "How can I help you?"; // Default fallback
+    // Extract bot response correctly
+    let botResponse = extractBotResponse(data);
     
-    // Try different response formats
-    if (data?.responses?.[0]?.payload?.text) {
-      botResponseText = data.responses[0].payload.text;
-    } else if (data?.message?.payload?.text) {
-      botResponseText = data.message.payload.text;
-    } else if (data?.message?.text) {
-      botResponseText = data.message.text;
-    } else if (data?.text) {
-      botResponseText = data.text;
+    if (!botResponse) {
+      botResponse = {
+        text: "I'm having trouble responding. Please try again later.",
+        payload: null
+      };
     }
 
     setMessages((prev) => [
       ...prev,
       {
         id: `bot-${Date.now()}`,
-        text: botResponseText,
+        text: botResponse.text,
         sender: "bot",
-        rawData: data,
+        rawData: botResponse.payload,
       },
     ]);
 
@@ -112,6 +108,30 @@ const Chat = () => {
     setIsLoading(false);
   }
 };
+
+// Helper function to extract bot response
+function extractBotResponse(data) {
+  // Try different response formats
+  if (data?.responses?.[0]?.payload?.text) {
+    return {
+      text: data.responses[0].payload.text,
+      payload: data.responses[0].payload
+    };
+  }
+  if (data?.message?.payload?.text) {
+    return {
+      text: data.message.payload.text,
+      payload: data.message.payload
+    };
+  }
+  if (data?.text) {
+    return {
+      text: data.text,
+      payload: data
+    };
+  }
+  return null;
+}
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
