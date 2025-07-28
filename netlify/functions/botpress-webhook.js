@@ -1,41 +1,67 @@
+// Session storage (in-memory)
 const sessionStore = new Map();
 const SECRET = process.env.X_DB_SECRET;
 
-const headers = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*'
-};
-
 export const handler = async (event) => {
-  // Secret verification
+  // 1. Verify secret first
   if (event.headers['x-db-secret'] !== SECRET) {
-    return { statusCode: 401, headers, body: JSON.stringify({ error: 'Unauthorized' }) };
+    return {
+      statusCode: 401,
+      body: JSON.stringify({ error: 'Unauthorized' }),
+      headers: { 'Content-Type': 'application/json' }
+    };
+  }
+
+  // 2. Set CORS headers
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+  };
+
+  // 3. Handle OPTIONS preflight
+  if (event.method === 'OPTIONS') {
+    return { statusCode: 204, headers };
   }
 
   try {
-    if (event.httpMethod === 'GET') {
-      const { userId, lastTimestamp } = event.queryStringParameters || {};
-      if (!userId) throw new Error('Missing userId');
-      
-      const messages = sessionStore.get(userId) || [];
+    // 4. Process GET requests (polling)
+    if (event.method === 'GET') {
+      const { userId, lastTimestamp } = event.query;
+      if (!userId) {
+        throw new Error('Missing userId parameter');
+      }
+
+      const userMessages = sessionStore.get(userId) || [];
+      const filteredMessages = lastTimestamp
+        ? userMessages.filter(msg => msg.timestamp > parseInt(lastTimestamp))
+        : userMessages;
+
       return {
         statusCode: 200,
         headers,
-        body: JSON.stringify({ messages })
+        body: JSON.stringify({
+          messages: filteredMessages,
+          lastTimestamp: filteredMessages.length > 0
+            ? Math.max(...filteredMessages.map(m => m.timestamp))
+            : lastTimestamp || Date.now()
+        })
       };
     }
 
-    if (event.httpMethod === 'POST') {
-      const { event: eventType, data } = JSON.parse(event.body);
+    // 5. Process POST requests (from Botpress)
+    if (event.method === 'POST') {
+      const payload = JSON.parse(event.body);
       
-      if (eventType === 'message_created') {
-        const { message, conversation } = data;
+      // Botpress webhook format
+      if (payload.event === 'message_created') {
+        const { message, conversation } = payload.data;
         const userId = conversation.userId;
 
         if (!sessionStore.has(userId)) {
           sessionStore.set(userId, []);
         }
-        
+
         sessionStore.get(userId).push({
           id: message.id,
           text: message.payload.text,
@@ -50,17 +76,27 @@ export const handler = async (event) => {
         headers,
         body: JSON.stringify({ 
           status: 'received',
-          webhookId: 'botpress-webhook'
+          webhookId: 'botpress-chat-integration'
         })
       };
     }
 
-    return { statusCode: 405, headers, body: 'Method not allowed' };
+    // 6. Handle unsupported methods
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ error: 'Method not allowed' })
+    };
+
   } catch (error) {
+    console.error('Webhook processing error:', error);
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: error.message })
-    }
-}
-}
+      body: JSON.stringify({ 
+        error: 'Internal server error',
+        details: error.message 
+      })
+    };
+  }
+};
