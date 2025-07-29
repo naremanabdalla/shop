@@ -113,7 +113,8 @@ const Chat = () => {
 
     const poll = async () => {
       try {
-        const url = `/.netlify/functions/botpress-webhook?userId=${userId}&conversationId=${conversationId}&lastTimestamp=${lastTimestamp}`;
+        // In your chat component, update the polling URL to use full path:
+        const url = `https://${window.location.host}/.netlify/functions/botpress-webhook?userId=${userId}&conversationId=${conversationId}&lastTimestamp=${lastTimestamp}`;
         console.log("Polling URL:", url); // Debugging
 
         const response = await fetch(url);
@@ -128,7 +129,9 @@ const Chat = () => {
         const contentType = response.headers.get("content-type");
         if (!contentType?.includes("application/json")) {
           const text = await response.text();
-          throw new Error(`Expected JSON, got: ${text.substring(0, 100)}`);
+          if (text.startsWith("<!DOCTYPE html>")) {
+            throw new Error("Server returned HTML page. Check function URL.");
+          }
         }
 
         const { messages: newMessages = [] } = await response.json();
@@ -146,17 +149,10 @@ const Chat = () => {
         }
       } catch (error) {
         console.error("Polling error:", error);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `sys-${Date.now()}`,
-            text: "Connection issue - retrying...",
-            sender: "system",
-          },
-        ]);
+        // Add delay before retrying
+        await new Promise((resolve) => setTimeout(resolve, 5000));
       }
     };
-
     // Immediate poll then set interval
     poll();
     const pollInterval = setInterval(poll, 3000);

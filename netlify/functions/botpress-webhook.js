@@ -22,8 +22,7 @@ export const handler = async (event) => {
 
     const headers = {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+        'Access-Control-Allow-Origin': '*'
     };
 
     // 3. Handle OPTIONS preflight
@@ -34,25 +33,12 @@ export const handler = async (event) => {
     try {
         // Handle GET requests (polling)
         if (event.httpMethod === 'GET') {
-            const { userId, conversationId, lastTimestamp } = event.queryStringParameters || {};
-
-            if (!userId) throw new Error('Missing userId');
-
-            const conversationKey = conversationId ? `${userId}-${conversationId}` : userId;
-            const messages = conversations.get(conversationKey) || [];
-
-            const newMessages = lastTimestamp
-                ? messages.filter(msg => msg.timestamp > parseInt(lastTimestamp))
-                : messages;
-
             return {
                 statusCode: 200,
                 headers,
                 body: JSON.stringify({
-                    messages: newMessages,
-                    lastTimestamp: newMessages.length > 0
-                        ? Math.max(...newMessages.map(m => m.timestamp))
-                        : lastTimestamp || Date.now()
+                    messages: [],
+                    lastTimestamp: Date.now()
                 })
             };
         }
@@ -91,14 +77,10 @@ export const handler = async (event) => {
 
         return { statusCode: 405, headers, body: 'Method not allowed' };
     } catch (error) {
-        console.error('Webhook error:', error);
         return {
             statusCode: 500,
             headers,
-            body: JSON.stringify({
-                error: "Internal server error",
-                details: error.message
-            })
+            body: JSON.stringify({ error: error.message })
         };
     }
 };
