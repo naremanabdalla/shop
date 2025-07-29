@@ -1,86 +1,78 @@
-// Persistent conversation storage
-const conversations = new Map();
-const SECRET = process.env.X_DB_SECRET;
+let conversations = {};
 
 export const handler = async (event) => {
-    // Verify secret if set
-    if (SECRET && event.headers['x-db-secret'] !== SECRET) {
-        console.error('Invalid secret provided');
-
-        return {
-            statusCode: 401,
-            body: JSON.stringify({ error: 'Unauthorized' }),
-            headers: { 'Content-Type': 'application/json' }
-        };
-    }
-    console.log('Incoming request:', {
-        method: event.httpMethod,
-        path: event.path,
-        query: event.queryStringParameters,
-        headers: event.headers
-    });
-
     const headers = {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
     };
 
-    // 3. Handle OPTIONS preflight
-    if (event.method === 'OPTIONS') {
+    if (event.httpMethod === 'OPTIONS') {
         return { statusCode: 204, headers };
     }
 
-    try {
-        // Handle GET requests (polling)
-        if (event.httpMethod === 'GET') {
-            return {
-                statusCode: 200,
-                headers,
-                body: JSON.stringify({
-                    messages: [],
-                    lastTimestamp: Date.now()
-                })
+    if (event.httpMethod === 'GET') {
+        const { conversationId, lastTimestamp } = event.queryStringParameters || {};
+        const convMessages = conversations[conversationId] || [];
+
+        const newMessages = lastTimestamp
+            ? convMessages.filter(msg => msg.timestamp > parseInt(lastTimestamp))
+            : [];
+
+        return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({
+                messages: newMessages,
+                lastTimestamp: newMessages.length > 0
+                    ? Math.max(...newMessages.map(m => m.timestamp))
+                    : lastTimestamp || Date.now()
+            })
+        };
+    }
+
+    if (event.httpMethod === 'POST') {
+        try {
+            const botResponse = JSON.parse(event.body);
+            const baseConversationId = botResponse.conversationId || "default";
+            const conversationId = `${baseConversationId}-${botResponse.conversationVersion || 0}`;
+
+            if (!conversations[conversationId]) {
+                conversations[conversationId] = [];
+            }
+
+            const botMessage = {
+                id: botResponse.botpressMessageId || `msg-${Date.now()}`,
+                text: botResponse.payload?.text || "How can I help you?",
+                sender: 'bot',
+                rawData: botResponse,
+                timestamp: Date.now()
             };
-        }
 
-        // Handle POST requests (from Botpress)
-        if (event.httpMethod === 'POST') {
-            const { event: eventType, data } = JSON.parse(event.body);
+            // Deduplicate before adding
+            const exists = conversations[conversationId].some(
+                m => m.id === botMessage.id
+            );
 
-            if (eventType === 'message_created') {
-                const { message, conversation } = data;
-                const userId = conversation.userId;
-                const conversationKey = conversation.id ? `${userId}-${conversation.id}` : userId;
-
-                if (!conversations.has(conversationKey)) {
-                    conversations.set(conversationKey, []);
-                }
-
-                const botMessage = {
-                    id: message.id,
-                    text: message.payload.text,
-                    sender: 'bot',
-                    timestamp: Date.now(),
-                    rawData: message
-                };
-
-                // Add to conversation
-                conversations.get(conversationKey).push(botMessage);
+            if (!exists) {
+                conversations[conversationId].push(botMessage);
+                conversations[conversationId] = conversations[conversationId]
+                    .slice(-20);
             }
 
             return {
                 statusCode: 200,
                 headers,
-                body: JSON.stringify({ status: 'received' })
+                body: JSON.stringify({ success: true })
+            };
+        } catch (error) {
+            return {
+                statusCode: 500,
+                headers,
+                body: JSON.stringify({ error: error.message })
             };
         }
-
-        return { statusCode: 405, headers, body: 'Method not allowed' };
-    } catch (error) {
-        return {
-            statusCode: 500,
-            headers,
-            body: JSON.stringify({ error: error.message })
-        };
     }
+
+    return { statusCode: 405, headers, body: 'Method Not Allowed' };
 };

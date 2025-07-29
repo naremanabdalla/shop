@@ -17,20 +17,16 @@ const Chat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [conversationVersion, setConversationVersion] = useState(0);
   const [userId] = useState(() => {
-    const id =
-      currentUser?.uid ||
-      localStorage.getItem("chatUserId") ||
-      `user-${crypto.randomUUID()}`;
-    if (!currentUser && !localStorage.getItem("chatUserId")) {
-      localStorage.setItem("chatUserId", id);
-    }
-    return id;
+    // Use currentUser's UID if available, otherwise generate a random ID
+    return (
+      currentUser?.uid || `user-${Math.random().toString(36).substr(2, 9)}`
+    );
   });
   const messagesEndRef = useRef(null);
-  const [conversationId] = useState(`conv_${Date.now()}`);
 
   // Your Botpress API configuration
   const BOTPRESS_CONFIG = {
+    // Use the OUTGOING URL from your integration panel
     webhookUrl:
       "https://webhook.botpress.cloud/667e3082-09f1-4ad3-9071-30ade020ef3b",
     accessToken: "bp_pat_se5aRM9MJCiKOr8oH0E7YuXBHBKdDijQn4nD",
@@ -69,9 +65,8 @@ const Chat = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
-          conversationId,
-          conversationVersion: 0,
-          messageId: userMessage.id, // Don't forget this
+          messageId: userMessage.id,
+          conversationId: "remoteConversationIdD",
           type: "text",
           text: text.trim(),
           payload: { website: "https://shopping022.netlify.app/" },
@@ -101,73 +96,52 @@ const Chat = () => {
   };
 
   useEffect(() => {
-    if (!currentUser && !localStorage.getItem("chatUserId")) {
-      localStorage.setItem("chatUserId", userId);
-    }
-  }, [userId]);
-  useEffect(() => {
     if (!isOpen) return;
 
-    let active = true;
     let lastTimestamp = Date.now();
+    let active = true;
 
     const poll = async () => {
       try {
-        // In your chat component, update the polling URL to use full path:
-        const url = `https://${window.location.host}/.netlify/functions/botpress-webhook?userId=${userId}&conversationId=${conversationId}&lastTimestamp=${lastTimestamp}`;
-        console.log("Polling URL:", url); // Debugging
+        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&lastTimestamp=${lastTimestamp}`;
 
         const response = await fetch(url);
+        const { messages: newMessages, lastTimestamp: newTimestamp } =
+          await response.json();
 
-        // First check if response is OK
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
-
-        // Verify content type
-        const contentType = response.headers.get("content-type");
-        if (!contentType?.includes("application/json")) {
-          const text = await response.text();
-          if (text.startsWith("<!DOCTYPE html>")) {
-            throw new Error("Server returned HTML page. Check function URL.");
-          }
-        }
-
-        const { messages: newMessages = [] } = await response.json();
-        console.log("New messages received:", newMessages); // Debugging
-
-        if (newMessages.length > 0) {
+        if (active && newMessages.length > 0) {
           setMessages((prev) => {
+            // Deduplicate by message ID
             const existingIds = new Set(prev.map((m) => m.id));
             const filtered = newMessages.filter(
               (msg) => !existingIds.has(msg.id)
             );
-            return [...prev, ...filtered];
+            return filtered.length > 0 ? [...prev, ...filtered] : prev;
           });
-          lastTimestamp = Date.now();
+          lastTimestamp = newTimestamp;
         }
       } catch (error) {
         console.error("Polling error:", error);
-        // Add delay before retrying
-        await new Promise((resolve) => setTimeout(resolve, 5000));
       }
     };
-    // Immediate poll then set interval
+
+    // Initial poll
     poll();
+
+    // Slower polling interval (3000ms)
     const pollInterval = setInterval(poll, 3000);
 
     return () => {
       active = false;
       clearInterval(pollInterval);
     };
-  }, [isOpen, conversationVersion, userId]);
+  }, [isOpen, conversationVersion]); // Add conversationVersion to dependencies
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem("chatMessages", JSON.stringify(messages));
     }
   }, [messages]);
-
   return (
     <div className="fixed bottom-6 right-6 z-100">
       {isOpen ? (
