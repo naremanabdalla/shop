@@ -114,12 +114,25 @@ const Chat = () => {
     const poll = async () => {
       try {
         const url = `/.netlify/functions/botpress-webhook?userId=${userId}&conversationId=${conversationId}&lastTimestamp=${lastTimestamp}`;
+        console.log("Polling URL:", url); // Debugging
+
         const response = await fetch(url);
 
-        if (!response.ok)
-          throw new Error(`HTTP error! status: ${response.status}`);
+        // First check if response is OK
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+
+        // Verify content type
+        const contentType = response.headers.get("content-type");
+        if (!contentType?.includes("application/json")) {
+          const text = await response.text();
+          throw new Error(`Expected JSON, got: ${text.substring(0, 100)}`);
+        }
 
         const { messages: newMessages = [] } = await response.json();
+        console.log("New messages received:", newMessages); // Debugging
 
         if (newMessages.length > 0) {
           setMessages((prev) => {

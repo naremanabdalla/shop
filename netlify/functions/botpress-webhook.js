@@ -5,12 +5,20 @@ const SECRET = process.env.X_DB_SECRET;
 export const handler = async (event) => {
     // Verify secret if set
     if (SECRET && event.headers['x-db-secret'] !== SECRET) {
+        console.error('Invalid secret provided');
+
         return {
             statusCode: 401,
             body: JSON.stringify({ error: 'Unauthorized' }),
             headers: { 'Content-Type': 'application/json' }
         };
     }
+    console.log('Incoming request:', {
+        method: event.httpMethod,
+        path: event.path,
+        query: event.queryStringParameters,
+        headers: event.headers
+    });
 
     const headers = {
         'Content-Type': 'application/json',
