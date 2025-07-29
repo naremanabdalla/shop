@@ -6,45 +6,39 @@ const Chat = () => {
   const { currentUser } = useAuth();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("chatMessages");
-      return saved ? JSON.parse(saved) : [];
-    }
-    return [];
-  });
+  const [messages, setMessages] = useState([]); // Remove localStorage initialization
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [conversationVersion, setConversationVersion] = useState(0);
   const [userId] = useState(() => {
-    // Use currentUser's UID if available, otherwise generate a random ID
     return (
       currentUser?.uid || `user-${Math.random().toString(36).substr(2, 9)}`
     );
   });
   const messagesEndRef = useRef(null);
 
-  // Your Botpress API configuration
   const BOTPRESS_CONFIG = {
-    // Use the OUTGOING URL from your integration panel
     webhookUrl:
       "https://webhook.botpress.cloud/667e3082-09f1-4ad3-9071-30ade020ef3b",
     accessToken: "bp_pat_se5aRM9MJCiKOr8oH0E7YuXBHBKdDijQn4nD",
     botId: "b20dd108-4e50-43dc-8c55-1be2ee2a5417",
   };
 
+  // Generate a unique conversation ID based on user and version
+  const getConversationId = () => {
+    return `${userId}-${conversationVersion}`;
+  };
+
   const sendMessage = async (textOrEvent) => {
     setIsLoading(true);
 
-    // Handle both string input and event cases
     let text;
     if (typeof textOrEvent === "string") {
-      text = textOrEvent; // Direct text passed (e.g., from buttons)
+      text = textOrEvent;
     } else {
-      text = inputValue; // Default to inputValue for button clicks
+      text = inputValue;
     }
 
-    // Validate text
     if (!text?.trim()) {
       setIsLoading(false);
       return;
@@ -57,7 +51,7 @@ const Chat = () => {
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInputValue(""); // Always clear input after send
+    setInputValue("");
 
     try {
       const response = await fetch("/.netlify/functions/botpress-proxy", {
@@ -66,10 +60,11 @@ const Chat = () => {
         body: JSON.stringify({
           userId,
           messageId: userMessage.id,
-          conversationId: "remoteConversationIdD",
+          conversationId: getConversationId(), // Use dynamic conversation ID
           type: "text",
           text: text.trim(),
           payload: { website: "https://shopping022.netlify.app/" },
+          conversationVersion, // Include version in payload
         }),
       });
       const data = await response.json();
@@ -94,7 +89,6 @@ const Chat = () => {
       sendMessage();
     }
   };
-
   useEffect(() => {
     if (!isOpen) return;
 
@@ -103,7 +97,7 @@ const Chat = () => {
 
     const poll = async () => {
       try {
-        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&lastTimestamp=${lastTimestamp}`;
+        const url = `/.netlify/functions/botpress-webhook?conversationId=${getConversationId()}&lastTimestamp=${lastTimestamp}`;
 
         const response = await fetch(url);
         const { messages: newMessages, lastTimestamp: newTimestamp } =
@@ -111,7 +105,6 @@ const Chat = () => {
 
         if (active && newMessages.length > 0) {
           setMessages((prev) => {
-            // Deduplicate by message ID
             const existingIds = new Set(prev.map((m) => m.id));
             const filtered = newMessages.filter(
               (msg) => !existingIds.has(msg.id)
@@ -125,17 +118,14 @@ const Chat = () => {
       }
     };
 
-    // Initial poll
     poll();
-
-    // Slower polling interval (3000ms)
     const pollInterval = setInterval(poll, 3000);
 
     return () => {
       active = false;
       clearInterval(pollInterval);
     };
-  }, [isOpen, conversationVersion]); // Add conversationVersion to dependencies
+  }, [isOpen, conversationVersion, userId]); // Add userId to dependencies
 
   useEffect(() => {
     if (typeof window !== "undefined") {

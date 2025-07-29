@@ -5,10 +5,13 @@ export const handler = async (event) => {
     try {
         const payload = JSON.parse(event.body);
 
-        // Add conversation version to payload
         const enhancedPayload = {
             ...payload,
-            conversationVersion: payload.conversationVersion || 0
+            // Ensure these fields are included
+            type: payload.type || "text",
+            conversationVersion: payload.conversationVersion || 0,
+            userId: payload.userId,
+            conversationId: payload.conversationId
         };
 
         const response = await fetch(BOTPRESS_URL, {

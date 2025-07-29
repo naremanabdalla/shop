@@ -13,8 +13,16 @@ export const handler = async (event) => {
 
     if (event.httpMethod === 'GET') {
         const { conversationId, lastTimestamp } = event.queryStringParameters || {};
-        const convMessages = conversations[conversationId] || [];
 
+        if (!conversationId) {
+            return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({ error: "conversationId is required" })
+            };
+        }
+
+        const convMessages = conversations[conversationId]?.messages || [];
         const newMessages = lastTimestamp
             ? convMessages.filter(msg => msg.timestamp > parseInt(lastTimestamp))
             : [];
@@ -34,30 +42,43 @@ export const handler = async (event) => {
     if (event.httpMethod === 'POST') {
         try {
             const botResponse = JSON.parse(event.body);
-            const baseConversationId = botResponse.conversationId || "default";
-            const conversationId = `${baseConversationId}-${botResponse.conversationVersion || 0}`;
+            const conversationId = botResponse.conversationId;
 
+            if (!conversationId) {
+                return {
+                    statusCode: 400,
+                    headers,
+                    body: JSON.stringify({ error: "conversationId is required" })
+                };
+            }
+
+            // Initialize conversation if it doesn't exist
             if (!conversations[conversationId]) {
-                conversations[conversationId] = [];
+                conversations[conversationId] = {
+                    messages: [],
+                    createdAt: Date.now(),
+                    userId: botResponse.userId
+                };
             }
 
             const botMessage = {
-                id: botResponse.botpressMessageId || `msg-${Date.now()}`,
-                text: botResponse.payload?.text || "How can I help you?",
+                id: botResponse.messageId || `msg-${Date.now()}`,
+                text: botResponse.payload?.text || botResponse.text || "How can I help you?",
                 sender: 'bot',
                 rawData: botResponse,
                 timestamp: Date.now()
             };
 
             // Deduplicate before adding
-            const exists = conversations[conversationId].some(
+            const exists = conversations[conversationId].messages.some(
                 m => m.id === botMessage.id
             );
 
             if (!exists) {
-                conversations[conversationId].push(botMessage);
-                conversations[conversationId] = conversations[conversationId]
-                    .slice(-20);
+                conversations[conversationId].messages.push(botMessage);
+                // Keep only the last 50 messages to prevent memory issues
+                conversations[conversationId].messages = conversations[conversationId].messages
+                    .slice(-50);
             }
 
             return {
