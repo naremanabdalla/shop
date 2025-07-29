@@ -56,6 +56,11 @@ const Chat = () => {
           text: text.trim(),
           userId: userId,
           conversationId: getConversationId(),
+          payload: {
+            // Added payload structure
+            text: text.trim(),
+            type: "text",
+          },
           deviceInfo: {
             isMobile: /Mobi|Android/i.test(navigator.userAgent),
             userAgent: navigator.userAgent,
@@ -65,7 +70,7 @@ const Chat = () => {
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || data.error) {
         throw new Error(data.error || "Failed to send message");
       }
 

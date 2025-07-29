@@ -41,6 +41,7 @@ export const handler = async (event) => {
     }
 
     if (event.httpMethod === 'POST') {
+        console.log('Incoming webhook payload:', JSON.parse(event.body));
         try {
             const botResponse = JSON.parse(event.body);
             const conversationId = botResponse.conversationId;

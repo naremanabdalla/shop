@@ -1,4 +1,4 @@
-// Top of botpress-proxy.js
+// botpress-proxy.js
 const isProduction = typeof process !== 'undefined' && process.env.NETLIFY === 'true';
 
 export const handler = async (event) => {
@@ -13,12 +13,28 @@ export const handler = async (event) => {
     try {
         const payload = JSON.parse(event.body || '{}');
 
-        if (!payload.text && !(payload.payload && payload.payload.text)) {
+        // Enhanced validation
+        if (!payload.text && !(payload.payload?.text)) {
             throw new Error("Missing required text content");
         }
 
+        // Proper Botpress payload structure
         const botpressPayload = {
-            // ... (keep your existing payload structure)
+            type: payload.type || "text",
+            text: payload.text || payload.payload?.text || "",
+            userId: payload.userId || `anon-${Math.random().toString(36).substr(2, 9)}`,
+            conversationId: payload.conversationId || `conv-${Date.now()}`,
+            payload: {
+                type: "text",
+                text: payload.text || payload.payload?.text || ""
+            },
+            channel: "web",
+            metadata: {
+                ...(payload.metadata || {}),
+                website: "https://shopping022.netlify.app/",
+                userAgent: payload.deviceInfo?.userAgent || "unknown",
+                isMobile: payload.deviceInfo?.isMobile || false
+            }
         };
 
         if (!isProduction) {
@@ -26,13 +42,20 @@ export const handler = async (event) => {
         }
 
         const response = await fetch(BOTPRESS_URL, {
-            // ... (keep your existing fetch options)
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${BOTPRESS_TOKEN}`,
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify(botpressPayload)
         });
 
         const responseData = await response.json();
 
-        if (!response.ok) {
-            throw new Error(`Botpress API error: ${response.status}`);
+        // Check for Botpress-specific errors
+        if (!response.ok || responseData.code >= 400) {
+            throw new Error(responseData.message || `Botpress error: ${response.status}`);
         }
 
         return {
@@ -44,8 +67,9 @@ export const handler = async (event) => {
             })
         };
     } catch (error) {
+        console.error("Proxy error:", error);
         return {
-            statusCode: 500,
+            statusCode: error.message.includes("400") ? 400 : 500,
             headers,
             body: JSON.stringify({
                 error: "Failed to process request",
