@@ -18,7 +18,8 @@ export const handler = async (event) => {
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
     };
 
-    if (event.httpMethod === 'OPTIONS') {
+    // 3. Handle OPTIONS preflight
+    if (event.method === 'OPTIONS') {
         return { statusCode: 204, headers };
     }
 

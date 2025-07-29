@@ -31,7 +31,6 @@ const Chat = () => {
 
   // Your Botpress API configuration
   const BOTPRESS_CONFIG = {
-    // Use the OUTGOING URL from your integration panel
     webhookUrl:
       "https://webhook.botpress.cloud/667e3082-09f1-4ad3-9071-30ade020ef3b",
     accessToken: "bp_pat_se5aRM9MJCiKOr8oH0E7YuXBHBKdDijQn4nD",
@@ -102,10 +101,15 @@ const Chat = () => {
   };
 
   useEffect(() => {
+    if (!currentUser && !localStorage.getItem("chatUserId")) {
+      localStorage.setItem("chatUserId", userId);
+    }
+  }, [userId]);
+  useEffect(() => {
     if (!isOpen) return;
 
-    let lastTimestamp = Date.now();
     let active = true;
+    let lastTimestamp = Date.now();
 
     const poll = async () => {
       try {
@@ -140,23 +144,21 @@ const Chat = () => {
       }
     };
 
-    // Initial poll
+    // Immediate poll then set interval
     poll();
-
-    // Slower polling interval (3000ms)
     const pollInterval = setInterval(poll, 3000);
 
     return () => {
       active = false;
       clearInterval(pollInterval);
     };
-  }, [isOpen, conversationVersion]); // Add conversationVersion to dependencies
-
+  }, [isOpen, conversationVersion, userId]);
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem("chatMessages", JSON.stringify(messages));
     }
   }, [messages]);
+
   return (
     <div className="fixed bottom-6 right-6 z-100">
       {isOpen ? (
