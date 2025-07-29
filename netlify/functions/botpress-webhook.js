@@ -7,6 +7,7 @@ export const handler = async (event) => {
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
         'Cache-Control': 'no-cache, no-store, must-revalidate'
     };
+
     if (event.httpMethod === 'OPTIONS') {
         return { statusCode: 204, headers };
     }
@@ -41,8 +42,6 @@ export const handler = async (event) => {
 
     if (event.httpMethod === 'POST') {
         try {
-            const body = JSON.parse(event.body);
-            console.log('Incoming request from device:', body.deviceInfo);
             const botResponse = JSON.parse(event.body);
             const conversationId = botResponse.conversationId;
 
@@ -65,7 +64,7 @@ export const handler = async (event) => {
 
             const botMessage = {
                 id: botResponse.messageId || `msg-${Date.now()}`,
-                text: botResponse.payload?.text || botResponse.text || "How can I help you?",
+                text: botResponse.text || botResponse.payload?.text || "How can I help you?",
                 sender: 'bot',
                 rawData: botResponse,
                 timestamp: Date.now()
@@ -86,16 +85,24 @@ export const handler = async (event) => {
             return {
                 statusCode: 200,
                 headers,
-                body: JSON.stringify({ success: true })
+                body: JSON.stringify({ success: true, message: "Message processed successfully" })
             };
         } catch (error) {
+            console.error('Webhook POST error:', error);
             return {
                 statusCode: 500,
                 headers,
-                body: JSON.stringify({ error: error.message })
+                body: JSON.stringify({
+                    error: "Internal server error",
+                    details: error.message
+                })
             };
         }
     }
 
-    return { statusCode: 405, headers, body: 'Method Not Allowed' };
+    return {
+        statusCode: 405,
+        headers,
+        body: JSON.stringify({ error: 'Method Not Allowed' })
+    };
 };
