@@ -1,9 +1,20 @@
-let conversations = {};
+// Persistent conversation storage
+const conversations = new Map();
+const SECRET = process.env.X_DB_SECRET;
 
 export const handler = async (event) => {
+    // Verify secret if set
+    if (SECRET && event.headers['x-db-secret'] !== SECRET) {
+        return {
+            statusCode: 401,
+            body: JSON.stringify({ error: 'Unauthorized' }),
+            headers: { 'Content-Type': 'application/json' }
+        };
+    }
+
     const headers = {
+        'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
     };
 
@@ -11,82 +22,74 @@ export const handler = async (event) => {
         return { statusCode: 204, headers };
     }
 
-    if (event.httpMethod === 'GET') {
-        const { conversationId, userId, lastTimestamp } = event.queryStringParameters || {};
+    try {
+        // Handle GET requests (polling)
+        if (event.httpMethod === 'GET') {
+            const { userId, conversationId, lastTimestamp } = event.queryStringParameters || {};
 
-        // Create conversation key with version if available
-        const versionMatch = conversationId?.match(/-(\d+)$/);
-        const version = versionMatch ? versionMatch[1] : 0;
-        const baseId = versionMatch ? conversationId.slice(0, -versionMatch[0].length) : conversationId;
-        const conversationKey = `${userId}-${baseId || "default"}`;
+            if (!userId) throw new Error('Missing userId');
 
-        const convMessages = conversations[conversationKey]?.[version] || [];
+            const conversationKey = conversationId ? `${userId}-${conversationId}` : userId;
+            const messages = conversations.get(conversationKey) || [];
 
-        const newMessages = lastTimestamp
-            ? convMessages.filter(msg => msg.timestamp > parseInt(lastTimestamp))
-            : [];
+            const newMessages = lastTimestamp
+                ? messages.filter(msg => msg.timestamp > parseInt(lastTimestamp))
+                : messages;
 
-        return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify({
-                messages: newMessages,
-                lastTimestamp: newMessages.length > 0
-                    ? Math.max(...newMessages.map(m => m.timestamp))
-                    : lastTimestamp || Date.now()
-            })
-        };
-    }
-
-    if (event.httpMethod === 'POST') {
-        try {
-            const botResponse = JSON.parse(event.body);
-            const baseConversationId = botResponse.conversationId?.replace(/-\d+$/, "") || "default";
-            const version = botResponse.conversationVersion || 0;
-            const conversationKey = `${botResponse.userId}-${baseConversationId}`;
-
-            // Initialize conversation structure if needed
-            if (!conversations[conversationKey]) {
-                conversations[conversationKey] = {};
-            }
-            if (!conversations[conversationKey][version]) {
-                conversations[conversationKey][version] = [];
-            }
-
-            const botMessage = {
-                id: botResponse.botpressMessageId || botResponse.messageId || `msg-${Date.now()}`,
-                text: botResponse.payload?.text || botResponse.text || "How can I help you?",
-                sender: 'bot',
-                userId: botResponse.userId,
-                rawData: botResponse,
-                timestamp: Date.now()
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({
+                    messages: newMessages,
+                    lastTimestamp: newMessages.length > 0
+                        ? Math.max(...newMessages.map(m => m.timestamp))
+                        : lastTimestamp || Date.now()
+                })
             };
+        }
 
-            // Deduplicate before adding
-            const exists = conversations[conversationKey][version].some(
-                m => m.id === botMessage.id
-            );
+        // Handle POST requests (from Botpress)
+        if (event.httpMethod === 'POST') {
+            const { event: eventType, data } = JSON.parse(event.body);
 
-            if (!exists) {
-                conversations[conversationKey][version].push(botMessage);
-                // Keep only the last 20 messages per conversation version
-                conversations[conversationKey][version] = conversations[conversationKey][version].slice(-20);
+            if (eventType === 'message_created') {
+                const { message, conversation } = data;
+                const userId = conversation.userId;
+                const conversationKey = conversation.id ? `${userId}-${conversation.id}` : userId;
+
+                if (!conversations.has(conversationKey)) {
+                    conversations.set(conversationKey, []);
+                }
+
+                const botMessage = {
+                    id: message.id,
+                    text: message.payload.text,
+                    sender: 'bot',
+                    timestamp: Date.now(),
+                    rawData: message
+                };
+
+                // Add to conversation
+                conversations.get(conversationKey).push(botMessage);
             }
 
             return {
                 statusCode: 200,
                 headers,
-                body: JSON.stringify({ success: true })
-            };
-        } catch (error) {
-            console.error('Webhook error:', error);
-            return {
-                statusCode: 500,
-                headers,
-                body: JSON.stringify({ error: error.message })
+                body: JSON.stringify({ status: 'received' })
             };
         }
-    }
 
-    return { statusCode: 405, headers, body: 'Method Not Allowed' };
+        return { statusCode: 405, headers, body: 'Method not allowed' };
+    } catch (error) {
+        console.error('Webhook error:', error);
+        return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({
+                error: "Internal server error",
+                details: error.message
+            })
+        };
+    }
 };

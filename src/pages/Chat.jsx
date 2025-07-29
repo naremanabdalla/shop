@@ -17,12 +17,17 @@ const Chat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [conversationVersion, setConversationVersion] = useState(0);
   const [userId] = useState(() => {
-    // Use currentUser's UID if available, otherwise generate a random ID
-    return (
-      currentUser?.uid || `user-${Math.random().toString(36).substr(2, 9)}`
-    );
+    const id =
+      currentUser?.uid ||
+      localStorage.getItem("chatUserId") ||
+      `user-${crypto.randomUUID()}`;
+    if (!currentUser && !localStorage.getItem("chatUserId")) {
+      localStorage.setItem("chatUserId", id);
+    }
+    return id;
   });
   const messagesEndRef = useRef(null);
+  const [conversationId] = useState(`conv_${Date.now()}`);
 
   // Your Botpress API configuration
   const BOTPRESS_CONFIG = {
@@ -65,8 +70,9 @@ const Chat = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
-          messageId: userMessage.id,
-          conversationId: "remoteConversationIdD",
+          conversationId,
+          conversationVersion: 0,
+          messageId: userMessage.id, // Don't forget this
           type: "text",
           text: text.trim(),
           payload: { website: "https://shopping022.netlify.app/" },
@@ -103,25 +109,34 @@ const Chat = () => {
 
     const poll = async () => {
       try {
-        const url = `/.netlify/functions/botpress-webhook?conversationId=remoteConversationIdD-${conversationVersion}&lastTimestamp=${lastTimestamp}`;
-
+        const url = `/.netlify/functions/botpress-webhook?userId=${userId}&conversationId=${conversationId}&lastTimestamp=${lastTimestamp}`;
         const response = await fetch(url);
-        const { messages: newMessages, lastTimestamp: newTimestamp } =
-          await response.json();
 
-        if (active && newMessages.length > 0) {
+        if (!response.ok)
+          throw new Error(`HTTP error! status: ${response.status}`);
+
+        const { messages: newMessages = [] } = await response.json();
+
+        if (newMessages.length > 0) {
           setMessages((prev) => {
-            // Deduplicate by message ID
             const existingIds = new Set(prev.map((m) => m.id));
             const filtered = newMessages.filter(
               (msg) => !existingIds.has(msg.id)
             );
-            return filtered.length > 0 ? [...prev, ...filtered] : prev;
+            return [...prev, ...filtered];
           });
-          lastTimestamp = newTimestamp;
+          lastTimestamp = Date.now();
         }
       } catch (error) {
         console.error("Polling error:", error);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `sys-${Date.now()}`,
+            text: "Connection issue - retrying...",
+            sender: "system",
+          },
+        ]);
       }
     };
 
