@@ -8,7 +8,6 @@ const Chat = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [conversationVersion, setConversationVersion] = useState(0);
   const [lastTimestamp, setLastTimestamp] = useState(Date.now()); // Added missing state
   const [userId] = useState(() => {
@@ -23,74 +22,27 @@ const Chat = () => {
     return `${userId}-${conversationVersion}`;
   };
 
-  const sendMessage = async (textOrEvent) => {
-    setIsLoading(true);
-
-    let text;
-    if (typeof textOrEvent === "string") {
-      text = textOrEvent;
-    } else {
-      text = inputValue;
-    }
-
-    if (!text?.trim()) {
-      setIsLoading(false);
-      return;
-    }
-
-    const userMessage = {
-      id: `msg-${Date.now()}`,
-      text: text.trim(),
-      sender: "user",
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
-
+  const sendMessage = async (text) => {
     try {
       const response = await fetch("/.netlify/functions/botpress-proxy", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "text",
           text: text.trim(),
-          userId: userId,
-          conversationId: getConversationId(),
-          payload: {
-            type: "text",
-            text: text.trim(),
-          },
-          deviceInfo: {
-            isMobile: /Mobi|Android/i.test(navigator.userAgent),
-            userAgent: navigator.userAgent,
-          },
+          userId: "user-123", // Replace with your actual user ID logic
+          conversationId: "conv-456", // Replace with your conversation ID logic
         }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.message || "Failed to send message");
+        throw new Error(await response.text());
       }
 
-      console.log("Botpress response:", data);
+      return await response.json();
     } catch (error) {
-      console.error("API Error:", error);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `error-${Date.now()}`,
-          text: error.message.includes("Failed to process request")
-            ? "Sorry, the chatbot is currently unavailable. Please try again later."
-            : error.message,
-          sender: "bot",
-        },
-      ]);
-    } finally {
-      setIsLoading(false);
+      console.error("Failed to send message:", error);
+      throw error; // Re-throw for error handling in your component
     }
   };
 
@@ -233,19 +185,15 @@ const Chat = () => {
           <div className="p-3 border-t border-gray-200">
             <div className="flex">
               <input
-                disabled={isLoading}
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message..."
-                className={`w-30 md:w-auto flex-1 border border-gray-300 rounded-l-lg py-2 px-1 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                  isLoading ? "opacity-50" : ""
-                }`}
+                className={`w-30 md:w-auto flex-1 border border-gray-300 rounded-l-lg py-2 px-1 focus:outline-none focus:ring-1 focus:ring-blue-500 `}
               />
               <button
                 onClick={() => sendMessage()}
-                disabled={isLoading}
                 className="bg-black text-white px-4 rounded-r-lg hover:bg-gray-800 transition disabled:opacity-50"
               >
                 Send
