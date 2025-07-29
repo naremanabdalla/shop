@@ -6,23 +6,17 @@ const Chat = () => {
   const { currentUser } = useAuth();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([]); // Remove localStorage initialization
+  const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [conversationVersion, setConversationVersion] = useState(0);
+  const [lastTimestamp, setLastTimestamp] = useState(Date.now()); // Added missing state
   const [userId] = useState(() => {
     return (
       currentUser?.uid || `user-${Math.random().toString(36).substr(2, 9)}`
     );
   });
   const messagesEndRef = useRef(null);
-
-  const BOTPRESS_CONFIG = {
-    webhookUrl:
-      "https://webhook.botpress.cloud/667e3082-09f1-4ad3-9071-30ade020ef3b",
-    accessToken: "bp_pat_se5aRM9MJCiKOr8oH0E7YuXBHBKdDijQn4nD",
-    botId: "b20dd108-4e50-43dc-8c55-1be2ee2a5417",
-  };
 
   // Generate a unique conversation ID based on user and version
   const getConversationId = () => {
@@ -56,18 +50,12 @@ const Chat = () => {
     try {
       const response = await fetch("/.netlify/functions/botpress-proxy", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Cache-Control": "no-cache", // Important for mobile
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId,
-          messageId: userMessage.id,
-          conversationId: getConversationId(), // Use dynamic conversation ID
           type: "text",
           text: text.trim(),
-          payload: { website: "https://shopping022.netlify.app/" },
-          conversationVersion, // Include version in payload
+          userId: userId,
+          conversationId: getConversationId(),
           deviceInfo: {
             isMobile: /Mobi|Android/i.test(navigator.userAgent),
             userAgent: navigator.userAgent,
@@ -75,21 +63,21 @@ const Chat = () => {
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(data.error || "Failed to send message");
       }
 
-      const data = await response.json();
       console.log("Proxy response:", data);
     } catch (error) {
-      console.error("Send message failed:", error);
-      // Show user-friendly error on mobile
+      console.error("Error:", error);
       setMessages((prev) => [
         ...prev,
         {
           id: `error-${Date.now()}`,
-          text: "Message failed to send. Please check your connection.",
-          sender: "system",
+          text: `Error: ${error.message}`,
+          sender: "bot",
         },
       ]);
     } finally {
@@ -102,17 +90,24 @@ const Chat = () => {
       sendMessage();
     }
   };
+
   useEffect(() => {
     if (!isOpen) return;
 
-    let lastTimestamp = Date.now();
     let active = true;
+    let retryCount = 0;
+    const maxRetries = 3;
 
     const poll = async () => {
       try {
         const url = `/.netlify/functions/botpress-webhook?conversationId=${getConversationId()}&lastTimestamp=${lastTimestamp}`;
 
         const response = await fetch(url);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
         const { messages: newMessages, lastTimestamp: newTimestamp } =
           await response.json();
 
@@ -124,10 +119,27 @@ const Chat = () => {
             );
             return filtered.length > 0 ? [...prev, ...filtered] : prev;
           });
-          lastTimestamp = newTimestamp;
+          setLastTimestamp(newTimestamp);
+          retryCount = 0;
         }
       } catch (error) {
         console.error("Polling error:", error);
+        if (retryCount < maxRetries) {
+          retryCount++;
+          await new Promise((resolve) =>
+            setTimeout(resolve, 1000 * retryCount)
+          );
+          if (active) poll();
+        } else if (active) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `error-${Date.now()}`,
+              text: "Connection issues. Please refresh.",
+              sender: "system",
+            },
+          ]);
+        }
       }
     };
 
@@ -138,35 +150,13 @@ const Chat = () => {
       active = false;
       clearInterval(pollInterval);
     };
-  }, [isOpen, conversationVersion, userId]); // Add userId to dependencies
+  }, [isOpen, conversationVersion, userId, lastTimestamp]);
 
+  // Scroll to bottom when messages change
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("chatMessages", JSON.stringify(messages));
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-  useEffect(() => {
-    const checkMobileSupport = async () => {
-      try {
-        // Test the API connection when component mounts
-        const testResponse = await fetch("/.netlify/functions/botpress-proxy", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ test: true }),
-        });
 
-        if (!testResponse.ok) {
-          console.error("API connection failed", await testResponse.text());
-        }
-      } catch (error) {
-        console.error("Mobile connection test failed:", error);
-      }
-    };
-
-    if (isOpen) {
-      checkMobileSupport();
-    }
-  }, [isOpen]);
   return (
     <div className="fixed bottom-6 right-6 z-100">
       {isOpen ? (
@@ -177,9 +167,9 @@ const Chat = () => {
             <div>
               <button
                 onClick={() => {
-                  localStorage.removeItem("chatMessages");
                   setMessages([]);
-                  setConversationVersion((prev) => prev + 1); // Force new conversation
+                  setConversationVersion((prev) => prev + 1);
+                  setLastTimestamp(Date.now());
                 }}
                 className="text-xs bg-[color:var(--color-primary)] px-2 py-1 rounded mr-2"
               >
@@ -211,8 +201,6 @@ const Chat = () => {
                   }`}
                 >
                   {message.text}
-
-                  {/* Add this block right after {message.text} */}
                   {message.rawData?.payload?.options && (
                     <div className="flex space-x-2 mt-2">
                       {message.rawData.payload.options.map((option) => (
@@ -242,13 +230,14 @@ const Chat = () => {
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message..."
-                className={`w-30 md:w-auto flex-1 border border-gray-300 rounded-l-lg py-2 px-1  focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                className={`w-30 md:w-auto flex-1 border border-gray-300 rounded-l-lg py-2 px-1 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
                   isLoading ? "opacity-50" : ""
                 }`}
               />
               <button
-                onClick={() => sendMessage()} // No event passed
-                className="bg-black text-white px-4 rounded-r-lg hover:bg-gray-800 transition"
+                onClick={() => sendMessage()}
+                disabled={isLoading}
+                className="bg-black text-white px-4 rounded-r-lg hover:bg-gray-800 transition disabled:opacity-50"
               >
                 Send
               </button>
@@ -259,6 +248,7 @@ const Chat = () => {
         <button
           onClick={() => {
             setIsOpen(true);
+            setLastTimestamp(Date.now());
           }}
           className="bg-black text-2xl text-[color:var(--color-primary)] rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-gray-800 transition"
         >
