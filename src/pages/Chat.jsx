@@ -56,7 +56,10 @@ const Chat = () => {
     try {
       const response = await fetch("/.netlify/functions/botpress-proxy", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-cache", // Important for mobile
+        },
         body: JSON.stringify({
           userId,
           messageId: userMessage.id,
@@ -65,18 +68,28 @@ const Chat = () => {
           text: text.trim(),
           payload: { website: "https://shopping022.netlify.app/" },
           conversationVersion, // Include version in payload
+          deviceInfo: {
+            isMobile: /Mobi|Android/i.test(navigator.userAgent),
+            userAgent: navigator.userAgent,
+          },
         }),
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
       console.log("Proxy response:", data);
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Send message failed:", error);
+      // Show user-friendly error on mobile
       setMessages((prev) => [
         ...prev,
         {
           id: `error-${Date.now()}`,
-          text: "Sorry, there was an error. Please try again.",
-          sender: "bot",
+          text: "Message failed to send. Please check your connection.",
+          sender: "system",
         },
       ]);
     } finally {
@@ -132,6 +145,28 @@ const Chat = () => {
       localStorage.setItem("chatMessages", JSON.stringify(messages));
     }
   }, [messages]);
+  useEffect(() => {
+    const checkMobileSupport = async () => {
+      try {
+        // Test the API connection when component mounts
+        const testResponse = await fetch("/.netlify/functions/botpress-proxy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ test: true }),
+        });
+
+        if (!testResponse.ok) {
+          console.error("API connection failed", await testResponse.text());
+        }
+      } catch (error) {
+        console.error("Mobile connection test failed:", error);
+      }
+    };
+
+    if (isOpen) {
+      checkMobileSupport();
+    }
+  }, [isOpen]);
   return (
     <div className="fixed bottom-6 right-6 z-100">
       {isOpen ? (

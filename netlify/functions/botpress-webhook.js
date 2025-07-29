@@ -3,10 +3,10 @@ let conversations = {};
 export const handler = async (event) => {
     const headers = {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+        'Access-Control-Allow-Headers': 'Content-Type, Cache-Control',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
     };
-
     if (event.httpMethod === 'OPTIONS') {
         return { statusCode: 204, headers };
     }
@@ -41,6 +41,8 @@ export const handler = async (event) => {
 
     if (event.httpMethod === 'POST') {
         try {
+            const body = JSON.parse(event.body);
+            console.log('Incoming request from device:', body.deviceInfo);
             const botResponse = JSON.parse(event.body);
             const conversationId = botResponse.conversationId;
 
