@@ -50,16 +50,18 @@ const Chat = () => {
     try {
       const response = await fetch("/.netlify/functions/botpress-proxy", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
         body: JSON.stringify({
           type: "text",
           text: text.trim(),
           userId: userId,
           conversationId: getConversationId(),
           payload: {
-            // Added payload structure
-            text: text.trim(),
             type: "text",
+            text: text.trim(),
           },
           deviceInfo: {
             isMobile: /Mobi|Android/i.test(navigator.userAgent),
@@ -70,18 +72,20 @@ const Chat = () => {
 
       const data = await response.json();
 
-      if (!response.ok || data.error) {
-        throw new Error(data.error || "Failed to send message");
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to send message");
       }
 
-      console.log("Proxy response:", data);
+      console.log("Botpress response:", data);
     } catch (error) {
-      console.error("Error:", error);
+      console.error("API Error:", error);
       setMessages((prev) => [
         ...prev,
         {
           id: `error-${Date.now()}`,
-          text: `Error: ${error.message}`,
+          text: error.message.includes("Failed to process request")
+            ? "Sorry, the chatbot is currently unavailable. Please try again later."
+            : error.message,
           sender: "bot",
         },
       ]);
