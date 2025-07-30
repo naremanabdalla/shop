@@ -86,34 +86,33 @@ const Chat = () => {
     }
   };
 
+  const lastTimestampRef = useRef(Date.now());
     useEffect(() => {
     if (!isOpen) return;
 
-    let lastTimestamp = Date.now();
     let active = true;
 
-    const poll = async () => {
-      try {
-        const url = `/.netlify/functions/botpress-webhook?conversationId=${getConversationId()}&lastTimestamp=${lastTimestamp}`;
+const poll = async () => {
+  try {
+    const url = `/.netlify/functions/botpress-webhook?conversationId=${getConversationId()}&lastTimestamp=${lastTimestampRef.current}`;
+    const response = await fetch(url);
+    const { messages: newMessages, lastTimestamp: newTimestamp } = await response.json();
 
-        const response = await fetch(url);
-        const { messages: newMessages, lastTimestamp: newTimestamp } =
-          await response.json();
+    if (active && newMessages.length > 0) {
+      setMessages((prev) => {
+        const existingIds = new Set(prev.map((m) => m.id));
+        const filtered = newMessages.filter((msg) => !existingIds.has(msg.id));
+        return filtered.length > 0 ? [...prev, ...filtered] : prev;
+      });
 
-        if (active && newMessages.length > 0) {
-          setMessages((prev) => {
-            const existingIds = new Set(prev.map((m) => m.id));
-            const filtered = newMessages.filter(
-              (msg) => !existingIds.has(msg.id)
-            );
-            return filtered.length > 0 ? [...prev, ...filtered] : prev;
-          });
-          lastTimestamp = newTimestamp;
-        }
-      } catch (error) {
-        console.error("Polling error:", error);
-      }
-    };
+      // ✅ Update ref with new timestamp
+      lastTimestampRef.current = newTimestamp;
+    }
+  } catch (error) {
+    console.error("Polling error:", error);
+  }
+};
+
 
     poll();
     const pollInterval = setInterval(poll, 3000);
@@ -124,11 +123,13 @@ const Chat = () => {
     };
   }, [isOpen, conversationVersion, userId]);// Add conversationVersion to dependencies
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("chatMessages", JSON.stringify(messages));
-    }
-  }, [messages]);
+useEffect(() => {
+  const saved = localStorage.getItem("chatMessages");
+  if (saved) {
+    setMessages(JSON.parse(saved));
+  }
+}, []);
+
   return (
     <div className="fixed bottom-6 right-6 z-100">
       {isOpen ? (
