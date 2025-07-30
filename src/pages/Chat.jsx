@@ -18,53 +18,53 @@ const Chat = () => {
 
   const getConversationId = () => `${userId}-${conversationVersion}`;
 
-   const sendMessage = async (text) => {
+  const sendMessage = async (text) => {
     if (!text?.trim()) return;
 
     setIsLoading(true);
     const userMessage = {
-      id: `msg-${Date.now()}`,
-      text: text.trim(),
-      sender: "user",
+        id: `msg-${Date.now()}`,
+        text: text.trim(),
+        sender: "user",
     };
 
     setMessages(prev => [...prev, userMessage]);
     setInputValue("");
 
     try {
-      const response = await fetch("/.netlify/functions/botpress-proxy", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "text",
-          text: text.trim(),
-          userId: userId,
-          conversationId: getConversationId(),
-          payload: {
-            text: text.trim(),
-            type: "text"
-          }
-        }),
-      });
+        const response = await fetch("/.netlify/functions/botpress-proxy", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                type: "text",
+                text: text.trim(),
+                userId: userId,
+                conversationId: getConversationId(),
+                payload: {
+                    text: text.trim(),
+                    type: "text"
+                }
+            }),
+        });
 
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to send message");
-      }
-      
-      console.log("Botpress response:", data);
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || data.message || "Failed to send message");
+        }
+        
+        console.log("Botpress response:", data);
     } catch (error) {
-      console.error("Error:", error);
-      setMessages(prev => [...prev, {
-        id: `error-${Date.now()}`,
-        text: "Sorry, there was an error sending your message",
-        sender: "bot"
-      }]);
+        console.error("Error:", error);
+        setMessages(prev => [...prev, {
+            id: `error-${Date.now()}`,
+            text: error.message || "Sorry, there was an error",
+            sender: "bot"
+        }]);
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
-  };
+};
 
   const handleSubmit = (e) => {
     e.preventDefault();

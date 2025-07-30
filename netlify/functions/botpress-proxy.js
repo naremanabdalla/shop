@@ -1,4 +1,3 @@
-// botpress-proxy.js - SIMPLIFIED VERSION WITHOUT PROCESS CHECKS
 export const handler = async (event) => {
     const BOTPRESS_URL = "https://webhook.botpress.cloud/667e3082-09f1-4ad3-9071-30ade020ef3b";
     const BOTPRESS_TOKEN = "bp_pat_se5aRM9MJCiKOr8oH0E7YuXBHBKdDijQn4nD";
@@ -18,10 +17,20 @@ export const handler = async (event) => {
     }
 
     try {
-        const payload = JSON.parse(event.body || '{}');
-console.log("Received payload:", payload);
-        // Validate payload
-        if (!payload.text && !payload.payload?.text) {
+        // Parse the incoming payload
+        let payload;
+        try {
+            payload = JSON.parse(event.body || '{}');
+        } catch (e) {console.log(e)
+            return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({ error: "Invalid JSON payload" })
+            };
+        }
+
+        // Validate required fields
+        if (!payload.text && !(payload.payload && payload.payload.text)) {
             return {
                 statusCode: 400,
                 headers,
@@ -29,40 +38,56 @@ console.log("Received payload:", payload);
             };
         }
 
-        // Build Botpress payload
+        // Construct the Botpress payload
         const botpressPayload = {
-            type: "text",
-            text: payload.text || payload.payload?.text,
+            type: payload.type || "text",
+            text: payload.text || payload.payload?.text || "",
             userId: payload.userId || `user-${Date.now()}`,
             conversationId: payload.conversationId || `conv-${Date.now()}`,
             payload: {
                 type: "text",
-                text: payload.text || payload.payload?.text
+                text: payload.text || payload.payload?.text || ""
             },
-            channel: "web"
+            channel: "web",
+            metadata: {
+                website: "https://shopping022.netlify.app/",
+                ts: Date.now()
+            }
         };
 
-        console.log("Debug: Sending to Botpress", botpressPayload); // Basic log
+        console.log("Sending to Botpress:", JSON.stringify(botpressPayload, null, 2));
 
         const response = await fetch(BOTPRESS_URL, {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${BOTPRESS_TOKEN}`,
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Accept": "application/json"
             },
             body: JSON.stringify(botpressPayload)
         });
 
-        const responseData = await response.json();
+        // Handle non-JSON responses
+        const responseText = await response.text();
+        let responseData;
+        try {
+            responseData = JSON.parse(responseText);
+        } catch {
+            responseData = { message: responseText };
+        }
+
+        if (!response.ok) {
+            console.error("Botpress API error:", responseData);
+            throw new Error(responseData.message || `Botpress returned ${response.status}`);
+        }
 
         return {
-            statusCode: response.status,
+            statusCode: 200,
             headers,
             body: JSON.stringify(responseData)
         };
-
     } catch (error) {
-        console.error("Error in proxy:", error);
+        console.error("Proxy error:", error);
         return {
             statusCode: 500,
             headers,
