@@ -1,13 +1,13 @@
+/* eslint-env node */
 export const handler = async (event) => {
     const BOTPRESS_URL = "https://webhook.botpress.cloud/667e3082-09f1-4ad3-9071-30ade020ef3b";
-    const BOTPRESS_TOKEN = "bp_pat_se5aRM9MJCiKOr8oH0E7YuXBHBKdDijQn4nD";
+    const BOTPRESS_TOKEN = "bp_pat_se5aRM9MJCiKOr8oH0E7YuXBHBKdDijQn4D";
 
     try {
         const payload = JSON.parse(event.body);
 
         const enhancedPayload = {
             ...payload,
-            // Ensure these fields are included
             type: payload.type || "text",
             conversationVersion: payload.conversationVersion || 0,
             userId: payload.userId,
@@ -25,10 +25,19 @@ export const handler = async (event) => {
 
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
+        const textResponse = await response.text();
+
+        // ✅ Fix: move .netlify/functions/... outside the fallback value
+        await fetch(`${process.env.URL || "https://shopping022.netlify.app"}/.netlify/functions/botpress-webhook`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: textResponse
+        });
+
         return {
             statusCode: 200,
             headers: { 'Access-Control-Allow-Origin': '*' },
-            body: await response.text()
+            body: textResponse
         };
     } catch (error) {
         console.error('Proxy error:', error);
