@@ -9,41 +9,51 @@ export const handler = async (event) => {
 
     try {
         const payload = JSON.parse(event.body);
-        console.log("Incoming payload:", payload);
+        
+        // Generate consistent session IDs
+        const sessionId = payload.userId || `anon-${Date.now()}`;
+        const conversationId = payload.conversationId || `conv-${sessionId}-${Date.now()}`;
+
+        const botpressPayload = {
+            type: "text",
+            text: payload.text,
+            userId: sessionId,
+            conversationId: conversationId,
+            payload: {
+                text: payload.text,
+                type: "text",
+                deviceInfo: payload.deviceInfo || {}
+            },
+            channel: "web"
+        };
 
         const response = await fetch(BOTPRESS_URL, {
             method: "POST",
             headers: {
-                Authorization: `Bearer ${BOTPRESS_TOKEN}`,
-                "Content-Type": "application/json",
+                "Authorization": `Bearer ${BOTPRESS_TOKEN}`,
+                "Content-Type": "application/json"
             },
-            body: JSON.stringify({
-                ...payload,
-                type: payload.type || "text",
-                channel: "web"
-            }),
+            body: JSON.stringify(botpressPayload)
         });
 
         const responseData = await response.json();
-        console.log("Botpress response:", responseData);
-
-        if (!response.ok) {
-            throw new Error(responseData.message || `Botpress error: ${response.status}`);
-        }
 
         return {
-            statusCode: 200,
+            statusCode: response.ok ? 200 : 502,
             headers,
-            body: JSON.stringify(responseData)
+            body: JSON.stringify({
+                ...responseData,
+                conversationId: conversationId // Return the conversation ID
+            })
         };
+
     } catch (error) {
-        console.error('Proxy error:', error);
         return {
             statusCode: 500,
             headers,
             body: JSON.stringify({
                 error: "Failed to process request",
-                details: error.message
+                message: error.message
             })
         };
     }
