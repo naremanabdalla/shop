@@ -26,74 +26,59 @@ const Chat = () => {
     return `${userId}-${conversationVersion}`;
   };
   const sendMessage = async (textOrEvent) => {
-  setIsLoading(true);
+    setIsLoading(true);
 
-  let text;
-  if (typeof textOrEvent === "string") {
-    text = textOrEvent;
-  } else {
-    text = inputValue;
-  }
+    let text;
+    if (typeof textOrEvent === "string") {
+      text = textOrEvent;
+    } else {
+      text = inputValue;
+    }
 
-  if (!text?.trim()) {
-    setIsLoading(false);
-    return;
-  }
+    if (!text?.trim()) {
+      setIsLoading(false);
+      return;
+    }
 
-  const userMessage = {
-    id: `msg-${Date.now()}`,
-    text: text.trim(),
-    sender: "user",
-  };
+    const userMessage = {
+      id: `msg-${Date.now()}`,
+      text: text.trim(),
+      sender: "user",
+    };
 
-  setMessages((prev) => [...prev, userMessage]);
-  setInputValue("");
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue("");
 
-  try {
-    const response = await fetch("/.netlify/functions/botpress-proxy", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userId,
-        messageId: userMessage.id,
-        conversationId: getConversationId(),
-        type: "text",
-        text: text.trim(),
-        payload: { website: "https://shopping022.netlify.app/" },
-        conversationVersion,
-      }),
-    });
-    
-    const data = await response.json();
-    console.log("Proxy response:", data);
-
-    // Add this block to handle the bot response
-    if (data.text || data.payload?.text) {
+    try {
+      const response = await fetch("/.netlify/functions/botpress-proxy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          messageId: userMessage.id,
+          conversationId: getConversationId(), // Use dynamic conversation ID
+          type: "text",
+          text: text.trim(),
+          payload: { website: "https://shopping022.netlify.app/" },
+          conversationVersion, // Include version in payload
+        }),
+      });
+      const data = await response.json();
+      console.log("Proxy response:", data);
+    } catch (error) {
+      console.error("Error:", error);
       setMessages((prev) => [
         ...prev,
         {
-          id: `bot-${Date.now()}`,
-          text: data.text || data.payload.text,
+          id: `error-${Date.now()}`,
+          text: "Sorry, there was an error. Please try again.",
           sender: "bot",
-          rawData: data,
         },
       ]);
+    } finally {
+      setIsLoading(false);
     }
-    
-  } catch (error) {
-    console.error("Error:", error);
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: `error-${Date.now()}`,
-        text: "Sorry, there was an error. Please try again.",
-        sender: "bot",
-      },
-    ]);
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
