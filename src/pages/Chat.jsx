@@ -8,21 +8,29 @@ const Chat = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [conversationVersion, setConversationVersion] = useState(0);
-  const [lastTimestamp, setLastTimestamp] = useState(Date.now()); // Added missing state
+  const [lastTimestamp, setLastTimestamp] = useState(Date.now());
   const [userId] = useState(() => {
-    return (
-      currentUser?.uid || `user-${Math.random().toString(36).substr(2, 9)}`
-    );
+    return currentUser?.uid || `user-${Math.random().toString(36).substr(2, 9)}`;
   });
   const messagesEndRef = useRef(null);
 
-  // Generate a unique conversation ID based on user and version
-  const getConversationId = () => {
-    return `${userId}-${conversationVersion}`;
-  };
+  const getConversationId = () => `${userId}-${conversationVersion}`;
 
-  const sendMessage = async (text) => {
+   const sendMessage = async (text) => {
+    if (!text?.trim()) return;
+
+    setIsLoading(true);
+    const userMessage = {
+      id: `msg-${Date.now()}`,
+      text: text.trim(),
+      sender: "user",
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInputValue("");
+
     try {
       const response = await fetch("/.netlify/functions/botpress-proxy", {
         method: "POST",
@@ -30,25 +38,43 @@ const Chat = () => {
         body: JSON.stringify({
           type: "text",
           text: text.trim(),
-          userId: "user-123", // Replace with your actual user ID logic
-          conversationId: "conv-456", // Replace with your conversation ID logic
+          userId: userId,
+          conversationId: getConversationId(),
+          payload: {
+            text: text.trim(),
+            type: "text"
+          }
         }),
       });
 
+      const data = await response.json();
+      
       if (!response.ok) {
-        throw new Error(await response.text());
+        throw new Error(data.error || "Failed to send message");
       }
-
-      return await response.json();
+      
+      console.log("Botpress response:", data);
     } catch (error) {
-      console.error("Failed to send message:", error);
-      throw error; // Re-throw for error handling in your component
+      console.error("Error:", error);
+      setMessages(prev => [...prev, {
+        id: `error-${Date.now()}`,
+        text: "Sorry, there was an error sending your message",
+        sender: "bot"
+      }]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    sendMessage(inputValue);
+  };
+
   const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      sendMessage();
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage(inputValue);
     }
   };
 
@@ -182,24 +208,30 @@ const Chat = () => {
           </div>
 
           {/* Input area */}
-          <div className="p-3 border-t border-gray-200">
+        <form onSubmit={handleSubmit} className="p-3 border-t border-gray-200">
             <div className="flex">
               <input
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyPress}
                 placeholder="Type your message..."
-                className={`w-30 md:w-auto flex-1 border border-gray-300 rounded-l-lg py-2 px-1 focus:outline-none focus:ring-1 focus:ring-blue-500 `}
+                disabled={isLoading}
+                className={`w-30 md:w-auto flex-1 border border-gray-300 rounded-l-lg py-2 px-1 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                  isLoading ? "opacity-50" : ""
+                }`}
               />
               <button
-                onClick={() => sendMessage()}
-                className="bg-black text-white px-4 rounded-r-lg hover:bg-gray-800 transition disabled:opacity-50"
+                type="submit"
+                disabled={isLoading || !inputValue.trim()}
+                className={`bg-black text-white px-4 rounded-r-lg hover:bg-gray-800 transition ${
+                  isLoading || !inputValue.trim() ? "opacity-50" : ""
+                }`}
               >
-                Send
+                {isLoading ? "Sending..." : "Send"}
               </button>
             </div>
-          </div>
+          </form>
         </div>
       ) : (
         <button

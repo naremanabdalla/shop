@@ -55,7 +55,7 @@ export const handler = async (event) => {
             }
 
             // Initialize conversation if it doesn't exist
-            if (!conversations[conversationId]) {
+if (!conversations[conversationId]) {
                 conversations[conversationId] = {
                     messages: [],
                     createdAt: Date.now(),

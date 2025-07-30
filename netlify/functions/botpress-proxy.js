@@ -19,7 +19,7 @@ export const handler = async (event) => {
 
     try {
         const payload = JSON.parse(event.body || '{}');
-
+console.log("Received payload:", payload);
         // Validate payload
         if (!payload.text && !payload.payload?.text) {
             return {
