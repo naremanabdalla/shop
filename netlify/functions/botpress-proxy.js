@@ -1,7 +1,7 @@
 /* eslint-env node */
 export const handler = async (event) => {
     const BOTPRESS_URL = "https://webhook.botpress.cloud/667e3082-09f1-4ad3-9071-30ade020ef3b";
-    const BOTPRESS_TOKEN = "bp_pat_se5aRM9MJCiKOr8oH0E7YuXBHBKdDijQn4D";
+    const BOTPRESS_TOKEN = "bp_pat_j47qAbJPowRIOXPInfJn0ZdKKWYZvkUdxL13";
 
     try {
         const payload = JSON.parse(event.body);
