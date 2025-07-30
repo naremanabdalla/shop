@@ -7,30 +7,17 @@ export const handler = async (event) => {
         'Content-Type': 'application/json'
     };
 
-    // Handle preflight requests
-    if (event.httpMethod === 'OPTIONS') {
-        return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify({ status: 'OK' })
-        };
-    }
+    console.log("Incoming request:", event); // Debug log
 
     try {
-        // Parse the incoming payload
-        let payload;
-        try {
-            payload = JSON.parse(event.body || '{}');
-        } catch (e) {console.log(e)
-            return {
-                statusCode: 400,
-                headers,
-                body: JSON.stringify({ error: "Invalid JSON payload" })
-            };
-        }
+        // Parse payload safely
+        const payload = JSON.parse(event.body || '{}');
+        console.log("Parsed payload:", payload);
 
         // Validate required fields
-        if (!payload.text && !(payload.payload && payload.payload.text)) {
+        const messageText = payload.text || payload.payload?.text;
+        if (!messageText) {
+            console.error("Validation failed: Missing text");
             return {
                 statusCode: 400,
                 headers,
@@ -38,47 +25,36 @@ export const handler = async (event) => {
             };
         }
 
-        // Construct the Botpress payload
+        // Construct Botpress payload
         const botpressPayload = {
-            type: payload.type || "text",
-            text: payload.text || payload.payload?.text || "",
+            type: "text",
+            text: messageText,
             userId: payload.userId || `user-${Date.now()}`,
             conversationId: payload.conversationId || `conv-${Date.now()}`,
             payload: {
                 type: "text",
-                text: payload.text || payload.payload?.text || ""
+                text: messageText
             },
-            channel: "web",
-            metadata: {
-                website: "https://shopping022.netlify.app/",
-                ts: Date.now()
-            }
+            channel: "web"
         };
 
-        console.log("Sending to Botpress:", JSON.stringify(botpressPayload, null, 2));
+        console.log("Sending to Botpress:", botpressPayload);
 
         const response = await fetch(BOTPRESS_URL, {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${BOTPRESS_TOKEN}`,
-                "Content-Type": "application/json",
-                "Accept": "application/json"
+                "Content-Type": "application/json"
             },
-            body: JSON.stringify(botpressPayload)
+            body: JSON.stringify(botpressPayload),
+            timeout: 5000 // 5 second timeout
         });
 
-        // Handle non-JSON responses
-        const responseText = await response.text();
-        let responseData;
-        try {
-            responseData = JSON.parse(responseText);
-        } catch {
-            responseData = { message: responseText };
-        }
+        const responseData = await response.json();
+        console.log("Botpress response:", responseData);
 
         if (!response.ok) {
-            console.error("Botpress API error:", responseData);
-            throw new Error(responseData.message || `Botpress returned ${response.status}`);
+            throw new Error(responseData.message || `Botpress error: ${response.status}`);
         }
 
         return {
@@ -87,13 +63,14 @@ export const handler = async (event) => {
             body: JSON.stringify(responseData)
         };
     } catch (error) {
-        console.error("Proxy error:", error);
+        console.error("Critical error:", error);
         return {
             statusCode: 500,
             headers,
             body: JSON.stringify({
                 error: "Failed to process request",
-                message: error.message
+                message: error.message,
+                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
             })
         };
     }

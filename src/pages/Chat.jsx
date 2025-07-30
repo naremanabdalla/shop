@@ -38,27 +38,27 @@ const Chat = () => {
             body: JSON.stringify({
                 type: "text",
                 text: text.trim(),
-                userId: userId,
-                conversationId: getConversationId(),
+                userId: userId, // Make sure userId is defined
+                conversationId: getConversationId(), // Make sure this returns a string
                 payload: {
-                    text: text.trim(),
-                    type: "text"
+                    type: "text",
+                    text: text.trim()
                 }
-            }),
+            })
         });
 
         const data = await response.json();
         
         if (!response.ok) {
-            throw new Error(data.error || data.message || "Failed to send message");
+            throw new Error(data.error || data.message || "Botpress returned an error");
         }
-        
-        console.log("Botpress response:", data);
+
+        console.log("Success:", data);
     } catch (error) {
-        console.error("Error:", error);
+        console.error("API Error:", error);
         setMessages(prev => [...prev, {
             id: `error-${Date.now()}`,
-            text: error.message || "Sorry, there was an error",
+            text: "Sorry, we're experiencing technical difficulties",
             sender: "bot"
         }]);
     } finally {
