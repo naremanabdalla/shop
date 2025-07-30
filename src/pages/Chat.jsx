@@ -3,7 +3,7 @@ import { RiRobot3Line } from "react-icons/ri";
 import { useAuth } from "../Context/authContext";
 
 const Chat = () => {
- const { currentUser } = useAuth();
+  const { currentUser } = useAuth();
 
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]); // Remove localStorage initialization
@@ -11,12 +11,15 @@ const Chat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [conversationVersion, setConversationVersion] = useState(0);
   const [userId] = useState(() => {
-    return currentUser?.uid || `user-${Math.random().toString(36).substr(2, 9)}`;
+    return (
+      currentUser?.uid || `user-${Math.random().toString(36).substr(2, 9)}`
+    );
   });
   const messagesEndRef = useRef(null);
 
   const BOTPRESS_CONFIG = {
-    webhookUrl: "https://webhook.botpress.cloud/667e3082-09f1-4ad3-9071-30ade020ef3b",
+    webhookUrl:
+      "https://webhook.botpress.cloud/667e3082-09f1-4ad3-9071-30ade020ef3b",
     accessToken: "bp_pat_se5aRM9MJCiKOr8oH0E7YuXBHBKdDijQn4nD",
     botId: "b20dd108-4e50-43dc-8c55-1be2ee2a5417",
   };
@@ -65,6 +68,17 @@ const Chat = () => {
       });
       const data = await response.json();
       console.log("Proxy response:", data);
+
+      if (data.payload?.text || data.text) {
+        const botMessage = {
+          id: `bot-${Date.now()}`,
+          text: data.payload?.text || data.text,
+          sender: "bot",
+          rawData: data,
+          timestamp: Date.now(),
+        };
+        setMessages((prev) => [...prev, botMessage]);
+      }
     } catch (error) {
       console.error("Error:", error);
       setMessages((prev) => [
@@ -87,32 +101,36 @@ const Chat = () => {
   };
 
   const lastTimestampRef = useRef(Date.now());
-    useEffect(() => {
+  useEffect(() => {
     if (!isOpen) return;
 
     let active = true;
 
-const poll = async () => {
-  try {
-    const url = `/.netlify/functions/botpress-webhook?conversationId=${getConversationId()}&lastTimestamp=${lastTimestampRef.current}`;
-    const response = await fetch(url);
-    const { messages: newMessages, lastTimestamp: newTimestamp } = await response.json();
+    const poll = async () => {
+      try {
+        const url = `/.netlify/functions/botpress-webhook?conversationId=${getConversationId()}&lastTimestamp=${
+          lastTimestampRef.current
+        }`;
+        const response = await fetch(url);
+        const { messages: newMessages, lastTimestamp: newTimestamp } =
+          await response.json();
 
-    if (active && newMessages.length > 0) {
-      setMessages((prev) => {
-        const existingIds = new Set(prev.map((m) => m.id));
-        const filtered = newMessages.filter((msg) => !existingIds.has(msg.id));
-        return filtered.length > 0 ? [...prev, ...filtered] : prev;
-      });
+        if (active && newMessages.length > 0) {
+          setMessages((prev) => {
+            const existingIds = new Set(prev.map((m) => m.id));
+            const filtered = newMessages.filter(
+              (msg) => !existingIds.has(msg.id)
+            );
+            return filtered.length > 0 ? [...prev, ...filtered] : prev;
+          });
 
-      // ✅ Update ref with new timestamp
-      lastTimestampRef.current = newTimestamp;
-    }
-  } catch (error) {
-    console.error("Polling error:", error);
-  }
-};
-
+          // ✅ Update ref with new timestamp
+          lastTimestampRef.current = newTimestamp;
+        }
+      } catch (error) {
+        console.error("Polling error:", error);
+      }
+    };
 
     poll();
     const pollInterval = setInterval(poll, 3000);
@@ -121,14 +139,19 @@ const poll = async () => {
       active = false;
       clearInterval(pollInterval);
     };
-  }, [isOpen, conversationVersion, userId]);// Add conversationVersion to dependencies
+  }, [isOpen, conversationVersion, userId]); // Add conversationVersion to dependencies
 
-useEffect(() => {
-  const saved = localStorage.getItem("chatMessages");
-  if (saved) {
-    setMessages(JSON.parse(saved));
-  }
-}, []);
+  useEffect(() => {
+    const saved = localStorage.getItem("chatMessages");
+    if (saved) {
+      setMessages(JSON.parse(saved));
+    }
+  }, []);
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
 
   return (
     <div className="fixed bottom-6 right-6 z-100">
