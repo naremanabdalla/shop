@@ -7,7 +7,7 @@ export const handler = async (event) => {
         'Content-Type': 'application/json'
     };
 
-    // Handle preflight OPTIONS request
+    // Handle preflight requests
     if (event.httpMethod === 'OPTIONS') {
         return {
             statusCode: 200,
@@ -17,75 +17,82 @@ export const handler = async (event) => {
     }
 
     try {
-        // Safely parse incoming payload
+        // Store the raw body before any parsing attempts
+        const rawBody = event.body;
+        
+        // Parse the body just once
         let payload;
         try {
-            payload = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
+            payload = JSON.parse(rawBody);
         } catch (e) {
             console.error("JSON parse error:", e);
             return {
                 statusCode: 400,
                 headers,
-                body: JSON.stringify({ error: "Invalid JSON payload" })
+                body: JSON.stringify({ 
+                    error: "Invalid JSON format",
+                    receivedBody: rawBody
+                })
             };
         }
 
         // Validate required fields
-        if (!payload.text) {
+        const messageText = payload.text || (payload.payload && payload.payload.text);
+        if (!messageText) {
             return {
                 statusCode: 400,
                 headers,
-                body: JSON.stringify({ error: "Message text is required" })
+                body: JSON.stringify({ 
+                    error: "Message text is required",
+                    receivedPayload: payload
+                })
             };
         }
 
         // Construct Botpress payload
         const botpressPayload = {
             type: "text",
-            text: payload.text,
+            text: messageText,
             userId: payload.userId || `user-${Date.now()}`,
             conversationId: payload.conversationId || `conv-${Date.now()}`,
             payload: {
                 type: "text",
-                text: payload.text,
+                text: messageText,
                 ...(payload.deviceInfo || {})
             },
             channel: "web"
         };
 
-        console.log("Sending to Botpress:", JSON.stringify(botpressPayload, null, 2));
+        console.log("Sending to Botpress:", botpressPayload);
 
+        // Make request to Botpress
         const response = await fetch(BOTPRESS_URL, {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${BOTPRESS_TOKEN}`,
-                "Content-Type": "application/json",
-                "Accept": "application/json"
+                "Content-Type": "application/json"
             },
             body: JSON.stringify(botpressPayload)
         });
 
-        // Handle both JSON and non-JSON responses
+        // Handle response (read only once)
+        const responseText = await response.text();
         let responseData;
         try {
-            responseData = await response.json();
-        } catch (e) {
-            console.warn("Non-JSON response from Botpress:", await response.text());
-            responseData = { text: "Received non-JSON response" };
+            responseData = JSON.parse(responseText);
+        } catch {
+            responseData = { text: responseText };
         }
 
         if (!response.ok) {
             console.error("Botpress API error:", response.status, responseData);
-            throw new Error(responseData.message || `Botpress returned ${response.status}`);
+            throw new Error(responseData.message || `Botpress error: ${response.status}`);
         }
 
         return {
             statusCode: 200,
             headers,
-            body: JSON.stringify({
-                ...responseData,
-                conversationId: botpressPayload.conversationId
-            })
+            body: JSON.stringify(responseData)
         };
 
     } catch (error) {
@@ -95,8 +102,7 @@ export const handler = async (event) => {
             headers,
             body: JSON.stringify({
                 error: "Failed to process request",
-                message: error.message,
-                ...(process.env.NODE_ENV === 'development' ? { stack: error.stack } : {})
+                message: error.message
             })
         };
     }
