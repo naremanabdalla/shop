@@ -34,11 +34,14 @@ const Chat = () => {
     try {
         const response = await fetch("/.netlify/functions/botpress-proxy", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
             body: JSON.stringify({
                 type: "text",
                 text: text.trim(),
-                userId: userId, // Make sure userId is defined
+                userId: userId, // Make sure this is defined
                 conversationId: getConversationId(), // Make sure this returns a string
                 payload: {
                     type: "text",
@@ -54,11 +57,22 @@ const Chat = () => {
         }
 
         console.log("Success:", data);
+        
+        // Add bot response to messages
+        if (data.text) {
+            setMessages(prev => [...prev, {
+                id: `bot-${Date.now()}`,
+                text: data.text,
+                sender: "bot"
+            }]);
+        }
     } catch (error) {
         console.error("API Error:", error);
         setMessages(prev => [...prev, {
             id: `error-${Date.now()}`,
-            text: "Sorry, we're experiencing technical difficulties",
+            text: error.message.includes("Failed to process request") 
+                ? "Our chatbot service is currently unavailable. Please try again later."
+                : error.message,
             sender: "bot"
         }]);
     } finally {
