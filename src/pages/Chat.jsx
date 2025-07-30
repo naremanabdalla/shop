@@ -3,112 +3,100 @@ import { RiRobot3Line } from "react-icons/ri";
 import { useAuth } from "../Context/authContext";
 
 const Chat = () => {
-  const { currentUser } = useAuth();
+ const { currentUser } = useAuth();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([]); // Remove localStorage initialization
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [conversationVersion, setConversationVersion] = useState(0);
-  const [lastTimestamp, setLastTimestamp] = useState(Date.now());
   const [userId] = useState(() => {
     return currentUser?.uid || `user-${Math.random().toString(36).substr(2, 9)}`;
   });
   const messagesEndRef = useRef(null);
 
-  const getConversationId = () => `${userId}-${conversationVersion}`;
+  const BOTPRESS_CONFIG = {
+    webhookUrl: "https://webhook.botpress.cloud/667e3082-09f1-4ad3-9071-30ade020ef3b",
+    accessToken: "bp_pat_se5aRM9MJCiKOr8oH0E7YuXBHBKdDijQn4nD",
+    botId: "b20dd108-4e50-43dc-8c55-1be2ee2a5417",
+  };
 
-  const sendMessage = async (text) => {
-    if (!text?.trim()) return;
-
+  // Generate a unique conversation ID based on user and version
+  const getConversationId = () => {
+    return `${userId}-${conversationVersion}`;
+  };
+  const sendMessage = async (textOrEvent) => {
     setIsLoading(true);
+
+    let text;
+    if (typeof textOrEvent === "string") {
+      text = textOrEvent;
+    } else {
+      text = inputValue;
+    }
+
+    if (!text?.trim()) {
+      setIsLoading(false);
+      return;
+    }
+
     const userMessage = {
-        id: `msg-${Date.now()}`,
-        text: text.trim(),
-        sender: "user",
+      id: `msg-${Date.now()}`,
+      text: text.trim(),
+      sender: "user",
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
 
     try {
-        const response = await fetch("/.netlify/functions/botpress-proxy", {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            },
-            body: JSON.stringify({
-                type: "text",
-                text: text.trim(),
-                userId: userId, // Make sure this is defined
-                conversationId: getConversationId(), // Make sure this returns a string
-                payload: {
-                    type: "text",
-                    text: text.trim()
-                }
-            })
-        });
-
-        const data = await response.json();
-        
-        if (!response.ok) {
-            throw new Error(data.error || data.message || "Botpress returned an error");
-        }
-
-        console.log("Success:", data);
-        
-        // Add bot response to messages
-        if (data.text) {
-            setMessages(prev => [...prev, {
-                id: `bot-${Date.now()}`,
-                text: data.text,
-                sender: "bot"
-            }]);
-        }
+      const response = await fetch("/.netlify/functions/botpress-proxy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          messageId: userMessage.id,
+          conversationId: getConversationId(), // Use dynamic conversation ID
+          type: "text",
+          text: text.trim(),
+          payload: { website: "https://shopping022.netlify.app/" },
+          conversationVersion, // Include version in payload
+        }),
+      });
+      const data = await response.json();
+      console.log("Proxy response:", data);
     } catch (error) {
-        console.error("API Error:", error);
-        setMessages(prev => [...prev, {
-            id: `error-${Date.now()}`,
-            text: error.message.includes("Failed to process request") 
-                ? "Our chatbot service is currently unavailable. Please try again later."
-                : error.message,
-            sender: "bot"
-        }]);
+      console.error("Error:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `error-${Date.now()}`,
+          text: "Sorry, there was an error. Please try again.",
+          sender: "bot",
+        },
+      ]);
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
-};
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    sendMessage(inputValue);
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage(inputValue);
+    if (e.key === "Enter") {
+      sendMessage();
     }
   };
 
-  useEffect(() => {
+    useEffect(() => {
     if (!isOpen) return;
 
+    let lastTimestamp = Date.now();
     let active = true;
-    let retryCount = 0;
-    const maxRetries = 3;
 
     const poll = async () => {
       try {
         const url = `/.netlify/functions/botpress-webhook?conversationId=${getConversationId()}&lastTimestamp=${lastTimestamp}`;
 
         const response = await fetch(url);
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
         const { messages: newMessages, lastTimestamp: newTimestamp } =
           await response.json();
 
@@ -120,27 +108,10 @@ const Chat = () => {
             );
             return filtered.length > 0 ? [...prev, ...filtered] : prev;
           });
-          setLastTimestamp(newTimestamp);
-          retryCount = 0;
+          lastTimestamp = newTimestamp;
         }
       } catch (error) {
         console.error("Polling error:", error);
-        if (retryCount < maxRetries) {
-          retryCount++;
-          await new Promise((resolve) =>
-            setTimeout(resolve, 1000 * retryCount)
-          );
-          if (active) poll();
-        } else if (active) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: `error-${Date.now()}`,
-              text: "Connection issues. Please refresh.",
-              sender: "system",
-            },
-          ]);
-        }
       }
     };
 
@@ -151,13 +122,13 @@ const Chat = () => {
       active = false;
       clearInterval(pollInterval);
     };
-  }, [isOpen, conversationVersion, userId, lastTimestamp]);
+  }, [isOpen, conversationVersion, userId]);// Add conversationVersion to dependencies
 
-  // Scroll to bottom when messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (typeof window !== "undefined") {
+      localStorage.setItem("chatMessages", JSON.stringify(messages));
+    }
   }, [messages]);
-
   return (
     <div className="fixed bottom-6 right-6 z-100">
       {isOpen ? (
@@ -168,9 +139,9 @@ const Chat = () => {
             <div>
               <button
                 onClick={() => {
+                  localStorage.removeItem("chatMessages");
                   setMessages([]);
-                  setConversationVersion((prev) => prev + 1);
-                  setLastTimestamp(Date.now());
+                  setConversationVersion((prev) => prev + 1); // Force new conversation
                 }}
                 className="text-xs bg-[color:var(--color-primary)] px-2 py-1 rounded mr-2"
               >
@@ -202,6 +173,8 @@ const Chat = () => {
                   }`}
                 >
                   {message.text}
+
+                  {/* Add this block right after {message.text} */}
                   {message.rawData?.payload?.options && (
                     <div className="flex space-x-2 mt-2">
                       {message.rawData.payload.options.map((option) => (
@@ -222,36 +195,32 @@ const Chat = () => {
           </div>
 
           {/* Input area */}
-        <form onSubmit={handleSubmit} className="p-3 border-t border-gray-200">
+          <div className="p-3 border-t border-gray-200">
             <div className="flex">
               <input
+                disabled={isLoading}
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyPress}
+                onKeyPress={handleKeyPress}
                 placeholder="Type your message..."
-                disabled={isLoading}
-                className={`w-30 md:w-auto flex-1 border border-gray-300 rounded-l-lg py-2 px-1 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                className={`w-30 md:w-auto flex-1 border border-gray-300 rounded-l-lg py-2 px-1  focus:outline-none focus:ring-1 focus:ring-blue-500 ${
                   isLoading ? "opacity-50" : ""
                 }`}
               />
               <button
-                type="submit"
-                disabled={isLoading || !inputValue.trim()}
-                className={`bg-black text-white px-4 rounded-r-lg hover:bg-gray-800 transition ${
-                  isLoading || !inputValue.trim() ? "opacity-50" : ""
-                }`}
+                onClick={() => sendMessage()} // No event passed
+                className="bg-black text-white px-4 rounded-r-lg hover:bg-gray-800 transition"
               >
-                {isLoading ? "Sending..." : "Send"}
+                Send
               </button>
             </div>
-          </form>
+          </div>
         </div>
       ) : (
         <button
           onClick={() => {
             setIsOpen(true);
-            setLastTimestamp(Date.now());
           }}
           className="bg-black text-2xl text-[color:var(--color-primary)] rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-gray-800 transition"
         >

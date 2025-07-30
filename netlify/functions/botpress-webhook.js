@@ -3,9 +3,8 @@ let conversations = {};
 export const handler = async (event) => {
     const headers = {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Cache-Control',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Cache-Control': 'no-cache, no-store, must-revalidate'
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
     };
 
     if (event.httpMethod === 'OPTIONS') {
@@ -14,7 +13,7 @@ export const handler = async (event) => {
 
     if (event.httpMethod === 'GET') {
         const { conversationId, lastTimestamp } = event.queryStringParameters || {};
-
+        
         if (!conversationId) {
             return {
                 statusCode: 400,
@@ -41,11 +40,10 @@ export const handler = async (event) => {
     }
 
     if (event.httpMethod === 'POST') {
-        console.log('Incoming webhook payload:', JSON.parse(event.body));
         try {
             const botResponse = JSON.parse(event.body);
             const conversationId = botResponse.conversationId;
-
+            
             if (!conversationId) {
                 return {
                     statusCode: 400,
@@ -55,7 +53,7 @@ export const handler = async (event) => {
             }
 
             // Initialize conversation if it doesn't exist
-if (!conversations[conversationId]) {
+            if (!conversations[conversationId]) {
                 conversations[conversationId] = {
                     messages: [],
                     createdAt: Date.now(),
@@ -65,7 +63,7 @@ if (!conversations[conversationId]) {
 
             const botMessage = {
                 id: botResponse.messageId || `msg-${Date.now()}`,
-                text: botResponse.text || botResponse.payload?.text || "How can I help you?",
+                text: botResponse.payload?.text || botResponse.text || "How can I help you?",
                 sender: 'bot',
                 rawData: botResponse,
                 timestamp: Date.now()
@@ -86,24 +84,16 @@ if (!conversations[conversationId]) {
             return {
                 statusCode: 200,
                 headers,
-                body: JSON.stringify({ success: true, message: "Message processed successfully" })
+                body: JSON.stringify({ success: true })
             };
         } catch (error) {
-            console.error('Webhook POST error:', error);
             return {
                 statusCode: 500,
                 headers,
-                body: JSON.stringify({
-                    error: "Internal server error",
-                    details: error.message
-                })
+                body: JSON.stringify({ error: error.message })
             };
         }
     }
 
-    return {
-        statusCode: 405,
-        headers,
-        body: JSON.stringify({ error: 'Method Not Allowed' })
-    };
+    return { statusCode: 405, headers, body: 'Method Not Allowed' };
 };
