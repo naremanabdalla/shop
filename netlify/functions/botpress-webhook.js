@@ -15,8 +15,8 @@ export const handler = async (event) => {
     // In botpress-webhook.js, add more logging
     console.log("Incoming request:", event.httpMethod, event.queryStringParameters);
     if (event.httpMethod === 'GET') {
-        console.log("Current conversation state:", conversations[conversationId]);
         const { conversationId, lastTimestamp } = event.queryStringParameters || {};
+        console.log("Current conversation state:", conversations[conversationId]);
 
         if (!conversationId) {
             return {
