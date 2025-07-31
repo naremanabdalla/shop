@@ -6,7 +6,7 @@ import {
   useWebchat,
   Fab,
 } from "@botpress/webchat";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 
 const headerConfig = {
   botName: "SupportBot",
