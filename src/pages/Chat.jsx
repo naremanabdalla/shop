@@ -69,6 +69,9 @@ const Chat = () => {
       const data = await response.json();
       console.log("Proxy response:", data);
 
+      if (!data.payload?.text && !data.text) {
+        console.error("Empty response from bot:", data);
+      }
       if (data.payload?.text || data.text) {
         const botMessage = {
           id: `bot-${Date.now()}`,

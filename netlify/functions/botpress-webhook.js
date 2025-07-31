@@ -6,15 +6,18 @@ export const handler = async (event) => {
         'Access-Control-Allow-Headers': 'Content-Type',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
     };
-    
+
 
     if (event.httpMethod === 'OPTIONS') {
         return { statusCode: 204, headers };
     }
 
+    // In botpress-webhook.js, add more logging
+    console.log("Incoming request:", event.httpMethod, event.queryStringParameters);
     if (event.httpMethod === 'GET') {
+        console.log("Current conversation state:", conversations[conversationId]);
         const { conversationId, lastTimestamp } = event.queryStringParameters || {};
-        
+
         if (!conversationId) {
             return {
                 statusCode: 400,
@@ -44,7 +47,7 @@ export const handler = async (event) => {
         try {
             const botResponse = JSON.parse(event.body);
             const conversationId = botResponse.conversationId;
-            
+
             if (!conversationId) {
                 return {
                     statusCode: 400,
