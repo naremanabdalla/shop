@@ -48,6 +48,7 @@ export const handler = async (event) => {
             const botResponse = JSON.parse(event.body);
             const conversationId = botResponse.conversationId;
 
+            console.log("Bot response received:", botResponse);
             if (!conversationId) {
                 return {
                     statusCode: 400,
