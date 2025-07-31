@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import {
   Container,
   Header,
@@ -6,7 +7,6 @@ import {
   useWebchat,
   Fab,
 } from "@botpress/webchat";
-import { useState, useMemo } from "react";
 
 const headerConfig = {
   botName: "SupportBot",
@@ -40,17 +40,33 @@ const headerConfig = {
 };
 
 function Chat() {
-  const [isWebchatOpen, setIsWebchatOpen] = useState(true);
+  const [isWebchatOpen, setIsWebchatOpen] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  const webchatConfig = {
+    clientId: "e4daeba3-c296-4803-9af6-91c0c80ab5de",
+    enablePersistHistory: true,
+  };
+
+  // Initialize webchat only once
+  const webchat = useWebchat(isInitialized ? webchatConfig : undefined);
+
   const { client, messages, isTyping, user, clientState, newConversation } =
-    useWebchat({
-      clientId: "e4daeba3-c296-4803-9af6-91c0c80ab5de", // Insert your Client ID here
-    });
+    webchat || {
+      client: null,
+      messages: [],
+      isTyping: false,
+      user: null,
+      clientState: "disconnected",
+      newConversation: () => {},
+    };
 
   const config = {
     botName: "SupportBot",
     botAvatar: "https://picsum.photos/id/80/400",
     botDescription: "Your virtual assistant for all things support.",
   };
+
   const enrichedMessages = useMemo(
     () =>
       messages.map((message) => {
@@ -65,63 +81,59 @@ function Chat() {
               : { name: config.botName ?? "Bot", avatar: config.botAvatar },
         };
       }),
-    [
-      config.botAvatar,
-      config.botName,
-      messages,
-      user?.userId,
-      user?.name,
-      user?.pictureUrl,
-    ]
+    [config.botAvatar, config.botName, messages, user]
   );
 
   const toggleWebchat = () => {
+    if (!isInitialized) {
+      setIsInitialized(true);
+    }
     setIsWebchatOpen((prevState) => !prevState);
   };
 
   return (
     <>
-      <Container
-        connected={clientState !== "disconnected"}
-        style={{
-          width: "500px",
-          height: "800px",
-          display: isWebchatOpen ? "flex" : "none",
-          position: "fixed",
-          bottom: "90px",
-          right: "20px",
-        }}
-      >
-        <Header
-          // onOpenChange={() => console.log('Override the header open change')}
-          defaultOpen={false}
-          closeWindow={() => setIsWebchatOpen(false)}
-          restartConversation={newConversation}
-          disabled={false}
-          configuration={headerConfig}
-        />
-        <MessageList
-          // botAvatar={config.botAvatar}
-          botName={config.botName}
-          botDescription={config.botDescription}
-          isTyping={isTyping}
-          headerMessage="Chat History"
-          showMarquee={true}
-          messages={enrichedMessages}
-          sendMessage={client?.sendMessage}
-        />
-        <Composer
-          disableComposer={false}
-          isReadOnly={false}
-          allowFileUpload={true}
+      {isWebchatOpen && (
+        <Container
           connected={clientState !== "disconnected"}
-          sendMessage={client?.sendMessage}
-          uploadFile={client?.uploadFile}
-          composerPlaceholder="Type a message..."
-        />
-      </Container>
+          style={{
+            width: "500px",
+            height: "800px",
+            display: "flex",
+            position: "fixed",
+            bottom: "90px",
+            right: "20px",
+          }}
+        >
+          <Header
+            defaultOpen={false}
+            closeWindow={() => setIsWebchatOpen(false)}
+            restartConversation={newConversation}
+            disabled={false}
+            configuration={headerConfig}
+          />
+          <MessageList
+            botName={config.botName}
+            botDescription={config.botDescription}
+            isTyping={isTyping}
+            headerMessage="Chat History"
+            showMarquee={true}
+            messages={enrichedMessages}
+            sendMessage={client?.sendMessage}
+          />
+          <Composer
+            disableComposer={false}
+            isReadOnly={false}
+            allowFileUpload={true}
+            connected={clientState !== "disconnected"}
+            sendMessage={client?.sendMessage}
+            uploadFile={client?.uploadFile}
+            composerPlaceholder="Type a message..."
+          />
+        </Container>
+      )}
       <Fab
-        onClick={() => toggleWebchat()}
+        onClick={toggleWebchat}
         style={{
           position: "fixed",
           bottom: "20px",
