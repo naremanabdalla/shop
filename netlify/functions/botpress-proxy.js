@@ -1,7 +1,6 @@
-/* eslint-env node */
 export const handler = async (event) => {
     const BOTPRESS_URL = "https://webhook.botpress.cloud/667e3082-09f1-4ad3-9071-30ade020ef3b";
-    const BOTPRESS_TOKEN = "bp_pat_j47qAbJPowRIOXPInfJn0ZdKKWYZvkUdxL13";
+    const BOTPRESS_TOKEN = "bp_pat_se5aRM9MJCiKOr8oH0E7YuXBHBKdDijQn4nD";
 
     try {
         const payload = JSON.parse(event.body);
@@ -27,8 +26,15 @@ export const handler = async (event) => {
 
         const textResponse = await response.text();
 
-        // ✅ Fix: move .netlify/functions/... outside the fallback value
-        await fetch(`${process.env.URL || "https://shopping022.netlify.app"}/.netlify/functions/botpress-webhook`, {
+        // ✅ Dynamic Site URL & Protocol (Fix)
+        const siteUrl =
+            event.headers['x-forwarded-host'] ||
+            event.headers.host ||
+            "shopping022.netlify.app";
+        const protocol = event.headers['x-forwarded-proto'] || 'https';
+
+        // ✅ Use dynamic site URL in fetch
+        await fetch(`${protocol}://${siteUrl}/.netlify/functions/botpress-webhook`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: textResponse
