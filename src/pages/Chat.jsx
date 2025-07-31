@@ -6,7 +6,7 @@ import {
   useWebchat,
   Fab,
 } from "@botpress/webchat";
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo } from "react";
 
 const headerConfig = {
   botName: "SupportBot",
@@ -39,7 +39,7 @@ const headerConfig = {
   },
 };
 
-function App() {
+function Chat() {
   const [isWebchatOpen, setIsWebchatOpen] = useState(true);
   const { client, messages, isTyping, user, clientState, newConversation } =
     useWebchat({
@@ -134,4 +134,4 @@ function App() {
   );
 }
 
-export default App;
+export default Chat;
