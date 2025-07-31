@@ -34,7 +34,7 @@ export const handler = async (event) => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         const textResponse = await response.text();
-
+        console.log("Botpress response:", textResponse);
         // ✅ Dynamic site origin for internal call
         const siteUrl =
             event.headers['x-forwarded-host'] ||

@@ -49,8 +49,6 @@ const Chat = () => {
       sender: "user",
     };
 
-    console.log("userMessage:", userMessage);
-
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
 
