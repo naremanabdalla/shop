@@ -33,8 +33,8 @@ export const handler = async (event) => {
 
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-        const textResponse = await response.text();
-        console.log("Botpress response:", textResponse);
+        const jsonResponse = await response.json();
+        console.log("Botpress response:", jsonResponse);
         // ✅ Dynamic site origin for internal call
         const siteUrl =
             event.headers['x-forwarded-host'] ||
@@ -45,13 +45,14 @@ export const handler = async (event) => {
         await fetch(`${protocol}://${siteUrl}/.netlify/functions/botpress-webhook`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: textResponse
+            body: JSON.stringify(jsonResponse)
         });
+        console.log("✅ Botpress actual reply:", jsonResponse);
 
         return {
             statusCode: 200,
             headers,
-            body: textResponse
+            body: JSON.stringify(jsonResponse),
         };
     } catch (error) {
         console.error('Proxy error:', error);
