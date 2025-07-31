@@ -67,23 +67,6 @@ const Chat = () => {
         }),
       });
       const data = await response.json();
-      // const normalizeResponse = (data) => {
-      //   return (
-      //     data.message?.payload?.text ||
-      //     data.payload?.text ||
-      //     data.text ||
-      //     data.message?.text ||
-      //     "Please try again"
-      //   );
-      // };
-
-      // const botResponseText = normalizeResponse(data);
-
-      // Use it to set state
-      // setMessages((prev) => [
-      //   ...prev,
-      //   { id: `bot-${Date.now()}`, sender: "bot", text: botResponseText },
-      // ]);
 
       console.log("Proxy response:", data);
 
@@ -98,6 +81,7 @@ const Chat = () => {
           rawData: data,
           timestamp: Date.now(),
         };
+        console.log("Bot message:", botMessage);
         setMessages((prev) => [...prev, botMessage]);
       }
     } catch (error) {
