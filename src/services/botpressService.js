@@ -38,16 +38,18 @@ export const botpressService = {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to start conversation');
+                // Get the error details from the response
+                const errorDetails = await response.text();
+                console.error('API Error Details:', errorDetails);
+                throw new Error(`Failed to start conversation: ${response.status} ${response.statusText}`);
             }
 
             return await response.json();
         } catch (error) {
-            console.error('Error starting conversation:', error);
+            console.error('Full error starting conversation:', error);
             throw error;
         }
     },
-
     // Send a message to the chatbot
     async sendMessage(conversationId, message) {
         try {
