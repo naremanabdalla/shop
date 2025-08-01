@@ -1,6 +1,6 @@
 // src/components/ChatWidget.js
 import { useState, useEffect, useRef } from "react";
-import { botpressService } from "../";
+import { botpressService } from "../services/botpressService";
 
 export default function Chat() {
   const [isOpen, setIsOpen] = useState(false);
