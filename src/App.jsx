@@ -13,56 +13,48 @@ import Favourite from "./pages/Favourite";
 import ContactUS from "./pages/ContactUS";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
-import AuthContext from "./Context/authContext"; // 🔄 only use context here
+import AuthContext from "./Context/authContext";
 import Profile from "./pages/Profile";
 import FavouriteContextprovider from "./Context/FavouriteContextprovider";
 import NotFound from "./pages/NotFound";
 import { useTranslation } from "react-i18next";
 import ResetPassword from "./pages/resetPassword";
-
-const routes = createBrowserRouter([
-  {
-    path: "/",
-    element: <Layout />,
-    children: [
-      { path: "", element: <Home /> },
-      { path: "product/:productID", element: <ProductDetails /> },
-      { path: "/cart", element: <Cart /> },
-      { path: "/category/:categoryName", element: <CategoryPage /> },
-      { path: "/favourite", element: <Favourite /> },
-      { path: "/contact", element: <ContactUS /> },
-      { path: "/signin", element: <SignIn /> },
-      { path: "/signup", element: <SignUp /> },
-      { path: "/profile", element: <Profile /> },
-      { path: "/reset-password", element: <ResetPassword /> },
-    ],
-  },
-  { path: "*", element: <NotFound /> },
-]);
-
-function AppWrapper() {
-  return (
-    <AuthContext>
-      <App />
-    </AuthContext>
-  );
-}
-
 function App() {
+  const routes = createBrowserRouter([
+    {
+      path: "/",
+      element: <Layout />,
+      children: [
+        { path: "", element: <Home /> },
+        { path: "product/:productID", element: <ProductDetails /> },
+        { path: "/cart", element: <Cart /> },
+        { path: "/category/:categoryName", element: <CategoryPage /> },
+        { path: "/favourite", element: <Favourite /> },
+        { path: "/contact", element: <ContactUS /> },
+        { path: "/signin", element: <SignIn /> },
+        { path: "/signup", element: <SignUp /> },
+        { path: "/profile", element: <Profile /> },
+        { path: "/reset-password", element: <ResetPassword /> },
+      ],
+    },
+    { path: "*", element: <NotFound /> },
+  ]);
   const { i18n } = useTranslation();
-
   return (
     <div dir={i18n.language === "en" ? "ltr" : "rtl"}>
-      <CartContextProvider>
-        <FavouriteContextprovider>
-          <ProductsContextProvider>
-            <RouterProvider router={routes} />
-            <Toaster />
-          </ProductsContextProvider>
-        </FavouriteContextprovider>
-      </CartContextProvider>
+      <AuthContext>
+        <CartContextProvider>
+          <FavouriteContextprovider>
+            <ProductsContextProvider>
+              {/* <AnimatePresence mode="await"> */}
+              <RouterProvider router={routes} />
+              {/* </AnimatePresence> */}
+            </ProductsContextProvider>
+          </FavouriteContextprovider>
+        </CartContextProvider>
+      </AuthContext>
     </div>
   );
 }
 
-export default AppWrapper;
+export default App;
