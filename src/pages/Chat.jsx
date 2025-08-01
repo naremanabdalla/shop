@@ -1,40 +1,57 @@
-import { useState, useEffect } from "react";
-import { Fab, Webchat } from "@botpress/webchat";
+import { useState, useEffect, lazy, Suspense } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 
-export default function ChatWidget() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+const Webchat = lazy(() => import('@botpress/webchat').then(m => ({ default: m.Webchat })));
+const Fab = lazy(() => import('@botpress/webchat').then(m => ({ default: m.Fab })));
+
+function ChatWidget() {
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
-    return () => setIsMounted(false);
+    setIsReady(true);
+    return () => setIsReady(false);
   }, []);
 
-  if (!isMounted) return null;
+  if (!isReady) return null;
+
+  return (
+    <ErrorBoundary fallback={<div>Chat unavailable</div>}>
+      <Suspense fallback={<div>Loading chat...</div>}>
+        <ChatInterface />
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
+
+function ChatInterface() {
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
-      <Webchat
-        clientId="e4daeba3-c296-4803-9af6-91c0c80ab5de"
-        style={{
-          width: "400px",
-          height: "600px",
-          display: isOpen ? "flex" : "none",
-          position: "fixed",
-          bottom: "90px",
-          right: "20px",
-        }}
-      />
+      {isOpen && (
+        <Webchat
+          clientId="e4daeba3-c296-4803-9af6-91c0c80ab5de"
+          style={{
+            width: 'min(400px, 100vw - 40px)',
+            height: '600px',
+            position: 'fixed',
+            bottom: '90px',
+            right: '20px',
+          }}
+        />
+      )}
       <Fab
         onClick={() => setIsOpen(!isOpen)}
         style={{
-          position: "fixed",
-          bottom: "20px",
-          right: "20px",
-          width: "64px",
-          height: "64px",
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          width: '64px',
+          height: '64px'
         }}
       />
     </>
   );
 }
+
+export default ChatWidget;
