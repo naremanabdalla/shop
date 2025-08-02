@@ -27,24 +27,23 @@ const ProductCard = ({ item }) => {
       getCartItems(currentUser.uid)
         .then((data) => {
           setIsInCart(
-            data.some((ele) => {
-              return ele.id == item.id;
-            })
+            Array.isArray(data) && data.some((ele) => ele.id == item.id)
           );
         })
         .catch((err) => {
           console.log(err);
+          setIsInCart(false); // Default to false on error
         });
+
       getFavoriteItems(currentUser.uid)
         .then((data) => {
           setIsInFavourite(
-            data.some((ele) => {
-              return ele.id == item.id;
-            })
+            Array.isArray(data) && data.some((ele) => ele.id == item.id)
           );
         })
         .catch((err) => {
           console.log(err);
+          setIsInFavourite(false); // Default to false on error
         });
     }
   }, [getCartItems, item, getFavoriteItems, currentUser?.uid, currentUser]);
@@ -54,37 +53,39 @@ const ProductCard = ({ item }) => {
   }
   const handelAddToCart = async () => {
     if (currentUser) {
-      addToCart(currentUser.uid, item);
+      await addToCart(currentUser.uid, item);
       const updatedCart = await getCartItems(currentUser.uid);
-      setIsInCart(updatedCart.some((ele) => ele.id === item.id));
+      setIsInCart(
+        Array.isArray(updatedCart) &&
+          updatedCart.some((ele) => ele.id === item.id)
+      );
       toast.success(<ToastCart item={item} />, { duration: 3500 });
     } else {
-      // Handle case where user isn't logged in
       toast.error(t("Please sign in to add to cart"));
-
       navigate("/signin");
     }
   };
+
   const handelFavourite = async () => {
     if (currentUser) {
-      addToFavourite(currentUser.uid, item); // Pass user ID and item
+      await addToFavourite(currentUser.uid, item);
       const updatedFavourite = await getFavoriteItems(currentUser.uid);
-      setIsInFavourite(updatedFavourite.some((ele) => ele.id === item.id));
+      setIsInFavourite(
+        Array.isArray(updatedFavourite) &&
+          updatedFavourite.some((ele) => ele.id === item.id)
+      );
       toast.success(<ToastFavourite item={item} />, {
         duration: 3500,
         icon: (
           <FaHeart
             className={`${
               i18n.language === "ar" ? "mr-1" : "-mr-4"
-            }  text-2xl text-[color:var(--color-secondary)]`}
+            } text-2xl text-[color:var(--color-secondary)]`}
           />
         ),
-        style: {
-          background: " var(--color-primary)",
-        },
+        style: { background: "var(--color-primary)" },
       });
     } else {
-      // Handle case where user isn't logged in
       toast.error(t("Please sign in to add to favourites"));
       navigate("/signin");
     }

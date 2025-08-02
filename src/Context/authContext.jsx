@@ -15,35 +15,53 @@ const AuthContext = ({ children }) => {
     return unsubscribe;
   }, []);
 
+  const getUserFirestore = async (userId) => {
+    try {
+      const docRef = doc(db, "users", userId);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        return docSnap.data();
+      } else {
+        console.log("No user document found, returning empty defaults");
+        return {
+          name: "",
+          email: "",
+          favorite: [], // Critical - ensures array methods won't fail
+          cart: [], // Critical - ensures array methods won't fail
+          uid: userId,
+        };
+      }
+    } catch (e) {
+      console.error("Error getting user: ", e);
+      return {
+        // Always return safe defaults on error
+        name: "",
+        email: "",
+        favorite: [],
+        cart: [],
+        uid: userId,
+      };
+    }
+  };
+
   async function initializeUser(user) {
     if (user) {
       try {
-        // First get Firestore data (or create if new user)
-        let userData = await getUserFirestore(user.uid);
+        // Always gets an object with safe defaults
+        const userData = await getUserFirestore(user.uid);
 
-        // If no document exists, create one
-        if (!userData.name) {
-          // Check if we got the default empty object
-          await addUserFirestore(
-            user.displayName || "New User",
-            user.email,
-            user.uid
-          );
-          userData = await getUserFirestore(user.uid); // Get the newly created data
-        }
-
-        // Merge auth data with Firestore data
+        // Merge data
         setCurrentUser({
-          ...user, // Auth data (uid, email, displayName, etc.)
-          ...userData, // Firestore data (favorite, cart, etc.)
+          ...user, // Auth data
+          ...userData, // Firestore data (with safe arrays)
         });
         setUserLoggedIn(true);
       } catch (error) {
         console.error("Error initializing user:", error);
-        // Fallback to auth-only data with safe defaults
         setCurrentUser({
           ...user,
-          favorite: [],
+          favorite: [], // Explicit safe defaults
           cart: [],
         });
         setUserLoggedIn(true);
@@ -68,21 +86,6 @@ const AuthContext = ({ children }) => {
     } catch (e) {
       console.error("Error adding document: ", e);
       throw e;
-    }
-  };
-
-  const getUserFirestore = async (userId) => {
-    try {
-      const docRef = doc(db, "users", userId);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        return docSnap.data();
-      } else {
-        console.log("No such document here!");
-      }
-    } catch (e) {
-      console.error("Error getting user: ", e);
     }
   };
 
