@@ -85,7 +85,7 @@ const HeroSlider = () => {
       >
         {/* Slide  */}
         {slides.map((item) => (
-          <SwiperSlide>
+          <SwiperSlide key={item.id}>
             <div className=" h-90 w-full ">
               <div className="relative ">
                 <div className="text-white z-10 absolute inset-0 flex flex-col justify-start items-center p-4 sm:p-6 md:p-8 lg:p-12 xl:p-16 text-gray-800  bg-opacity-30">
