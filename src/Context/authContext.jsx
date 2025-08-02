@@ -79,7 +79,7 @@ const AuthContext = ({ children }) => {
       if (docSnap.exists()) {
         return docSnap.data();
       } else {
-        console.log("No such document!");
+        console.log("No such document here!");
       }
     } catch (e) {
       console.error("Error getting user: ", e);
