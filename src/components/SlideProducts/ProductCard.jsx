@@ -1,10 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 
-import {
-  FaHeart,
-  FaRegHeart,
-  FaCheckCircle,
-} from "react-icons/fa";
+import { FaShare, FaHeart, FaRegHeart, FaCheckCircle } from "react-icons/fa";
 import { GiShoppingCart } from "react-icons/gi";
 import { Link, useNavigate } from "react-router-dom";
 import ProductDetailsLoading from "../../pages/Loading";
@@ -61,9 +57,7 @@ const ProductCard = ({ item }) => {
       addToCart(currentUser.uid, item);
       const updatedCart = await getCartItems(currentUser.uid);
       setIsInCart(updatedCart.some((ele) => ele.id === item.id));
-      toast.success( <ToastCart item={item}/>
-        ,{ duration: 3500 }
-      );
+      toast.success(<ToastCart item={item} />, { duration: 3500 });
     } else {
       // Handle case where user isn't logged in
       toast.error(t("Please sign in to add to cart"));
@@ -76,27 +70,42 @@ const ProductCard = ({ item }) => {
       addToFavourite(currentUser.uid, item); // Pass user ID and item
       const updatedFavourite = await getFavoriteItems(currentUser.uid);
       setIsInFavourite(updatedFavourite.some((ele) => ele.id === item.id));
-      toast.success(
-       <ToastFavourite item={item}/>,
-        {
-          duration: 3500,
-          icon: (
-            <FaHeart
-              className={`${
-                i18n.language === "ar" ? "mr-1" : "-mr-4"
-              }  text-2xl text-[color:var(--color-secondary)]`}
-            />
-          ),
-          style: {
-            background:" var(--color-primary)",
-          },
-        }
-      );
+      toast.success(<ToastFavourite item={item} />, {
+        duration: 3500,
+        icon: (
+          <FaHeart
+            className={`${
+              i18n.language === "ar" ? "mr-1" : "-mr-4"
+            }  text-2xl text-[color:var(--color-secondary)]`}
+          />
+        ),
+        style: {
+          background: " var(--color-primary)",
+        },
+      });
     } else {
       // Handle case where user isn't logged in
       toast.error(t("Please sign in to add to favourites"));
       navigate("/signin");
     }
+  };
+
+  const handleShare = () => {
+    const productUrl = `https://shopping022.netlify.app/product/${item.id}`;
+
+    navigator.clipboard
+      .writeText(productUrl)
+      .then(() => {
+        toast.success(t("Link copied to clipboard!"), {
+          duration: 2000,
+        });
+      })
+      .catch((err) => {
+        console.error("Failed to copy: ", err);
+        toast.error(t("Failed to copy link"), {
+          duration: 2000,
+        });
+      });
   };
   return (
     <>
@@ -118,7 +127,7 @@ const ProductCard = ({ item }) => {
               </div>
               <p className="px-2 line-clamp-1  ">{item.title}</p>
               <div className="px-2 flex text-sm text-yellow-500  my-2">
-               <StarRating rating={item.rating} />
+                <StarRating rating={item.rating} />
               </div>
               <p className=" px-2 text-md text-[color:var(--color-secondary)] font-medium">
                 ${item.price}
@@ -132,8 +141,10 @@ const ProductCard = ({ item }) => {
           >
             <button disabled={isInCart}>
               <GiShoppingCart
-                className={` rounded-lg text-md p-1 box-content cursor-pointer ${
-                  isInCart ? " bg-[color:var(--color-primary)] text-[color:var(--color-secondary)]" : " bg-gray-200"
+                className={`hover:bg-[color:var(--color-primary)] hover:text-[color:var(--color-secondary)] rounded-lg text-md p-1 box-content cursor-pointer ${
+                  isInCart
+                    ? " bg-[color:var(--color-primary)] text-[color:var(--color-secondary)]"
+                    : " bg-gray-200"
                 } `}
                 onClick={() => {
                   handelAddToCart();
@@ -142,10 +153,17 @@ const ProductCard = ({ item }) => {
             </button>
             <button disabled={isInFavourite}>
               <FaRegHeart
-                className={`rounded-lg text-md p-1 box-content cursor-pointer
-                ${isInFavourite ? "bg-[color:var(--color-primary)] text-[color:var(--color-secondary)]" : "bg-gray-200"}`}
+                className={`hover:bg-[color:var(--color-primary)] hover:text-[color:var(--color-secondary)] rounded-lg text-md p-1 box-content cursor-pointer
+                ${
+                  isInFavourite
+                    ? "bg-[color:var(--color-primary)] text-[color:var(--color-secondary)]"
+                    : "bg-gray-200"
+                }`}
                 onClick={handelFavourite}
               />
+            </button>
+            <button onClick={handleShare}>
+              <FaShare className="hover:bg-[color:var(--color-primary)] hover:text-[color:var(--color-secondary)] bg-gray-200 rounded-lg text-md p-1 box-content  cursor-pointer" />
             </button>
           </div>
         </div>
