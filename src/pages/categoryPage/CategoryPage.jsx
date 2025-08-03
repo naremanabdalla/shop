@@ -30,7 +30,7 @@ const CategoryPage = () => {
         {categories.some((item) => item == categoryName) ? (
           ""
         ) : (
-          <h2 className="capitalize font-medium text-4xl text-center mt-4 text-pink-500">
+          <h2 className="capitalize font-medium text-4xl text-center mt-4 text-[color:var(--color-primary)]">
             {categoryName.replace("-", " ")}
           </h2>
         )}
