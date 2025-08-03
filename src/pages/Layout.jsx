@@ -34,14 +34,14 @@ const Layout = () => {
         <TopHeader />
         <BtmHeader />
       </header>
-      <div className="pt-30">
+    <div className="min-h-screen flex flex-col"> {/* Ensures full height + flex column */}
         <AnimatePresence mode="await">
           <PageTransation key={location.key}>
             <Outlet />
           </PageTransation>
         </AnimatePresence>
-      </div>
       <Footer />
+      </div>
     </>
   );
 };

@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 const Footer = () => {
   const { t } = useTranslation();
   return (
-    <footer className="bg-[color:var(--color-secondary)] text-[color:var(--color-primary)] py-5 text-sm w-full mt-10">
+       <footer className="bg-[color:var(--color-secondary)] text-[color:var(--color-primary)] py-5 text-sm w-full mt-auto"> {/* `mt-auto` pushes it down */}
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-evenly items-center">
           <div className="mb-2 md:mb-0">
