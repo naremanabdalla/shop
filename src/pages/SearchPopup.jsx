@@ -97,12 +97,12 @@ const SearchPopup = () => {
                           <p className="text-sm font-medium text-gray-900 truncate">
                             {item.title}
                           </p>
-                          <p className="text-xs text-pink-400 truncate">
+                          <p className="text-xs text-[color:var(--color-primary)] truncate">
                             {item.category}
                           </p>
                         </div>
                         <div className="ml-4">
-                          <p className="text-sm font-semibold text-pink-500">
+                          <p className="text-sm font-semibold text-[color:var(--color-primary">
                             ${item.price.toFixed(2)}
                           </p>
                         </div>
