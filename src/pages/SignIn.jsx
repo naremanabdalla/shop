@@ -52,7 +52,7 @@ const SignIn = () => {
             <div className="text-sm">
               Password reset email sent! Check your inbox
             </div>
-            <button className="bg-[color:var(--color-secondary)] text-sm rounded-md px-1 py-1"> 
+            <button className="bg-[color:var(--color-primary)] text-sm rounded-md px-1 py-1"> 
                done
             </button>
           </div>,

@@ -83,7 +83,7 @@ const ContactUS = () => {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[color:var(--color-secondary)] focus:border-[color:var(--color-secondary)]"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[color:var(--color-primary)] focus:border-[color:var(--color-secondary)]"
                   />
                 </div>
 
@@ -101,7 +101,7 @@ const ContactUS = () => {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[color:var(--color-secondary)] focus:border-[color:var(--color-secondary)]"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[color:var(--color-primary)] focus:border-[color:var(--color-secondary)]"
                   />
                 </div>
 
@@ -119,7 +119,7 @@ const ContactUS = () => {
                     value={formData.subject}
                     onChange={handleChange}
                     required
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[color:var(--color-secondary)] focus:border-[color:var(--color-secondary)]"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[color:var(--color-primary)] focus:border-[color:var(--color-secondary)]"
                   />
                 </div>
 
@@ -137,7 +137,7 @@ const ContactUS = () => {
                     value={formData.message}
                     onChange={handleChange}
                     required
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[color:var(--color-secondary)] focus:border-[color:var(--color-secondary)]"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[color:var(--color-primary)] focus:border-[color:var(--color-secondary)]"
                   />
                 </div>
 
@@ -145,7 +145,7 @@ const ContactUS = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[color:var(--color-secondary)] hover:bg-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[color:var(--color-secondary)]"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[color:var(--color-secondary)] hover:bg-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[color:var(--color-primary)]"
                   >
                     <FaPaperPlane className="mr-2 h-4 w-4" />
                     {t("Send Message")}
