@@ -102,7 +102,7 @@ const SearchPopup = () => {
                           </p>
                         </div>
                         <div className="ml-4">
-                          <p className="text-sm font-semibold text-[color:var(--color-primary">
+                          <p className="text-sm font-semibold text-[color:var(--color-primary)]">
                             ${item.price.toFixed(2)}
                           </p>
                         </div>
