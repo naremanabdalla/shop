@@ -10,6 +10,8 @@ import { useTranslation } from "react-i18next";
 const Profile = () => {
   const { getUserFirestore, currentUser } = useAuth();
   const [user, setUser] = useState("");
+  const [loadingUser, setLoadingUser] = useState(true);
+
   useEffect(() => {
     if (currentUser) {
       const fetchUser = async () => {
@@ -18,16 +20,19 @@ const Profile = () => {
           setUser(userData);
         } catch (error) {
           console.error("Failed to fetch user:", error);
-        }
+         } finally {
+        setLoadingUser(false);
+      }
       };
 
       fetchUser();
     }
-  }, []);
+}, [currentUser,getUserFirestore]); // Add dependencies
   const { t } = useTranslation();
-  if (!currentUser) {
-    return <NotFound />;
-  }
+  if ( loadingUser) {
+  return <Loading />;
+}
+
   if (!user) {
     return <Loading />;
   }
