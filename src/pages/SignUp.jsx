@@ -42,7 +42,7 @@ const SignUp = () => {
       setIsRegistering(true);
       try {
         await signup(email, password);
-        await addUserFirestore(name, email, password, auth.currentUser.uid);
+        await addUserFirestore(name, email,auth.currentUser.uid);
         setName("");
         setemail("");
         setpassword("");
