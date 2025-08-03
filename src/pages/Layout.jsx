@@ -34,7 +34,7 @@ const Layout = () => {
         <TopHeader />
         <BtmHeader />
       </header>
-    <div className="min-h-screen flex flex-col"> {/* Ensures full height + flex column */}
+    <div className="min-h-screen flex flex-col pt-30"> {/* Ensures full height + flex column */}
         <AnimatePresence mode="await">
           <PageTransation key={location.key}>
             <Outlet />
